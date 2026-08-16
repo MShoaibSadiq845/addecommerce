@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 import { useGetProductsQuery } from '@/store/services/productsApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
-import { LoadingProvider, useLoading } from '@/context/LoadingContext';
+import { LoadingProvider } from '@/context/LoadingContext';
 import { ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
@@ -120,18 +120,8 @@ function HomeContent() {
     refetchOnMountOrArgChange: true,
   });
 
-  const { setLoading } = useLoading();
   const reviewsRef = useRef<HTMLDivElement>(null);
-
   const [liveReviews, setLiveReviews] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (loadingNew || loadingTop || loadingReviews) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-  }, [loadingNew, loadingTop, loadingReviews, setLoading]);
 
   useEffect(() => {
     if (fetchedReviews.length > 0) {

@@ -8,22 +8,19 @@ import { useGetProductsQuery } from '@/store/services/productsApi';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '@/store/slices/cartSlice';
 import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductCardSkeleton';
-import { SlidersHorizontal, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react';
+import { SlidersHorizontal, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ShoppingCart, Star, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 
+/* ─── Rating Stars helper ─── */
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <svg
+        <Star
           key={i}
-          className={`w-3.5 h-3.5 ${i < Math.floor(rating) ? 'text-amber-400' : 'text-gray-200'}`}
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
+          className={`w-3.5 h-3.5 ${i < Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'}`}
+        />
       ))}
     </div>
   );
@@ -54,10 +51,12 @@ function ProductCard({ product }: { product: any }) {
     toast.success(`${product.name} added to cart!`, { duration: 1500 });
   };
 
+  const reviewCount = product.reviewsCount ?? product.numReviews ?? 0;
+
   return (
     <div className="group flex flex-col gap-3 relative">
       <Link href={`/shop/${product._id}`}>
-        <div className="relative w-full aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden">
+        <div className="relative w-full aspect-[3/4] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
           <Image
             src={img}
             alt={product.name}
@@ -69,7 +68,7 @@ function ProductCard({ product }: { product: any }) {
               -{discount}%
             </span>
           )}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
+          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={handleQuickAdd}
               className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
@@ -80,19 +79,21 @@ function ProductCard({ product }: { product: any }) {
         </div>
       </Link>
       <Link href={`/shop/${product._id}`} className="flex flex-col gap-1 px-1">
-        <h3 className="font-bold text-sm text-black line-clamp-1">{product.name}</h3>
+        <h3 className="font-bold text-sm sm:text-base text-black line-clamp-1">{product.name}</h3>
         <div className="flex items-center gap-2">
           <Stars rating={product.rating || 4.5} />
-          <span className="text-xs text-gray-400">{product.rating || 4.5}/5</span>
+          <span className="text-xs text-gray-500 font-medium">
+            {product.rating || 4.5}/5 {reviewCount > 0 && <span className="text-gray-400">({reviewCount})</span>}
+          </span>
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="font-bold text-base text-black">₨{price?.toLocaleString()}</span>
+          <span className="font-bold text-lg text-black">₨{price?.toLocaleString()}</span>
           {product.isOnSale && (
-            <span className="text-sm text-gray-400 line-through">₨{product.price?.toLocaleString()}</span>
+            <span className="font-medium text-sm text-gray-400 line-through">₨{product.price?.toLocaleString()}</span>
           )}
         </div>
         {product.category && (
-          <span className="text-[10px] text-gray-400 capitalize">{product.category}</span>
+          <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{product.category}</span>
         )}
       </Link>
     </div>
@@ -292,8 +293,12 @@ function ShopContent() {
     return nums;
   };
 
+  const hasActiveFilters = Boolean(
+    activeCategory || activeIsOnSale || activeColors.length > 0 || activeSizes.length > 0 || activeMaxPrice < dynamicPriceRange.max
+  );
+
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-8 font-['Satoshi']">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-8">
       <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
         <Link href="/" className="hover:text-black">Home</Link>
         <ChevronRight className="w-3.5 h-3.5" />
@@ -304,23 +309,20 @@ function ShopContent() {
         </span>
       </nav>
 
-      <div className="flex gap-6 items-start">
+      <div className="flex gap-8 items-start">
+        {/* ═══════════════════ SIDEBAR FILTERS ═══════════════════ */}
         <aside
-          className={`shrink-0 w-64 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-1 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${
+          className={`shrink-0 w-72 bg-white border border-gray-200 rounded-[24px] p-6 flex flex-col gap-2 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${
             sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
           }`}
         >
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-base text-black flex items-center gap-2">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-lg text-black flex items-center gap-2" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </h3>
-            {(pendingCategory ||
-              pendingIsOnSale ||
-              pendingColors.length ||
-              pendingSizes.length ||
-              effectiveMaxPrice < dynamicPriceRange.max) && (
+            {hasActiveFilters && (
               <button onClick={clearAll} className="text-xs text-red-500 font-bold hover:underline">
-                Clear
+                Clear All
               </button>
             )}
           </div>
@@ -332,7 +334,7 @@ function ShopContent() {
                   <button
                     key={cat}
                     onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
-                    className={`flex items-center justify-between py-1.5 px-2 rounded-lg text-sm transition-colors ${
+                    className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${
                       pendingCategory === cat
                         ? 'text-black font-bold bg-gray-100'
                         : 'text-gray-600 hover:text-black hover:bg-gray-50'
@@ -346,7 +348,7 @@ function ShopContent() {
             </FilterSection>
           )}
 
-          <FilterSection title="Max Price (PKR)" open={priceOpen} onToggle={() => setPriceOpen(!priceOpen)}>
+          <FilterSection title="Price" open={priceOpen} onToggle={() => setPriceOpen(!priceOpen)}>
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs text-gray-600 font-semibold">
                 <span>₨{dynamicPriceRange.min.toLocaleString()}</span>
@@ -372,10 +374,6 @@ function ShopContent() {
                   }%)`,
                 }}
               />
-              <div className="flex justify-between text-[10px] text-gray-400">
-                <span>Min</span>
-                <span>Max: ₨{dynamicPriceRange.max.toLocaleString()}</span>
-              </div>
             </div>
           </FilterSection>
 
@@ -421,7 +419,7 @@ function ShopContent() {
                       onClick={() => toggleColor(c)}
                       title={c}
                       aria-label={`${isSelected ? 'Deselect' : 'Select'} color ${c}`}
-                      className={`relative w-8 h-8 rounded-full transition-all focus:outline-none ${
+                      className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${
                         isLight ? 'border border-gray-300' : ''
                       } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
                       style={{ backgroundColor: bg }}
@@ -459,7 +457,7 @@ function ShopContent() {
                     <button
                       key={s}
                       onClick={() => toggleSize(s)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all ${
+                      className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
                         pendingSizes.includes(s)
                           ? 'bg-black text-white border-black shadow-sm'
                           : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
@@ -474,7 +472,7 @@ function ShopContent() {
           )}
 
           <FilterSection title="Offers" open={offersOpen} onToggle={() => setOffersOpen(!offersOpen)}>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <label className="flex items-center gap-2.5 text-sm cursor-pointer">
               <input
                 type="checkbox"
                 checked={pendingIsOnSale}
@@ -487,7 +485,7 @@ function ShopContent() {
 
           <button
             onClick={applyFilters}
-            className="w-full bg-black text-white rounded-full py-3 text-sm font-bold hover:bg-gray-800 transition-colors mt-4 shadow-md"
+            className="w-full bg-black text-white rounded-full py-3.5 text-sm font-bold hover:bg-gray-900 transition-colors mt-4 shadow-md"
           >
             Apply Filters
           </button>
@@ -497,32 +495,33 @@ function ShopContent() {
           <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
+        {/* ═══════════════════ MAIN CONTENT ═══════════════════ */}
         <main className="flex-1 min-w-0 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-gray-200">
             <div>
-              <h1 className="text-xl font-bold text-black capitalize">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-black capitalize" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
                 {activeSearch
                   ? `Search: "${activeSearch}"`
                   : activeNewArrivals ? 'New Arrivals' : activeCategory || 'All Products'}
               </h1>
-              <p className="text-xs text-gray-400">{totalProducts} products found</p>
+              <p className="text-xs text-gray-500 mt-1">Showing {products.length} of {totalProducts} products available</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full text-sm"
+                className="lg:hidden flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-full text-sm font-medium"
               >
                 <SlidersHorizontal className="w-4 h-4" /> Filters
               </button>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Sort:</span>
+                <span className="text-xs text-gray-500 font-medium">Sort by:</span>
                 <select
                   value={sortRaw}
                   onChange={(e) => update({ sort: e.target.value, page: '1' })}
-                  className="bg-transparent text-sm font-medium outline-none border-b border-gray-300 pb-0.5 cursor-pointer"
+                  className="bg-transparent text-sm font-bold text-black outline-none cursor-pointer"
                 >
                   <option value="newest">Newest</option>
-                  <option value="most-popular">Most Popular</option>
+                  <option value="rating">Most Popular</option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
                 </select>
@@ -530,17 +529,79 @@ function ShopContent() {
             </div>
           </div>
 
+          {/* Active Filter Chips */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs text-gray-400 font-semibold">Active:</span>
+              {activeCategory && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
+                  {activeCategory}
+                  <button onClick={() => update({ category: undefined, page: '1' })} className="hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {activeIsOnSale && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full">
+                  On Sale
+                  <button onClick={() => update({ isOnSale: undefined, page: '1' })} className="hover:text-red-800">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {activeMaxPrice < dynamicPriceRange.max && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full">
+                  Max: ₨{activeMaxPrice.toLocaleString()}
+                  <button onClick={() => update({ maxPrice: undefined, page: '1' })} className="hover:text-red-500">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {activeColors.map((c) => (
+                <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
+                  Color: {c}
+                  <button
+                    onClick={() => {
+                      const newColors = activeColors.filter((x) => x !== c);
+                      update({ color: newColors.length ? newColors.join(',') : undefined, page: '1' });
+                    }}
+                    className="hover:text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {activeSizes.map((s) => (
+                <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full uppercase">
+                  Size: {s}
+                  <button
+                    onClick={() => {
+                      const newSizes = activeSizes.filter((x) => x !== s);
+                      update({ size: newSizes.length ? newSizes.join(',') : undefined, page: '1' });
+                    }}
+                    className="hover:text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              <button onClick={clearAll} className="text-xs text-red-500 font-bold hover:underline ml-2">
+                Clear All
+              </button>
+            </div>
+          )}
+
           {isLoading ? (
             <ProductGridSkeleton count={9} />
           ) : products.length === 0 ? (
-            <div className="py-20 flex flex-col items-center gap-3 bg-gray-50 rounded-2xl text-center">
-              <p className="font-bold text-gray-700">No products found</p>
-              <p className="text-xs text-gray-400">Try adjusting your filters.</p>
+            <div className="py-20 flex flex-col items-center gap-3 bg-[#f2f0f1] rounded-[24px] text-center px-4">
+              <p className="font-bold text-lg text-black">No products found</p>
+              <p className="text-xs text-gray-500">Try adjusting your filters or search query.</p>
               <button
-                onClick={() => router.replace('/shop')}
-                className="mt-2 px-6 py-2 bg-black text-white rounded-full text-xs font-bold"
+                onClick={clearAll}
+                className="mt-3 px-8 py-3 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-900 transition-colors"
               >
-                Clear Filters
+                Clear All Filters
               </button>
             </div>
           ) : (
@@ -552,7 +613,7 @@ function ShopContent() {
           )}
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
               <button
                 disabled={page <= 1}
                 onClick={() => update({ page: String(page - 1) })}
@@ -569,7 +630,7 @@ function ShopContent() {
                       key={num}
                       onClick={() => update({ page: String(num) })}
                       className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                        page === num ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'
+                        page === num ? 'bg-black text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
                       }`}
                     >
                       {num}
