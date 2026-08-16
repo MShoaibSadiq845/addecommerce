@@ -536,7 +536,7 @@ function ShopContent() {
           {/* Active Filter Chips */}
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-xs text-gray-400 font-semibold">Active:</span>
+            
               {activeCategory && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
                   {activeCategory}
@@ -545,14 +545,7 @@ function ShopContent() {
                   </button>
                 </span>
               )}
-              {activeIsOnSale && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full">
-                  On Sale
-                  <button onClick={() => update({ isOnSale: undefined, page: '1' })} className="hover:text-red-800">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
+           
               {activeMaxPrice < dynamicPriceRange.max && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full">
                   Max: ₨{activeMaxPrice.toLocaleString()}
