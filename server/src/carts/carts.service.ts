@@ -24,7 +24,7 @@ export class CartsService {
     );
 
     const paymentMethod = dto.paymentMethod || 'currency';
-    const existingIndex = cart.items.findIndex((item) =>
+    const existingIndex = cart.items.findIndex((item: any) =>
       item.product.equals(dto.productId) &&
       item.paymentMethod === paymentMethod &&
       item.size === (dto.size || '') &&
@@ -44,7 +44,7 @@ export class CartsService {
         size: dto.size || '',
         color: dto.color || '',
         image: dto.image || '',
-      });
+      } as any);
     }
 
     await cart.save();
@@ -55,7 +55,9 @@ export class CartsService {
     const cart = await this.cartModel.findOne({ user: userId }).exec();
     if (!cart) throw new NotFoundException('Cart not found');
 
-    const item = cart.items.id(itemId);
+    const item: any = cart.items.find(
+      (i: any) => i._id?.toString() === itemId || i.id === itemId,
+    );
     if (!item) throw new NotFoundException('Cart item not found');
 
     if (dto.quantity !== undefined) item.quantity = Math.max(1, dto.quantity);
@@ -70,7 +72,9 @@ export class CartsService {
     const cart = await this.cartModel.findOne({ user: userId }).exec();
     if (!cart) throw new NotFoundException('Cart not found');
 
-    cart.items = cart.items.filter((item) => item._id.toString() !== itemId);
+    cart.items = cart.items.filter(
+      (item: any) => item._id?.toString() !== itemId && item.id?.toString() !== itemId,
+    );
     await cart.save();
     return cart;
   }
