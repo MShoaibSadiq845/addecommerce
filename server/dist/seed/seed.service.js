@@ -1,9 +1,43 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
@@ -11,25 +45,23 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var SeedService_1;
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
-import { User, UserRole } from '../users/schemas/user.schema';
-import { Product } from '../products/schemas/product.schema';
-import { Order, OrderStatus } from '../orders/schemas/order.schema';
-import { Notification } from '../notifications/schemas/notification.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SeedService = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const bcrypt = __importStar(require("bcryptjs"));
+const user_schema_1 = require("../users/schemas/user.schema");
+const product_schema_1 = require("../products/schemas/product.schema");
+const order_schema_1 = require("../orders/schemas/order.schema");
+const notification_schema_1 = require("../notifications/schemas/notification.schema");
 let SeedService = SeedService_1 = class SeedService {
-    userModel;
-    productModel;
-    orderModel;
-    notificationModel;
-    logger = new Logger(SeedService_1.name);
     constructor(userModel, productModel, orderModel, notificationModel) {
         this.userModel = userModel;
         this.productModel = productModel;
         this.orderModel = orderModel;
         this.notificationModel = notificationModel;
+        this.logger = new common_1.Logger(SeedService_1.name);
     }
     async onModuleInit() {
         await this.seedAll();
@@ -53,7 +85,6 @@ let SeedService = SeedService_1 = class SeedService {
             this.logger.error('Error during database seeding:', err);
         }
     }
-    // ── Admin users only — storefront is guest-based ──────────────────────────
     async seedUsers() {
         const hashedPassword = await bcrypt.hash('password123', 10);
         const existing = await this.userModel.countDocuments();
@@ -64,20 +95,19 @@ let SeedService = SeedService_1 = class SeedService {
                 name: 'Store Admin',
                 email: 'admin@shop.co',
                 password: hashedPassword,
-                role: UserRole.ADMIN,
+                role: user_schema_1.UserRole.ADMIN,
                 avatar: '',
             },
             {
                 name: 'Super Admin',
                 email: 'superadmin@shop.co',
                 password: hashedPassword,
-                role: UserRole.SUPER_ADMIN,
+                role: user_schema_1.UserRole.SUPER_ADMIN,
                 avatar: '',
             },
         ]);
         this.logger.log('Seeded admin users: admin@shop.co / superadmin@shop.co (password: password123)');
     }
-    // ── Sample product catalogue ───────────────────────────────────────────────
     async seedProducts() {
         const products = [
             {
@@ -192,7 +222,6 @@ let SeedService = SeedService_1 = class SeedService {
         await this.productModel.create(products);
         this.logger.log(`Seeded ${products.length} products.`);
     }
-    // ── Sample guest orders ────────────────────────────────────────────────────
     async seedOrders() {
         const products = await this.productModel.find().limit(3).exec();
         if (products.length < 2)
@@ -218,7 +247,7 @@ let SeedService = SeedService_1 = class SeedService {
                     },
                 ],
                 totalAmount: (products[0].isOnSale ? products[0].salePrice : products[0].price) * 2,
-                status: OrderStatus.DELIVERED,
+                status: order_schema_1.OrderStatus.DELIVERED,
                 shippingAddress: {
                     street: 'House 12, Gulshan-e-Iqbal',
                     city: 'Karachi',
@@ -243,7 +272,7 @@ let SeedService = SeedService_1 = class SeedService {
                     },
                 ],
                 totalAmount: products[1].isOnSale ? products[1].salePrice : products[1].price,
-                status: OrderStatus.PROCESSING,
+                status: order_schema_1.OrderStatus.PROCESSING,
                 shippingAddress: {
                     street: 'Flat 5B, DHA Phase 6',
                     city: 'Lahore',
@@ -256,7 +285,6 @@ let SeedService = SeedService_1 = class SeedService {
         ]);
         this.logger.log('Seeded 2 sample guest orders.');
     }
-    // ── Sample notifications ───────────────────────────────────────────────────
     async seedNotifications() {
         await this.notificationModel.create([
             {
@@ -276,16 +304,13 @@ let SeedService = SeedService_1 = class SeedService {
         ]);
     }
 };
-SeedService = SeedService_1 = __decorate([
-    Injectable(),
-    __param(0, InjectModel(User.name)),
-    __param(1, InjectModel(Product.name)),
-    __param(2, InjectModel(Order.name)),
-    __param(3, InjectModel(Notification.name)),
-    __metadata("design:paramtypes", [Model,
-        Model,
-        Model,
-        Model])
+exports.SeedService = SeedService;
+exports.SeedService = SeedService = SeedService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(1, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
+    __param(2, (0, mongoose_1.InjectModel)(order_schema_1.Order.name)),
+    __param(3, (0, mongoose_1.InjectModel)(notification_schema_1.Notification.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model, mongoose_2.Model, mongoose_2.Model, mongoose_2.Model])
 ], SeedService);
-export { SeedService };
 //# sourceMappingURL=seed.service.js.map

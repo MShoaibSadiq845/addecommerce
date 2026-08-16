@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,17 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Inject } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { CartsService } from './carts.service';
-import { AddCartItemDto } from './dto/cart-item.dto';
-import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { GetUser } from '../auth/get-user.decorator';
-// Cart endpoints are admin-only for management; storefront uses Redux local state
-// We keep these open for optional sync when token is present
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CartsController = void 0;
+const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
+const carts_service_1 = require("./carts.service");
+const cart_item_dto_1 = require("./dto/cart-item.dto");
+const update_cart_item_dto_1 = require("./dto/update-cart-item.dto");
+const get_user_decorator_1 = require("../auth/get-user.decorator");
 let CartsController = class CartsController {
-    cartsService;
     constructor(cartsService) {
         this.cartsService = cartsService;
     }
@@ -33,61 +32,68 @@ let CartsController = class CartsController {
     async updateCartItem(userId, itemId, dto) {
         return this.cartsService.updateItem(userId, itemId, dto);
     }
-    async removeCartItem(userId, itemId) {
-        return this.cartsService.removeItem(userId, itemId);
+    async removeCartItem(userId, itemId, size, color) {
+        const cart = await this.cartsService.removeItem(userId, itemId, size, color);
+        return {
+            success: true,
+            message: 'Item removed from cart',
+            cart,
+        };
     }
     async clearCart(userId) {
         return this.cartsService.clearCart(userId);
     }
 };
+exports.CartsController = CartsController;
 __decorate([
-    Get(),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, GetUser('_id')),
+    (0, common_1.Get)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CartsController.prototype, "getCart", null);
 __decorate([
-    Post(),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, GetUser('_id')),
-    __param(1, Body()),
+    (0, common_1.Post)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_b = typeof AddCartItemDto !== "undefined" && AddCartItemDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [String, cart_item_dto_1.AddCartItemDto]),
     __metadata("design:returntype", Promise)
 ], CartsController.prototype, "addToCart", null);
 __decorate([
-    Put(':itemId'),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, GetUser('_id')),
-    __param(1, Param('itemId')),
-    __param(2, Body()),
+    (0, common_1.Put)(':itemId'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
+    __param(1, (0, common_1.Param)('itemId')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, typeof (_c = typeof UpdateCartItemDto !== "undefined" && UpdateCartItemDto) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [String, String, update_cart_item_dto_1.UpdateCartItemDto]),
     __metadata("design:returntype", Promise)
 ], CartsController.prototype, "updateCartItem", null);
 __decorate([
-    Delete(':itemId'),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, GetUser('_id')),
-    __param(1, Param('itemId')),
+    (0, common_1.Delete)(':itemId'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
+    __param(1, (0, common_1.Param)('itemId')),
+    __param(2, (0, common_1.Query)('size')),
+    __param(3, (0, common_1.Query)('color')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], CartsController.prototype, "removeCartItem", null);
 __decorate([
-    Delete(),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, GetUser('_id')),
+    (0, common_1.Delete)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CartsController.prototype, "clearCart", null);
-CartsController = __decorate([
-    Controller('cart'),
-    __param(0, Inject(CartsService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof CartsService !== "undefined" && CartsService) === "function" ? _a : Object])
+exports.CartsController = CartsController = __decorate([
+    (0, common_1.Controller)('cart'),
+    __param(0, (0, common_1.Inject)(carts_service_1.CartsService)),
+    __metadata("design:paramtypes", [carts_service_1.CartsService])
 ], CartsController);
-export { CartsController };
 //# sourceMappingURL=carts.controller.js.map

@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,12 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Product } from './schemas/product.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProductsService = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const product_schema_1 = require("./schemas/product.schema");
 let ProductsService = class ProductsService {
-    productModel;
     constructor(productModel) {
         this.productModel = productModel;
     }
@@ -36,19 +38,17 @@ let ProductsService = class ProductsService {
             baseFilter.isOnSale =
                 isOnSale === true || String(isOnSale).toLowerCase() === 'true';
         }
-        // New Arrivals: products created within the last 7 days
         if (newArrivals === true || String(newArrivals).toLowerCase() === 'true') {
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
             baseFilter.createdAt = { $gte: oneWeekAgo };
+            baseFilter.isOnSale = { $ne: true };
         }
         if (Object.keys(baseFilter).length)
             filters.push(baseFilter);
         if (minPrice !== undefined || maxPrice !== undefined) {
-            // Check against effective price (salePrice if on sale, otherwise regular price)
             const priceConditions = [];
             if (minPrice !== undefined && maxPrice !== undefined) {
-                // Both min and max specified
                 priceConditions.push({
                     $or: [
                         { isOnSale: true, salePrice: { $gte: Number(minPrice), $lte: Number(maxPrice) } },
@@ -57,7 +57,6 @@ let ProductsService = class ProductsService {
                 });
             }
             else if (minPrice !== undefined) {
-                // Only min specified
                 priceConditions.push({
                     $or: [
                         { isOnSale: true, salePrice: { $gte: Number(minPrice) } },
@@ -66,7 +65,6 @@ let ProductsService = class ProductsService {
                 });
             }
             else if (maxPrice !== undefined) {
-                // Only max specified
                 priceConditions.push({
                     $or: [
                         { isOnSale: true, salePrice: { $lte: Number(maxPrice) } },
@@ -87,14 +85,12 @@ let ProductsService = class ProductsService {
                 ],
             });
         }
-        // Filter by colors array field
         const colors = this.normalizeArrayParam(color);
         if (colors.length) {
             filters.push({
                 colors: { $in: colors.map((c) => new RegExp(c, 'i')) },
             });
         }
-        // Filter by sizes array field
         const sizes = this.normalizeArrayParam(size);
         if (sizes.length) {
             filters.push({
@@ -102,13 +98,11 @@ let ProductsService = class ProductsService {
             });
         }
         const finalFilter = filters.length > 1 ? { $and: filters } : filters[0] || {};
-        // For price sorting, we need to use aggregation to calculate effective price
         const needsPriceSorting = sort === 'price-asc' || sort === 'price-desc';
         const skip = (Number(page) - 1) * Number(limit);
         const total = await this.productModel.countDocuments(finalFilter);
         let products;
         if (needsPriceSorting) {
-            // Use aggregation pipeline to sort by effective price
             const sortDirection = sort === 'price-asc' ? 1 : -1;
             products = await this.productModel.aggregate([
                 { $match: finalFilter },
@@ -129,7 +123,6 @@ let ProductsService = class ProductsService {
             ]).exec();
         }
         else {
-            // Regular sorting for non-price fields
             let sortOptions = { createdAt: -1 };
             if (sort === 'rating' || sort === 'most-popular')
                 sortOptions = { totalSales: -1 };
@@ -152,7 +145,7 @@ let ProductsService = class ProductsService {
     async findById(id) {
         const product = await this.productModel.findById(id).exec();
         if (!product)
-            throw new NotFoundException('Product not found');
+            throw new common_1.NotFoundException('Product not found');
         return product;
     }
     async create(dto) {
@@ -163,13 +156,13 @@ let ProductsService = class ProductsService {
             .findByIdAndUpdate(id, dto, { new: true })
             .exec();
         if (!product)
-            throw new NotFoundException('Product not found');
+            throw new common_1.NotFoundException('Product not found');
         return product;
     }
     async remove(id) {
         const product = await this.productModel.findByIdAndDelete(id).exec();
         if (!product)
-            throw new NotFoundException('Product not found');
+            throw new common_1.NotFoundException('Product not found');
         return { message: 'Product removed successfully' };
     }
     async toggleSale(id, isOnSale, salePrice) {
@@ -180,13 +173,12 @@ let ProductsService = class ProductsService {
             .findByIdAndUpdate(id, updateData, { new: true })
             .exec();
         if (!product)
-            throw new NotFoundException('Product not found');
+            throw new common_1.NotFoundException('Product not found');
         return product;
     }
     async getCategories() {
         return this.productModel.distinct('category').exec();
     }
-    // Return distinct colors and sizes for dynamic filter options
     async getFilterOptions() {
         const [colors, sizes, categories] = await Promise.all([
             this.productModel.distinct('colors').exec(),
@@ -200,10 +192,10 @@ let ProductsService = class ProductsService {
         };
     }
 };
-ProductsService = __decorate([
-    Injectable(),
-    __param(0, InjectModel(Product.name)),
-    __metadata("design:paramtypes", [Model])
+exports.ProductsService = ProductsService;
+exports.ProductsService = ProductsService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model])
 ], ProductsService);
-export { ProductsService };
 //# sourceMappingURL=products.service.js.map

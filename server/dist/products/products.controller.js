@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,19 +11,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f;
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, Inject, UseInterceptors, UploadedFile, } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ProductsService, ProductQuery } from './products.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { NotificationsService } from '../notifications/notifications.service';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-// No authentication on any route — fully public API
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProductsController = void 0;
+const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
+const products_service_1 = require("./products.service");
+const create_product_dto_1 = require("./dto/create-product.dto");
+const update_product_dto_1 = require("./dto/update-product.dto");
+const notifications_service_1 = require("../notifications/notifications.service");
+const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
 let ProductsController = class ProductsController {
-    productsService;
-    notificationsService;
-    cloudinaryService;
     constructor(productsService, notificationsService, cloudinaryService) {
         this.productsService = productsService;
         this.notificationsService = notificationsService;
@@ -86,76 +84,76 @@ let ProductsController = class ProductsController {
         return product;
     }
 };
+exports.ProductsController = ProductsController;
 __decorate([
-    Post('upload'),
-    UseInterceptors(FileInterceptor('file')),
-    __param(0, UploadedFile()),
+    (0, common_1.Post)('upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "uploadImage", null);
 __decorate([
-    Get(),
-    __param(0, Query()),
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof ProductQuery !== "undefined" && ProductQuery) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getAll", null);
 __decorate([
-    Get('categories'),
+    (0, common_1.Get)('categories'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getCategories", null);
 __decorate([
-    Get('filter-options'),
+    (0, common_1.Get)('filter-options'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getFilterOptions", null);
 __decorate([
-    Get(':id'),
-    __param(0, Param('id')),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getOne", null);
 __decorate([
-    Post(),
-    __param(0, Body()),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof CreateProductDto !== "undefined" && CreateProductDto) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [create_product_dto_1.CreateProductDto]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "create", null);
 __decorate([
-    Put(':id'),
-    __param(0, Param('id')),
-    __param(1, Body()),
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_f = typeof UpdateProductDto !== "undefined" && UpdateProductDto) === "function" ? _f : Object]),
+    __metadata("design:paramtypes", [String, update_product_dto_1.UpdateProductDto]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "update", null);
 __decorate([
-    Delete(':id'),
-    __param(0, Param('id')),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "remove", null);
 __decorate([
-    Put(':id/sale'),
-    __param(0, Param('id')),
-    __param(1, Body()),
+    (0, common_1.Put)(':id/sale'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "toggleSale", null);
-ProductsController = __decorate([
-    Controller('products'),
-    __param(0, Inject(ProductsService)),
-    __param(1, Inject(NotificationsService)),
-    __param(2, Inject(CloudinaryService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof ProductsService !== "undefined" && ProductsService) === "function" ? _a : Object, typeof (_b = typeof NotificationsService !== "undefined" && NotificationsService) === "function" ? _b : Object, typeof (_c = typeof CloudinaryService !== "undefined" && CloudinaryService) === "function" ? _c : Object])
+exports.ProductsController = ProductsController = __decorate([
+    (0, common_1.Controller)('products'),
+    __param(0, (0, common_1.Inject)(products_service_1.ProductsService)),
+    __param(1, (0, common_1.Inject)(notifications_service_1.NotificationsService)),
+    __param(2, (0, common_1.Inject)(cloudinary_service_1.CloudinaryService)),
+    __metadata("design:paramtypes", [products_service_1.ProductsService, notifications_service_1.NotificationsService, cloudinary_service_1.CloudinaryService])
 ], ProductsController);
-export { ProductsController };
 //# sourceMappingURL=products.controller.js.map

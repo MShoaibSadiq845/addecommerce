@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,27 +8,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CouponSchema = exports.Coupon = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
 let Coupon = class Coupon {
-    code;
-    discountPercentage;
-    isActive;
 };
+exports.Coupon = Coupon;
 __decorate([
-    Prop({ type: String, required: true, unique: true, uppercase: true, trim: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, unique: true, uppercase: true, trim: true }),
     __metadata("design:type", String)
 ], Coupon.prototype, "code", void 0);
 __decorate([
-    Prop({ type: Number, required: true, min: 0, max: 100 }),
+    (0, mongoose_1.Prop)({ type: Number, required: true, min: 0, max: 100 }),
     __metadata("design:type", Number)
 ], Coupon.prototype, "discountPercentage", void 0);
 __decorate([
-    Prop({ type: Boolean, default: true }),
+    (0, mongoose_1.Prop)({ type: Boolean, default: true }),
     __metadata("design:type", Boolean)
 ], Coupon.prototype, "isActive", void 0);
-Coupon = __decorate([
-    Schema({ timestamps: true })
+exports.Coupon = Coupon = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], Coupon);
-export { Coupon };
-export const CouponSchema = SchemaFactory.createForClass(Coupon);
+exports.CouponSchema = mongoose_1.SchemaFactory.createForClass(Coupon);
 //# sourceMappingURL=coupon.schema.js.map

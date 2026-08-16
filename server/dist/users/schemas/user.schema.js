@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,48 +8,52 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-export var UserRole;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserSchema = exports.User = exports.UserRole = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+var UserRole;
 (function (UserRole) {
     UserRole["USER"] = "User";
     UserRole["ADMIN"] = "Admin";
     UserRole["SUPER_ADMIN"] = "Super Admin";
-})(UserRole || (UserRole = {}));
+})(UserRole || (exports.UserRole = UserRole = {}));
 let User = class User {
-    name;
-    email;
-    password;
-    role;
-    loyaltyPoints;
-    avatar;
 };
+exports.User = User;
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], User.prototype, "name", void 0);
 __decorate([
-    Prop({ type: String, required: true, unique: true, lowercase: true, trim: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, unique: true, lowercase: true, trim: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER }),
+    (0, mongoose_1.Prop)({ type: String, enum: Object.values(UserRole), default: UserRole.USER }),
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
-    Prop({ type: Number, default: 0 }),
+    (0, mongoose_1.Prop)({ type: Number, default: 0 }),
     __metadata("design:type", Number)
 ], User.prototype, "loyaltyPoints", void 0);
 __decorate([
-    Prop({ type: String, default: '' }),
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
     __metadata("design:type", String)
 ], User.prototype, "avatar", void 0);
-User = __decorate([
-    Schema({ timestamps: true })
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
+    __metadata("design:type", String)
+], User.prototype, "phone", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
+    __metadata("design:type", String)
+], User.prototype, "address", void 0);
+exports.User = User = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], User);
-export { User };
-export const UserSchema = SchemaFactory.createForClass(User);
+exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
 //# sourceMappingURL=user.schema.js.map

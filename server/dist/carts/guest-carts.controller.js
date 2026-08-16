@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,74 +11,74 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
-import { Controller, Get, Post, Delete, Body, Param, Query, BadRequestException, Inject, } from '@nestjs/common';
-import { GuestCartsService } from './guest-carts.service';
-import { GuestAddCartItemDto } from './dto/guest-cart.dto';
-/** Public cart endpoints — no authentication required.
- *  The client generates a UUID (sessionId) stored in localStorage
- *  and passes it with every request. */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GuestCartsController = void 0;
+const common_1 = require("@nestjs/common");
+const guest_carts_service_1 = require("./guest-carts.service");
+const guest_cart_dto_1 = require("./dto/guest-cart.dto");
 let GuestCartsController = class GuestCartsController {
-    guestCartsService;
     constructor(guestCartsService) {
         this.guestCartsService = guestCartsService;
     }
-    /** GET /guest-cart?sessionId=<uuid> */
     async getCart(sessionId) {
         if (!sessionId)
-            throw new BadRequestException('sessionId is required');
+            throw new common_1.BadRequestException('sessionId is required');
         return this.guestCartsService.getCart(sessionId);
     }
-    /** POST /guest-cart  — body includes sessionId + item fields */
     async addItem(dto) {
         return this.guestCartsService.addItem(dto);
     }
-    /** DELETE /guest-cart/:itemId?sessionId=<uuid> */
-    async removeItem(itemId, sessionId) {
+    async removeItem(itemId, sessionId, size, color) {
         if (!sessionId)
-            throw new BadRequestException('sessionId is required');
-        return this.guestCartsService.removeItem(sessionId, itemId);
+            throw new common_1.BadRequestException('sessionId is required');
+        const cart = await this.guestCartsService.removeItem(sessionId, itemId, size, color);
+        return {
+            success: true,
+            message: 'Item removed from cart',
+            cart,
+        };
     }
-    /** DELETE /guest-cart?sessionId=<uuid>  — clears whole cart */
     async clearCart(sessionId) {
         if (!sessionId)
-            throw new BadRequestException('sessionId is required');
+            throw new common_1.BadRequestException('sessionId is required');
         return this.guestCartsService.clearCart(sessionId);
     }
 };
+exports.GuestCartsController = GuestCartsController;
 __decorate([
-    Get(),
-    __param(0, Query('sessionId')),
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('sessionId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], GuestCartsController.prototype, "getCart", null);
 __decorate([
-    Post(),
-    __param(0, Body()),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof GuestAddCartItemDto !== "undefined" && GuestAddCartItemDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [guest_cart_dto_1.GuestAddCartItemDto]),
     __metadata("design:returntype", Promise)
 ], GuestCartsController.prototype, "addItem", null);
 __decorate([
-    Delete(':itemId'),
-    __param(0, Param('itemId')),
-    __param(1, Query('sessionId')),
+    (0, common_1.Delete)(':itemId'),
+    __param(0, (0, common_1.Param)('itemId')),
+    __param(1, (0, common_1.Query)('sessionId')),
+    __param(2, (0, common_1.Query)('size')),
+    __param(3, (0, common_1.Query)('color')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], GuestCartsController.prototype, "removeItem", null);
 __decorate([
-    Delete(),
-    __param(0, Query('sessionId')),
+    (0, common_1.Delete)(),
+    __param(0, (0, common_1.Query)('sessionId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], GuestCartsController.prototype, "clearCart", null);
-GuestCartsController = __decorate([
-    Controller('guest-cart'),
-    __param(0, Inject(GuestCartsService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof GuestCartsService !== "undefined" && GuestCartsService) === "function" ? _a : Object])
+exports.GuestCartsController = GuestCartsController = __decorate([
+    (0, common_1.Controller)('guest-cart'),
+    __param(0, (0, common_1.Inject)(guest_carts_service_1.GuestCartsService)),
+    __metadata("design:paramtypes", [guest_carts_service_1.GuestCartsService])
 ], GuestCartsController);
-export { GuestCartsController };
 //# sourceMappingURL=guest-carts.controller.js.map

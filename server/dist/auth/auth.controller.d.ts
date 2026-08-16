@@ -5,22 +5,16 @@ import { UserDocument } from '../users/schemas/user.schema';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
-    /**
-     * POST /api/auth/login
-     * Fully public — no guard.
-     */
-    login(dto: LoginDto): Promise<any>;
-    /**
-     * POST /api/auth/register
-     * Fully public — new accounts default to role 'User'.
-     * JwtOptionalGuard never rejects: if a valid Super Admin token is present
-     * it populates request.user so the service can allow role elevation;
-     * if no token is present the request still goes through with user = null.
-     */
-    register(dto: RegisterDto, currentUser: UserDocument | undefined): Promise<any>;
-    /**
-     * GET /api/auth/me
-     * JWT-protected — returns the currently authenticated user's profile.
-     */
-    getMe(userId: string): Promise<any>;
+    login(dto: LoginDto): Promise<import("./auth.service").AuthResponse>;
+    register(dto: RegisterDto, currentUser: UserDocument | undefined): Promise<import("./auth.service").AuthResponse>;
+    getMe(userId: string): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        loyaltyPoints: number;
+        avatar: string;
+        phone?: string;
+        address?: string;
+    }>;
 }

@@ -3,7 +3,6 @@ import { Model } from 'mongoose';
 import { UserDocument } from '../users/schemas/user.schema';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-/** Shape returned by every auth endpoint */
 export interface AuthResponse {
     token: string;
     user: {
@@ -13,6 +12,8 @@ export interface AuthResponse {
         role: string;
         loyaltyPoints: number;
         avatar: string;
+        phone?: string;
+        address?: string;
     };
 }
 export declare class AuthService {
@@ -20,11 +21,6 @@ export declare class AuthService {
     private jwtService;
     constructor(userModel: Model<UserDocument>, jwtService: JwtService);
     login(dto: LoginDto): Promise<AuthResponse>;
-    /**
-     * registeredBy is the currently-authenticated user (undefined for public calls).
-     * Admin / Super Admin roles can only be assigned by a Super Admin.
-     * All other callers get the 'User' role regardless of what they send.
-     */
     register(dto: RegisterDto, registeredBy?: UserDocument): Promise<AuthResponse>;
     getMe(userId: string): Promise<AuthResponse['user']>;
     private buildAuthResponse;

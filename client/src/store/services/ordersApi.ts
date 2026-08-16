@@ -2,6 +2,16 @@ import { apiSlice } from './api';
 
 export const ordersApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    validateCheckout: builder.mutation<
+      { success: boolean; message: string },
+      { items: Array<{ productId: string; quantity: number; name?: string }> }
+    >({
+      query: (data) => ({
+        url: '/orders/validate-checkout',
+        method: 'POST',
+        body: data,
+      }),
+    }),
     createOrder: builder.mutation({
       query: (data) => ({
         url: '/orders',
@@ -44,6 +54,7 @@ export const ordersApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useValidateCheckoutMutation,
   useCreateOrderMutation,
   useGetOrdersByEmailQuery,
   useGetAllOrdersQuery,

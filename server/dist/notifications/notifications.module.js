@@ -1,30 +1,33 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { NotificationsController } from './notifications.controller';
-import { NotificationsService } from './notifications.service';
-import { NotificationsGateway } from './notifications.gateway';
-import { Notification, NotificationSchema, } from './schemas/notification.schema';
-import { ContactMessage, ContactMessageSchema, } from './schemas/contact-message.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NotificationsModule = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const notifications_controller_1 = require("./notifications.controller");
+const notifications_service_1 = require("./notifications.service");
+const notifications_gateway_1 = require("./notifications.gateway");
+const notification_schema_1 = require("./schemas/notification.schema");
+const contact_message_schema_1 = require("./schemas/contact-message.schema");
 let NotificationsModule = class NotificationsModule {
 };
-NotificationsModule = __decorate([
-    Module({
+exports.NotificationsModule = NotificationsModule;
+exports.NotificationsModule = NotificationsModule = __decorate([
+    (0, common_1.Module)({
         imports: [
-            MongooseModule.forFeature([
-                { name: Notification.name, schema: NotificationSchema },
-                { name: ContactMessage.name, schema: ContactMessageSchema },
+            mongoose_1.MongooseModule.forFeature([
+                { name: notification_schema_1.Notification.name, schema: notification_schema_1.NotificationSchema },
+                { name: contact_message_schema_1.ContactMessage.name, schema: contact_message_schema_1.ContactMessageSchema },
             ]),
         ],
-        controllers: [NotificationsController],
-        providers: [NotificationsService, NotificationsGateway],
-        exports: [NotificationsService, NotificationsGateway],
+        controllers: [notifications_controller_1.NotificationsController],
+        providers: [notifications_service_1.NotificationsService, notifications_gateway_1.NotificationsGateway],
+        exports: [notifications_service_1.NotificationsService, notifications_gateway_1.NotificationsGateway],
     })
 ], NotificationsModule);
-export { NotificationsModule };
 //# sourceMappingURL=notifications.module.js.map

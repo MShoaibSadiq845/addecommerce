@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,12 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { Logger } from '@nestjs/common';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NotificationsGateway = void 0;
+const websockets_1 = require("@nestjs/websockets");
+const socket_io_1 = require("socket.io");
+const common_1 = require("@nestjs/common");
 let NotificationsGateway = class NotificationsGateway {
-    server;
-    logger = new Logger('NotificationsGateway');
+    constructor() {
+        this.logger = new common_1.Logger('NotificationsGateway');
+    }
     afterInit(server) {
         this.logger.log('Websocket Gateway Initialized');
     }
@@ -31,17 +35,20 @@ let NotificationsGateway = class NotificationsGateway {
             this.server.emit('order_notification', notification);
         }
     }
+    broadcastReview(review) {
+        this.server.emit('new_review', review);
+    }
 };
+exports.NotificationsGateway = NotificationsGateway;
 __decorate([
-    WebSocketServer(),
-    __metadata("design:type", Server)
+    (0, websockets_1.WebSocketServer)(),
+    __metadata("design:type", socket_io_1.Server)
 ], NotificationsGateway.prototype, "server", void 0);
-NotificationsGateway = __decorate([
-    WebSocketGateway({
+exports.NotificationsGateway = NotificationsGateway = __decorate([
+    (0, websockets_1.WebSocketGateway)({
         cors: {
             origin: '*',
         },
     })
 ], NotificationsGateway);
-export { NotificationsGateway };
 //# sourceMappingURL=notifications.gateway.js.map

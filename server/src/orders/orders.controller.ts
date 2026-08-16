@@ -20,6 +20,14 @@ export class OrdersController {
     @Inject(OrdersService) private readonly ordersService: OrdersService,
   ) {}
 
+  // Validate cart & stock before checkout
+  @Post('validate-checkout')
+  async validateCheckout(
+    @Body() dto: { items: Array<{ productId: string; quantity: number; name?: string }> },
+  ) {
+    return this.ordersService.validateCheckout(dto);
+  }
+
   // Place a guest order
   @Post()
   async createOrder(@Body() dto: CreateOrderDto) {

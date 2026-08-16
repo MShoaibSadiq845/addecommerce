@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,17 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
-import { Injectable, Inject } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Notification, } from './schemas/notification.schema';
-import { ContactMessage, } from './schemas/contact-message.schema';
-import { NotificationsGateway } from './notifications.gateway';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NotificationsService = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const notification_schema_1 = require("./schemas/notification.schema");
+const contact_message_schema_1 = require("./schemas/contact-message.schema");
+const notifications_gateway_1 = require("./notifications.gateway");
 let NotificationsService = class NotificationsService {
-    notificationModel;
-    contactMessageModel;
-    gateway;
     constructor(notificationModel, contactMessageModel, gateway) {
         this.notificationModel = notificationModel;
         this.contactMessageModel = contactMessageModel;
@@ -42,10 +41,11 @@ let NotificationsService = class NotificationsService {
     }
     async createAndBroadcast(data) {
         const notification = await this.notificationModel.create(data);
-        this.gateway.broadcastNotification(notification);
+        if (this.gateway && typeof this.gateway.broadcastNotification === 'function') {
+            this.gateway.broadcastNotification(notification);
+        }
         return notification;
     }
-    // Contact message methods
     async createContactMessage(data) {
         const contactMessage = await this.contactMessageModel.create(data);
         return contactMessage;
@@ -57,13 +57,12 @@ let NotificationsService = class NotificationsService {
         return this.contactMessageModel.findByIdAndUpdate(id, { isRead: true }, { new: true });
     }
 };
-NotificationsService = __decorate([
-    Injectable(),
-    __param(0, InjectModel(Notification.name)),
-    __param(1, InjectModel(ContactMessage.name)),
-    __param(2, Inject(NotificationsGateway)),
-    __metadata("design:paramtypes", [Model,
-        Model, typeof (_a = typeof NotificationsGateway !== "undefined" && NotificationsGateway) === "function" ? _a : Object])
+exports.NotificationsService = NotificationsService;
+exports.NotificationsService = NotificationsService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(notification_schema_1.Notification.name)),
+    __param(1, (0, mongoose_1.InjectModel)(contact_message_schema_1.ContactMessage.name)),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => notifications_gateway_1.NotificationsGateway))),
+    __metadata("design:paramtypes", [mongoose_2.Model, mongoose_2.Model, notifications_gateway_1.NotificationsGateway])
 ], NotificationsService);
-export { NotificationsService };
 //# sourceMappingURL=notifications.service.js.map

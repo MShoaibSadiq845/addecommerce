@@ -35,14 +35,21 @@ export class GuestCartsController {
     return this.guestCartsService.addItem(dto);
   }
 
-  /** DELETE /guest-cart/:itemId?sessionId=<uuid> */
+  /** DELETE /guest-cart/:itemId?sessionId=<uuid>&size=<size>&color=<color> */
   @Delete(':itemId')
   async removeItem(
     @Param('itemId') itemId: string,
     @Query('sessionId') sessionId: string,
+    @Query('size') size?: string,
+    @Query('color') color?: string,
   ) {
     if (!sessionId) throw new BadRequestException('sessionId is required');
-    return this.guestCartsService.removeItem(sessionId, itemId);
+    const cart = await this.guestCartsService.removeItem(sessionId, itemId, size, color);
+    return {
+      success: true,
+      message: 'Item removed from cart',
+      cart,
+    };
   }
 
   /** DELETE /guest-cart?sessionId=<uuid>  — clears whole cart */

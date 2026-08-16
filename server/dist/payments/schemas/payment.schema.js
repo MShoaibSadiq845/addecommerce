@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,48 +8,43 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PaymentSchema = exports.Payment = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 let Payment = class Payment {
-    carId;
-    buyerId;
-    amount;
-    lotNumber;
-    winDate;
-    shippingStatus;
-    transactionId;
 };
+exports.Payment = Payment;
 __decorate([
-    Prop({ type: Types.ObjectId, ref: 'Car', required: true }),
-    __metadata("design:type", Types.ObjectId)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Car', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Payment.prototype, "carId", void 0);
 __decorate([
-    Prop({ type: Types.ObjectId, ref: 'User', required: true }),
-    __metadata("design:type", Types.ObjectId)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'User', required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Payment.prototype, "buyerId", void 0);
 __decorate([
-    Prop({ type: Number, required: true }),
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
 ], Payment.prototype, "amount", void 0);
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Payment.prototype, "lotNumber", void 0);
 __decorate([
-    Prop({ type: Date, required: true }),
+    (0, mongoose_1.Prop)({ type: Date, required: true }),
     __metadata("design:type", Date)
 ], Payment.prototype, "winDate", void 0);
 __decorate([
-    Prop({ type: String, default: 'ready_for_shipping', enum: ['ready_for_shipping', 'in_transit', 'delivered'] }),
+    (0, mongoose_1.Prop)({ type: String, default: 'ready_for_shipping', enum: ['ready_for_shipping', 'in_transit', 'delivered'] }),
     __metadata("design:type", String)
 ], Payment.prototype, "shippingStatus", void 0);
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Payment.prototype, "transactionId", void 0);
-Payment = __decorate([
-    Schema({ timestamps: true })
+exports.Payment = Payment = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], Payment);
-export { Payment };
-export const PaymentSchema = SchemaFactory.createForClass(Payment);
+exports.PaymentSchema = mongoose_1.SchemaFactory.createForClass(Payment);
 //# sourceMappingURL=payment.schema.js.map

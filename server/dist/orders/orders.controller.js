@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,90 +11,93 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
-import { Controller, Get, Post, Put, Body, Param, Query, Inject, BadRequestException, } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderStatus } from './schemas/order.schema';
-// No authentication on any route — fully public API
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrdersController = void 0;
+const common_1 = require("@nestjs/common");
+const orders_service_1 = require("./orders.service");
+const create_order_dto_1 = require("./dto/create-order.dto");
+const order_schema_1 = require("./schemas/order.schema");
 let OrdersController = class OrdersController {
-    ordersService;
     constructor(ordersService) {
         this.ordersService = ordersService;
     }
-    // Place a guest order
+    async validateCheckout(dto) {
+        return this.ordersService.validateCheckout(dto);
+    }
     async createOrder(dto) {
         return this.ordersService.create(dto);
     }
-    // Track orders by email
     async getOrdersByEmail(email) {
         if (!email)
-            throw new BadRequestException('Email is required');
+            throw new common_1.BadRequestException('Email is required');
         return this.ordersService.findByGuestEmail(email);
     }
-    // Admin dashboard metrics
     async getAdminMetrics() {
         return this.ordersService.getAdminMetrics();
     }
-    // Admin: list all orders
     async getAllOrders(status) {
         return this.ordersService.findAll(status);
     }
-    // Public: single order by ID
     async getOrderById(id) {
         return this.ordersService.findById(id);
     }
-    // Admin: update order status
     async updateOrderStatus(id, status) {
         return this.ordersService.updateStatus(id, status);
     }
 };
+exports.OrdersController = OrdersController;
 __decorate([
-    Post(),
-    __param(0, Body()),
+    (0, common_1.Post)('validate-checkout'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof CreateOrderDto !== "undefined" && CreateOrderDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OrdersController.prototype, "validateCheckout", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_order_dto_1.CreateOrderDto]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "createOrder", null);
 __decorate([
-    Get('by-email'),
-    __param(0, Query('email')),
+    (0, common_1.Get)('by-email'),
+    __param(0, (0, common_1.Query)('email')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "getOrdersByEmail", null);
 __decorate([
-    Get('metrics'),
+    (0, common_1.Get)('metrics'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "getAdminMetrics", null);
 __decorate([
-    Get(),
-    __param(0, Query('status')),
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof OrderStatus !== "undefined" && OrderStatus) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "getAllOrders", null);
 __decorate([
-    Get(':id'),
-    __param(0, Param('id')),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "getOrderById", null);
 __decorate([
-    Put(':id/status'),
-    __param(0, Param('id')),
-    __param(1, Body('status')),
+    (0, common_1.Put)(':id/status'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_d = typeof OrderStatus !== "undefined" && OrderStatus) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "updateOrderStatus", null);
-OrdersController = __decorate([
-    Controller('orders'),
-    __param(0, Inject(OrdersService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof OrdersService !== "undefined" && OrdersService) === "function" ? _a : Object])
+exports.OrdersController = OrdersController = __decorate([
+    (0, common_1.Controller)('orders'),
+    __param(0, (0, common_1.Inject)(orders_service_1.OrdersService)),
+    __metadata("design:paramtypes", [orders_service_1.OrdersService])
 ], OrdersController);
-export { OrdersController };
 //# sourceMappingURL=orders.controller.js.map

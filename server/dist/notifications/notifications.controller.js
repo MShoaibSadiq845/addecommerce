@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,12 +11,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
-import { Controller, Get, Put, Post, Param, Body, Inject } from '@nestjs/common';
-import { NotificationsService } from './notifications.service';
-// No authentication on any route — fully public API
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NotificationsController = void 0;
+const common_1 = require("@nestjs/common");
+const notifications_service_1 = require("./notifications.service");
 let NotificationsController = class NotificationsController {
-    notificationsService;
     constructor(notificationsService) {
         this.notificationsService = notificationsService;
     }
@@ -31,7 +31,6 @@ let NotificationsController = class NotificationsController {
     async markAllAsRead() {
         return this.notificationsService.markAllAsRead();
     }
-    // Contact message endpoints
     async createContactMessage(body) {
         return this.notificationsService.createContactMessage(body);
     }
@@ -42,55 +41,55 @@ let NotificationsController = class NotificationsController {
         return this.notificationsService.markContactAsRead(id);
     }
 };
+exports.NotificationsController = NotificationsController;
 __decorate([
-    Get(),
+    (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getAll", null);
 __decorate([
-    Get('unread-count'),
+    (0, common_1.Get)('unread-count'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getUnreadCount", null);
 __decorate([
-    Put(':id/read'),
-    __param(0, Param('id')),
+    (0, common_1.Put)(':id/read'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "markAsRead", null);
 __decorate([
-    Put('read-all'),
+    (0, common_1.Put)('read-all'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "markAllAsRead", null);
 __decorate([
-    Post('contact'),
-    __param(0, Body()),
+    (0, common_1.Post)('contact'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "createContactMessage", null);
 __decorate([
-    Get('contacts'),
+    (0, common_1.Get)('contacts'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getAllContactMessages", null);
 __decorate([
-    Put('contacts/:id/read'),
-    __param(0, Param('id')),
+    (0, common_1.Put)('contacts/:id/read'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "markContactAsRead", null);
-NotificationsController = __decorate([
-    Controller('notifications'),
-    __param(0, Inject(NotificationsService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof NotificationsService !== "undefined" && NotificationsService) === "function" ? _a : Object])
+exports.NotificationsController = NotificationsController = __decorate([
+    (0, common_1.Controller)('notifications'),
+    __param(0, (0, common_1.Inject)(notifications_service_1.NotificationsService)),
+    __metadata("design:paramtypes", [notifications_service_1.NotificationsService])
 ], NotificationsController);
-export { NotificationsController };
 //# sourceMappingURL=notifications.controller.js.map

@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { ProductDocument } from './schemas/product.schema';
+import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 export interface ProductQuery {
@@ -25,17 +25,41 @@ export declare class ProductsService {
         page: number;
         pages: number;
     }>;
-    findById(id: string): Promise<any>;
-    create(dto: CreateProductDto): Promise<any>;
-    update(id: string, dto: UpdateProductDto): Promise<any>;
+    findById(id: string): Promise<import("mongoose").Document<unknown, {}, ProductDocument, {}, import("mongoose").DefaultSchemaOptions> & Product & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
+    create(dto: CreateProductDto): Promise<import("mongoose").Document<unknown, {}, ProductDocument, {}, import("mongoose").DefaultSchemaOptions> & Product & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
+    update(id: string, dto: UpdateProductDto): Promise<import("mongoose").Document<unknown, {}, ProductDocument, {}, import("mongoose").DefaultSchemaOptions> & Product & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
     remove(id: string): Promise<{
         message: string;
     }>;
-    toggleSale(id: string, isOnSale: boolean, salePrice?: number): Promise<any>;
+    toggleSale(id: string, isOnSale: boolean, salePrice?: number): Promise<import("mongoose").Document<unknown, {}, ProductDocument, {}, import("mongoose").DefaultSchemaOptions> & Product & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
     getCategories(): Promise<string[]>;
     getFilterOptions(): Promise<{
-        colors: any[];
-        sizes: any[];
-        categories: any[];
+        colors: string[];
+        sizes: string[];
+        categories: string[];
     }>;
 }

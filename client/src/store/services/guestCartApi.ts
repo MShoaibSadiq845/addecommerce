@@ -31,13 +31,18 @@ export const guestCartApi = apiSlice.injectEndpoints({
 
     /** Remove a single item from the guest cart */
     removeFromGuestCart: builder.mutation<
-      void,
-      { sessionId: string; itemId: string }
+      { success: boolean; message: string; cart?: any },
+      { sessionId: string; itemId: string; size?: string; color?: string }
     >({
-      query: ({ sessionId, itemId }) => ({
-        url: `/guest-cart/${itemId}?sessionId=${encodeURIComponent(sessionId)}`,
-        method: 'DELETE',
-      }),
+      query: ({ sessionId, itemId, size, color }) => {
+        let url = `/guest-cart/${itemId}?sessionId=${encodeURIComponent(sessionId)}`;
+        if (size) url += `&size=${encodeURIComponent(size)}`;
+        if (color) url += `&color=${encodeURIComponent(color)}`;
+        return {
+          url,
+          method: 'DELETE',
+        };
+      },
       invalidatesTags: ['Cart'],
     }),
 

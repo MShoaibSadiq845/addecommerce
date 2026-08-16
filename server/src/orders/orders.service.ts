@@ -80,6 +80,30 @@ export class OrdersService {
     return order;
   }
 
+  // ── Checkout validation ───────────────────────────────────────────────────
+  async validateCheckout(dto: { items: Array<{ productId: string; quantity: number; name?: string }> }) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('Cart is empty. Please add items before checking out.');
+    }
+
+    for (const item of dto.items) {
+      const product = await this.productModel.findById(item.productId);
+      if (!product) {
+        throw new NotFoundException(`Product "${item.name || 'item'}" not found or no longer available`);
+      }
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`,
+        );
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Cart verified successfully. Proceeding to checkout.',
+    };
+  }
+
   // ── Coupon validation ─────────────────────────────────────────────────────
   async validateCoupon(code: string) {
     // Coupon model removed — always invalid

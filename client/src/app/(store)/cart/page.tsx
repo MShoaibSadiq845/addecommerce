@@ -6,8 +6,9 @@ import Image from 'next/image';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { updateQuantity, removeFromCart, clearCart } from '@/store/slices/cartSlice';
-import { useCreateOrderMutation } from '@/store/services/ordersApi';
-import { useClearGuestCartMutation } from '@/store/services/guestCartApi';
+import { useCreateOrderMutation, useValidateCheckoutMutation } from '@/store/services/ordersApi';
+import { useClearGuestCartMutation, useRemoveFromGuestCartMutation } from '@/store/services/guestCartApi';
+import { useRemoveCartItemMutation } from '@/store/services/cartApi';
 import { getSessionId } from '@/lib/sessionId';
 import { useForm } from 'react-hook-form';
 import {
@@ -32,7 +33,12 @@ export default function CartPage() {
   const { items } = useSelector((state: RootState) => state.cart);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [createOrder, { isLoading: isCheckingOut }] = useCreateOrderMutation();
+  const [validateCheckout, { isLoading: isValidatingCheckout }] = useValidateCheckoutMutation();
   const [clearGuestCart, { isLoading: isClearingCart }] = useClearGuestCartMutation();
+  const [removeFromGuestCart] = useRemoveFromGuestCartMutation();
+  const [removeCartItem] = useRemoveCartItemMutation();
+
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<any>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -65,6 +71,65 @@ export default function CartPage() {
 
   /* ─── Totals ─── */
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  /* ─── Delete Item (Server-Side) ─── */
+  const handleDeleteItem = async (item: any, idx: number) => {
+    try {
+      setDeletingIndex(idx);
+      const sessionId = getSessionId();
+
+      let res: any;
+      if (isAuthenticated) {
+        // Authenticated user server cart deletion
+        res = await removeCartItem({
+          itemId: item.id,
+          size: item.size,
+          color: item.color,
+        }).unwrap();
+      } else if (sessionId) {
+        // Guest user server cart deletion
+        res = await removeFromGuestCart({
+          sessionId,
+          itemId: item.id,
+          size: item.size,
+          color: item.color,
+        }).unwrap();
+      }
+
+      // Sync local Redux store
+      dispatch(removeFromCart(idx));
+      toast.success(res?.message || `${item.name} removed from cart`);
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to remove item. Please try again.';
+      toast.error(msg);
+    } finally {
+      setDeletingIndex(null);
+    }
+  };
+
+  /* ─── Go to Checkout (Server-Side Validation) ─── */
+  const handleProceedToCheckout = async () => {
+    if (items.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    try {
+      const res = await validateCheckout({
+        items: items.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          name: item.name,
+        })),
+      }).unwrap();
+
+      toast.success(res?.message || 'Cart verified! Proceeding to checkout.');
+      setShowCheckout(true);
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to validate cart. Please try again.';
+      toast.error(msg);
+    }
+  };
 
   /* ─── Checkout submit ─── */
   const onCheckoutSubmit = async (formData: DeliveryForm) => {
@@ -182,11 +247,16 @@ export default function CartPage() {
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-sm text-black line-clamp-1">{item.name}</h3>
                       <button
-                        onClick={() => dispatch(removeFromCart(idx))}
-                        className="text-red-400 hover:text-red-600 transition-colors shrink-0 p-1"
+                        onClick={() => handleDeleteItem(item, idx)}
+                        disabled={deletingIndex !== null || isValidatingCheckout}
+                        className="text-red-400 hover:text-red-600 transition-colors shrink-0 p-1 disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-label="Remove"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {deletingIndex === idx ? (
+                          <Loader2 className="w-4 h-4 text-red-500 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                     {item.size && <p className="text-xs text-gray-500">Size: <span className="font-semibold text-black">{item.size}</span></p>}
@@ -195,12 +265,13 @@ export default function CartPage() {
                       <span className="font-bold text-base text-black">₨{(item.price * item.quantity).toLocaleString()}</span>
                       <div className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1.5">
                         <button onClick={() => dispatch(updateQuantity({ index: idx, quantity: item.quantity - 1 }))}
-                          disabled={item.quantity <= 1} className="text-gray-600 hover:text-black disabled:opacity-40">
+                          disabled={item.quantity <= 1 || deletingIndex !== null} className="text-gray-600 hover:text-black disabled:opacity-40">
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <span className="font-bold text-sm w-4 text-center">{item.quantity}</span>
                         <button onClick={() => dispatch(updateQuantity({ index: idx, quantity: item.quantity + 1 }))}
-                          className="text-gray-600 hover:text-black">
+                          disabled={deletingIndex !== null}
+                          className="text-gray-600 hover:text-black disabled:opacity-40">
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -228,10 +299,21 @@ export default function CartPage() {
                 </div>
               </div>
               <button
-                onClick={() => setShowCheckout(true)}
-                className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-full text-sm flex items-center justify-center gap-2 transition-colors"
+                onClick={handleProceedToCheckout}
+                disabled={isValidatingCheckout || deletingIndex !== null}
+                className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-full text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Go to Checkout <ArrowRight className="w-4 h-4" />
+                {isValidatingCheckout ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Validating Cart…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Go to Checkout</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>

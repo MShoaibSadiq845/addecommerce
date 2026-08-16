@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,12 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from './schemas/user.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UsersService = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const user_schema_1 = require("./schemas/user.schema");
 let UsersService = class UsersService {
-    userModel;
     constructor(userModel) {
         this.userModel = userModel;
     }
@@ -25,7 +27,7 @@ let UsersService = class UsersService {
     async findById(id) {
         const user = await this.userModel.findById(id).select('-password').exec();
         if (!user)
-            throw new NotFoundException('User not found');
+            throw new common_1.NotFoundException('User not found');
         return user;
     }
     async getLoyaltyPoints(id) {
@@ -38,11 +40,20 @@ let UsersService = class UsersService {
             .select('-password');
         return user;
     }
+    async updateProfile(id, updateData) {
+        const user = await this.userModel
+            .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+            .select('-password')
+            .exec();
+        if (!user)
+            throw new common_1.NotFoundException('User not found');
+        return user;
+    }
 };
-UsersService = __decorate([
-    Injectable(),
-    __param(0, InjectModel(User.name)),
-    __metadata("design:paramtypes", [Model])
+exports.UsersService = UsersService;
+exports.UsersService = UsersService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model])
 ], UsersService);
-export { UsersService };
 //# sourceMappingURL=users.service.js.map

@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,33 +11,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
-import { Injectable, BadRequestException, NotFoundException, Inject, } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Order, OrderStatus } from './schemas/order.schema';
-import { Product } from '../products/schemas/product.schema';
-import { NotificationsService } from '../notifications/notifications.service';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrdersService = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const order_schema_1 = require("./schemas/order.schema");
+const product_schema_1 = require("../products/schemas/product.schema");
+const notifications_service_1 = require("../notifications/notifications.service");
 let OrdersService = class OrdersService {
-    orderModel;
-    productModel;
-    notificationsService;
     constructor(orderModel, productModel, notificationsService) {
         this.orderModel = orderModel;
         this.productModel = productModel;
         this.notificationsService = notificationsService;
     }
-    // ── Guest order creation ──────────────────────────────────────────────────
     async create(dto) {
         let totalAmount = 0;
         const processedItems = [];
         for (const item of dto.items) {
             const product = await this.productModel.findById(item.productId);
             if (!product) {
-                throw new NotFoundException(`Product "${item.name}" not found`);
+                throw new common_1.NotFoundException(`Product "${item.name}" not found`);
             }
             if (product.stock < item.quantity) {
-                throw new BadRequestException(`Insufficient stock for "${product.name}". Available: ${product.stock}`);
+                throw new common_1.BadRequestException(`Insufficient stock for "${product.name}". Available: ${product.stock}`);
             }
             const unitPrice = product.isOnSale ? product.salePrice : product.price;
             totalAmount += unitPrice * item.quantity;
@@ -58,7 +56,7 @@ let OrdersService = class OrdersService {
             guestEmail: dto.guestEmail.toLowerCase(),
             items: processedItems,
             totalAmount,
-            status: OrderStatus.PENDING,
+            status: order_schema_1.OrderStatus.PENDING,
             shippingAddress: {
                 street: dto.shippingAddress.street,
                 city: dto.shippingAddress.city,
@@ -67,7 +65,6 @@ let OrdersService = class OrdersService {
                 country: dto.shippingAddress.country,
             },
         });
-        // Real-time notification for admin
         await this.notificationsService.createAndBroadcast({
             title: '🛒 New Order Placed!',
             message: `Order #${order._id.toString().slice(-6)} by ${dto.guestName} — PKR ${totalAmount.toFixed(0)}`,
@@ -76,19 +73,33 @@ let OrdersService = class OrdersService {
         });
         return order;
     }
-    // ── Coupon validation ─────────────────────────────────────────────────────
-    async validateCoupon(code) {
-        // Coupon model removed — always invalid
-        throw new BadRequestException('Invalid or expired coupon code');
+    async validateCheckout(dto) {
+        if (!dto.items || dto.items.length === 0) {
+            throw new common_1.BadRequestException('Cart is empty. Please add items before checking out.');
+        }
+        for (const item of dto.items) {
+            const product = await this.productModel.findById(item.productId);
+            if (!product) {
+                throw new common_1.NotFoundException(`Product "${item.name || 'item'}" not found or no longer available`);
+            }
+            if (product.stock < item.quantity) {
+                throw new common_1.BadRequestException(`Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${item.quantity}`);
+            }
+        }
+        return {
+            success: true,
+            message: 'Cart verified successfully. Proceeding to checkout.',
+        };
     }
-    // ── Guest order lookup ────────────────────────────────────────────────────
+    async validateCoupon(code) {
+        throw new common_1.BadRequestException('Invalid or expired coupon code');
+    }
     async findByGuestEmail(email) {
         return this.orderModel
             .find({ guestEmail: email.toLowerCase() })
             .sort({ createdAt: -1 })
             .exec();
     }
-    // ── Admin: all orders ─────────────────────────────────────────────────────
     async findAll(status) {
         const filter = {};
         if (status)
@@ -105,7 +116,7 @@ let OrdersService = class OrdersService {
             .populate('items.product')
             .exec();
         if (!order)
-            throw new NotFoundException('Order not found');
+            throw new common_1.NotFoundException('Order not found');
         return order;
     }
     async updateStatus(id, status) {
@@ -113,7 +124,7 @@ let OrdersService = class OrdersService {
             .findByIdAndUpdate(id, { status }, { new: true })
             .exec();
         if (!order)
-            throw new NotFoundException('Order not found');
+            throw new common_1.NotFoundException('Order not found');
         await this.notificationsService.createAndBroadcast({
             title: '📦 Order Status Updated',
             message: `Order #${order._id.toString().slice(-6)} → ${status}`,
@@ -122,21 +133,20 @@ let OrdersService = class OrdersService {
         });
         return order;
     }
-    // ── Admin metrics ─────────────────────────────────────────────────────────
     async getAdminMetrics() {
         const totalOrders = await this.orderModel.countDocuments();
         const activeOrders = await this.orderModel.countDocuments({
-            status: { $in: [OrderStatus.PENDING, OrderStatus.PROCESSING, OrderStatus.SHIPPED] },
+            status: { $in: [order_schema_1.OrderStatus.PENDING, order_schema_1.OrderStatus.PROCESSING, order_schema_1.OrderStatus.SHIPPED] },
         });
-        const completedOrders = await this.orderModel.countDocuments({ status: OrderStatus.DELIVERED });
-        const canceledOrders = await this.orderModel.countDocuments({ status: OrderStatus.CANCELED });
+        const completedOrders = await this.orderModel.countDocuments({ status: order_schema_1.OrderStatus.DELIVERED });
+        const canceledOrders = await this.orderModel.countDocuments({ status: order_schema_1.OrderStatus.CANCELED });
         const revenueResult = await this.orderModel.aggregate([
-            { $match: { status: { $ne: OrderStatus.CANCELED } } },
+            { $match: { status: { $ne: order_schema_1.OrderStatus.CANCELED } } },
             { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } },
         ]);
         const totalRevenue = revenueResult[0]?.totalRevenue || 0;
         const monthlyIncome = await this.orderModel.aggregate([
-            { $match: { status: { $ne: OrderStatus.CANCELED } } },
+            { $match: { status: { $ne: order_schema_1.OrderStatus.CANCELED } } },
             {
                 $group: {
                     _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
@@ -174,13 +184,12 @@ let OrdersService = class OrdersService {
         };
     }
 };
-OrdersService = __decorate([
-    Injectable(),
-    __param(0, InjectModel(Order.name)),
-    __param(1, InjectModel(Product.name)),
-    __param(2, Inject(NotificationsService)),
-    __metadata("design:paramtypes", [Model,
-        Model, typeof (_a = typeof NotificationsService !== "undefined" && NotificationsService) === "function" ? _a : Object])
+exports.OrdersService = OrdersService;
+exports.OrdersService = OrdersService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(order_schema_1.Order.name)),
+    __param(1, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
+    __param(2, (0, common_1.Inject)(notifications_service_1.NotificationsService)),
+    __metadata("design:paramtypes", [mongoose_2.Model, mongoose_2.Model, notifications_service_1.NotificationsService])
 ], OrdersService);
-export { OrdersService };
 //# sourceMappingURL=orders.service.js.map

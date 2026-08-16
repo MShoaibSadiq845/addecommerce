@@ -68,13 +68,20 @@ export class CartsService {
     return cart;
   }
 
-  async removeItem(userId: string, itemId: string) {
+  async removeItem(userId: string, itemId: string, size?: string, color?: string) {
     const cart = await this.cartModel.findOne({ user: userId }).exec();
     if (!cart) throw new NotFoundException('Cart not found');
 
-    cart.items = cart.items.filter(
-      (item: any) => item._id?.toString() !== itemId && item.id?.toString() !== itemId,
-    );
+    cart.items = cart.items.filter((item: any) => {
+      const idMatch =
+        item._id?.toString() === itemId ||
+        item.id?.toString() === itemId ||
+        item.product?.toString() === itemId;
+      if (!idMatch) return true;
+      if (size !== undefined && item.size !== size) return true;
+      if (color !== undefined && item.color !== color) return true;
+      return false;
+    });
     await cart.save();
     return cart;
   }

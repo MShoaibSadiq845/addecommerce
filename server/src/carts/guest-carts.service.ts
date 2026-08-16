@@ -56,17 +56,25 @@ export class GuestCartsService {
     return cart;
   }
 
-  /** Remove one item by its Mongo sub-document id */
+  /** Remove one item by its Mongo sub-document id or product id */
   async removeItem(
     sessionId: string,
     itemId: string,
+    size?: string,
+    color?: string,
   ): Promise<GuestCartDocument> {
     const cart = await this.guestCartModel.findOne({ sessionId }).exec();
     if (!cart) throw new NotFoundException('Cart not found');
 
-    cart.items = cart.items.filter(
-      (item) => (item as any)._id.toString() !== itemId,
-    );
+    cart.items = cart.items.filter((item) => {
+      const idMatch =
+        (item as any)._id?.toString() === itemId ||
+        item.product?.toString() === itemId;
+      if (!idMatch) return true;
+      if (size !== undefined && item.size !== size) return true;
+      if (color !== undefined && item.color !== color) return true;
+      return false;
+    });
     await cart.save();
     return cart;
   }

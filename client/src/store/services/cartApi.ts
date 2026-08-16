@@ -22,11 +22,27 @@ export const cartApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Cart'],
     }),
-    removeCartItem: builder.mutation({
-      query: (itemId: string) => ({
-        url: `/cart/${itemId}`,
-        method: 'DELETE',
-      }),
+    removeCartItem: builder.mutation<
+      { success: boolean; message: string; cart?: any },
+      string | { itemId: string; size?: string; color?: string }
+    >({
+      query: (arg) => {
+        if (typeof arg === 'string') {
+          return {
+            url: `/cart/${arg}`,
+            method: 'DELETE',
+          };
+        }
+        let url = `/cart/${arg.itemId}`;
+        const params = new URLSearchParams();
+        if (arg.size) params.append('size', arg.size);
+        if (arg.color) params.append('color', arg.color);
+        const q = params.toString();
+        return {
+          url: q ? `${url}?${q}` : url,
+          method: 'DELETE',
+        };
+      },
       invalidatesTags: ['Cart'],
     }),
     clearCartBackend: builder.mutation({

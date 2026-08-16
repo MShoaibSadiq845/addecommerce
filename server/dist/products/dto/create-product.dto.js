@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,97 +8,83 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min, } from 'class-validator';
-export class CreateProductDto {
-    name;
-    description;
-    price;
-    salePrice;
-    isOnSale;
-    // Free-text category — no dropdown restriction
-    category;
-    brand;
-    // Colors as an array of strings e.g. ["Red", "Blue"]
-    colors;
-    // Sizes as an array of strings e.g. ["S", "M", "L", "XL"]
-    sizes;
-    stock;
-    sku;
-    images;
-    tags;
-    rating;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CreateProductDto = void 0;
+const class_validator_1 = require("class-validator");
+class CreateProductDto {
 }
+exports.CreateProductDto = CreateProductDto;
 __decorate([
-    IsNotEmpty(),
-    IsString(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "name", void 0);
 __decorate([
-    IsNotEmpty(),
-    IsString(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "description", void 0);
 __decorate([
-    IsNotEmpty(),
-    IsNumber(),
-    Min(0),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "price", void 0);
 __decorate([
-    IsOptional(),
-    IsNumber(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "salePrice", void 0);
 __decorate([
-    IsOptional(),
-    IsBoolean(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateProductDto.prototype, "isOnSale", void 0);
 __decorate([
-    IsNotEmpty(),
-    IsString(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "category", void 0);
 __decorate([
-    IsOptional(),
-    IsString(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "brand", void 0);
 __decorate([
-    IsOptional(),
-    IsArray(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateProductDto.prototype, "colors", void 0);
 __decorate([
-    IsOptional(),
-    IsArray(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateProductDto.prototype, "sizes", void 0);
 __decorate([
-    IsNotEmpty(),
-    IsNumber(),
-    Min(0),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "stock", void 0);
 __decorate([
-    IsNotEmpty(),
-    IsString(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "sku", void 0);
 __decorate([
-    IsOptional(),
-    IsArray(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateProductDto.prototype, "images", void 0);
 __decorate([
-    IsOptional(),
-    IsArray(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateProductDto.prototype, "tags", void 0);
 __decorate([
-    IsOptional(),
-    IsNumber(),
-    Min(0),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "rating", void 0);
 //# sourceMappingURL=create-product.dto.js.map

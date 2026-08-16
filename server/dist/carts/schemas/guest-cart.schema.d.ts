@@ -83,7 +83,6 @@ export declare const GuestCartItemSchema: import("mongoose").Schema<GuestCartIte
     }>>;
 }, GuestCartItem>;
 export declare class GuestCart {
-    /** Browser-generated UUID stored in localStorage */
     sessionId: string;
     items: GuestCartItem[];
 }

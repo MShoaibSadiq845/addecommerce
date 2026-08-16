@@ -1,17 +1,29 @@
 import { Model } from 'mongoose';
-import { NotificationDocument } from './schemas/notification.schema';
-import { ContactMessageDocument } from './schemas/contact-message.schema';
+import { Notification, NotificationDocument } from './schemas/notification.schema';
+import { ContactMessage, ContactMessageDocument } from './schemas/contact-message.schema';
 import { NotificationsGateway } from './notifications.gateway';
 export declare class NotificationsService {
     private notificationModel;
     private contactMessageModel;
     private readonly gateway;
     constructor(notificationModel: Model<NotificationDocument>, contactMessageModel: Model<ContactMessageDocument>, gateway: NotificationsGateway);
-    findAll(): Promise<any[]>;
+    findAll(): Promise<(import("mongoose").Document<unknown, {}, NotificationDocument, {}, import("mongoose").DefaultSchemaOptions> & Notification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    })[]>;
     getUnreadCount(): Promise<{
         count: number;
     }>;
-    markAsRead(id: string): Promise<any>;
+    markAsRead(id: string): Promise<import("mongoose").Document<unknown, {}, NotificationDocument, {}, import("mongoose").DefaultSchemaOptions> & Notification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
     markAllAsRead(): Promise<{
         message: string;
     }>;
@@ -20,13 +32,37 @@ export declare class NotificationsService {
         message: string;
         type?: string;
         link?: string;
-    }): Promise<any>;
+    }): Promise<import("mongoose").Document<unknown, {}, NotificationDocument, {}, import("mongoose").DefaultSchemaOptions> & Notification & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
     createContactMessage(data: {
         name: string;
         email: string;
         subject: string;
         message: string;
-    }): Promise<any>;
-    getAllContactMessages(): Promise<any[]>;
-    markContactAsRead(id: string): Promise<any>;
+    }): Promise<import("mongoose").Document<unknown, {}, ContactMessageDocument, {}, import("mongoose").DefaultSchemaOptions> & ContactMessage & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
+    getAllContactMessages(): Promise<(import("mongoose").Document<unknown, {}, ContactMessageDocument, {}, import("mongoose").DefaultSchemaOptions> & ContactMessage & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    })[]>;
+    markContactAsRead(id: string): Promise<import("mongoose").Document<unknown, {}, ContactMessageDocument, {}, import("mongoose").DefaultSchemaOptions> & ContactMessage & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
 }

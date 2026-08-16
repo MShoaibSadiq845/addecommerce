@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,16 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
-import { Controller, Get, UseGuards, Param, Inject } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
-import { UserRole } from './schemas/user.schema';
-import { GetUser } from '../auth/get-user.decorator';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UsersController = void 0;
+const common_1 = require("@nestjs/common");
+const users_service_1 = require("./users.service");
+const passport_1 = require("@nestjs/passport");
+const roles_guard_1 = require("../auth/roles.guard");
+const roles_decorator_1 = require("../auth/roles.decorator");
+const user_schema_1 = require("./schemas/user.schema");
+const get_user_decorator_1 = require("../auth/get-user.decorator");
+const update_profile_dto_1 = require("./dto/update-profile.dto");
 let UsersController = class UsersController {
-    usersService;
     constructor(usersService) {
         this.usersService = usersService;
     }
@@ -29,37 +31,48 @@ let UsersController = class UsersController {
     async getLoyaltyPoints(userId) {
         return this.usersService.getLoyaltyPoints(userId);
     }
+    async updateProfile(userId, dto) {
+        return this.usersService.updateProfile(userId, dto);
+    }
     async getUserById(id) {
         return this.usersService.findById(id);
     }
 };
+exports.UsersController = UsersController;
 __decorate([
-    Get(),
-    UseGuards(RolesGuard),
-    Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+    (0, common_1.Get)(),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_schema_1.UserRole.SUPER_ADMIN, user_schema_1.UserRole.ADMIN),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getAllUsers", null);
 __decorate([
-    Get('loyalty-points'),
-    __param(0, GetUser('_id')),
+    (0, common_1.Get)('loyalty-points'),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getLoyaltyPoints", null);
 __decorate([
-    Get(':id'),
-    __param(0, Param('id')),
+    (0, common_1.Put)('profile'),
+    __param(0, (0, get_user_decorator_1.GetUser)('_id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getUserById", null);
-UsersController = __decorate([
-    Controller('users'),
-    UseGuards(AuthGuard('jwt')),
-    __param(0, Inject(UsersService)),
-    __metadata("design:paramtypes", [typeof (_a = typeof UsersService !== "undefined" && UsersService) === "function" ? _a : Object])
+exports.UsersController = UsersController = __decorate([
+    (0, common_1.Controller)('users'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Inject)(users_service_1.UsersService)),
+    __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
-export { UsersController };
 //# sourceMappingURL=users.controller.js.map

@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,67 +8,59 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
-import { Product } from '../../products/schemas/product.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GuestCartSchema = exports.GuestCart = exports.GuestCartItemSchema = exports.GuestCartItem = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const product_schema_1 = require("../../products/schemas/product.schema");
 let GuestCartItem = class GuestCartItem {
-    product;
-    name;
-    price;
-    quantity;
-    size;
-    color;
-    image;
 };
+exports.GuestCartItem = GuestCartItem;
 __decorate([
-    Prop({ type: Types.ObjectId, ref: Product.name, required: true }),
-    __metadata("design:type", Types.ObjectId)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: product_schema_1.Product.name, required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], GuestCartItem.prototype, "product", void 0);
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], GuestCartItem.prototype, "name", void 0);
 __decorate([
-    Prop({ type: Number, required: true }),
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
 ], GuestCartItem.prototype, "price", void 0);
 __decorate([
-    Prop({ type: Number, required: true, default: 1 }),
+    (0, mongoose_1.Prop)({ type: Number, required: true, default: 1 }),
     __metadata("design:type", Number)
 ], GuestCartItem.prototype, "quantity", void 0);
 __decorate([
-    Prop({ type: String, default: '' }),
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
     __metadata("design:type", String)
 ], GuestCartItem.prototype, "size", void 0);
 __decorate([
-    Prop({ type: String, default: '' }),
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
     __metadata("design:type", String)
 ], GuestCartItem.prototype, "color", void 0);
 __decorate([
-    Prop({ type: String, default: '' }),
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
     __metadata("design:type", String)
 ], GuestCartItem.prototype, "image", void 0);
-GuestCartItem = __decorate([
-    Schema()
+exports.GuestCartItem = GuestCartItem = __decorate([
+    (0, mongoose_1.Schema)()
 ], GuestCartItem);
-export { GuestCartItem };
-export const GuestCartItemSchema = SchemaFactory.createForClass(GuestCartItem);
+exports.GuestCartItemSchema = mongoose_1.SchemaFactory.createForClass(GuestCartItem);
 let GuestCart = class GuestCart {
-    /** Browser-generated UUID stored in localStorage */
-    sessionId;
-    items;
 };
+exports.GuestCart = GuestCart;
 __decorate([
-    Prop({ type: String, required: true, unique: true, index: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, unique: true, index: true }),
     __metadata("design:type", String)
 ], GuestCart.prototype, "sessionId", void 0);
 __decorate([
-    Prop({ type: [GuestCartItemSchema], default: [] }),
+    (0, mongoose_1.Prop)({ type: [exports.GuestCartItemSchema], default: [] }),
     __metadata("design:type", Array)
 ], GuestCart.prototype, "items", void 0);
-GuestCart = __decorate([
-    Schema({ timestamps: true })
+exports.GuestCart = GuestCart = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], GuestCart);
-export { GuestCart };
-export const GuestCartSchema = SchemaFactory.createForClass(GuestCart);
+exports.GuestCartSchema = mongoose_1.SchemaFactory.createForClass(GuestCart);
 //# sourceMappingURL=guest-cart.schema.js.map

@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,26 +8,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
-export class UpdateCartItemDto {
-    quantity;
-    size;
-    color;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UpdateCartItemDto = void 0;
+const class_validator_1 = require("class-validator");
+class UpdateCartItemDto {
 }
+exports.UpdateCartItemDto = UpdateCartItemDto;
 __decorate([
-    IsOptional(),
-    IsNumber(),
-    Min(1),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], UpdateCartItemDto.prototype, "quantity", void 0);
 __decorate([
-    IsOptional(),
-    IsString(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateCartItemDto.prototype, "size", void 0);
 __decorate([
-    IsOptional(),
-    IsString(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateCartItemDto.prototype, "color", void 0);
 //# sourceMappingURL=update-cart-item.dto.js.map

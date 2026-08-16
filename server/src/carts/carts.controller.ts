@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Inject } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CartsService } from './carts.service';
 import { AddCartItemDto } from './dto/cart-item.dto';
@@ -43,8 +43,15 @@ export class CartsController {
   async removeCartItem(
     @GetUser('_id') userId: string,
     @Param('itemId') itemId: string,
+    @Query('size') size?: string,
+    @Query('color') color?: string,
   ) {
-    return this.cartsService.removeItem(userId, itemId);
+    const cart = await this.cartsService.removeItem(userId, itemId, size, color);
+    return {
+      success: true,
+      message: 'Item removed from cart',
+      cart,
+    };
   }
 
   @Delete()

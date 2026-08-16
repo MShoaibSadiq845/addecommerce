@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,91 +8,79 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Schema as MongooseSchema } from 'mongoose';
-import { Product } from '../../products/schemas/product.schema';
-export var OrderStatus;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrderSchema = exports.Order = exports.OrderItem = exports.OrderStatus = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const product_schema_1 = require("../../products/schemas/product.schema");
+var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["PENDING"] = "Pending";
     OrderStatus["PROCESSING"] = "Processing";
     OrderStatus["SHIPPED"] = "Shipped";
     OrderStatus["DELIVERED"] = "Delivered";
     OrderStatus["CANCELED"] = "Canceled";
-})(OrderStatus || (OrderStatus = {}));
+})(OrderStatus || (exports.OrderStatus = OrderStatus = {}));
 let OrderItem = class OrderItem {
-    product;
-    name;
-    price;
-    quantity;
-    color;
-    size;
-    image;
 };
+exports.OrderItem = OrderItem;
 __decorate([
-    Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true }),
-    __metadata("design:type", typeof (_a = typeof Product !== "undefined" && Product) === "function" ? _a : Object)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Product', required: true }),
+    __metadata("design:type", product_schema_1.Product)
 ], OrderItem.prototype, "product", void 0);
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], OrderItem.prototype, "name", void 0);
 __decorate([
-    Prop({ type: Number, required: true }),
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
 ], OrderItem.prototype, "price", void 0);
 __decorate([
-    Prop({ type: Number, required: true }),
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
 ], OrderItem.prototype, "quantity", void 0);
 __decorate([
-    Prop({ type: String }),
+    (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], OrderItem.prototype, "color", void 0);
 __decorate([
-    Prop({ type: String }),
+    (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], OrderItem.prototype, "size", void 0);
 __decorate([
-    Prop({ type: String }),
+    (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], OrderItem.prototype, "image", void 0);
-OrderItem = __decorate([
-    Schema()
+exports.OrderItem = OrderItem = __decorate([
+    (0, mongoose_1.Schema)()
 ], OrderItem);
-export { OrderItem };
-const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
+const OrderItemSchema = mongoose_1.SchemaFactory.createForClass(OrderItem);
 let Order = class Order {
-    // Guest customer info — no auth required
-    guestName;
-    guestEmail;
-    items;
-    totalAmount;
-    status;
-    shippingAddress;
 };
+exports.Order = Order;
 __decorate([
-    Prop({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Order.prototype, "guestName", void 0);
 __decorate([
-    Prop({ type: String, required: true, lowercase: true, trim: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, lowercase: true, trim: true }),
     __metadata("design:type", String)
 ], Order.prototype, "guestEmail", void 0);
 __decorate([
-    Prop({ type: [OrderItemSchema], required: true }),
+    (0, mongoose_1.Prop)({ type: [OrderItemSchema], required: true }),
     __metadata("design:type", Array)
 ], Order.prototype, "items", void 0);
 __decorate([
-    Prop({ type: Number, required: true, default: 0 }),
+    (0, mongoose_1.Prop)({ type: Number, required: true, default: 0 }),
     __metadata("design:type", Number)
 ], Order.prototype, "totalAmount", void 0);
 __decorate([
-    Prop({ type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING }),
+    (0, mongoose_1.Prop)({ type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING }),
     __metadata("design:type", String)
 ], Order.prototype, "status", void 0);
 __decorate([
-    Prop({
+    (0, mongoose_1.Prop)({
         type: {
             street: { type: String, required: true },
             city: { type: String, required: true },
@@ -103,9 +92,8 @@ __decorate([
     }),
     __metadata("design:type", Object)
 ], Order.prototype, "shippingAddress", void 0);
-Order = __decorate([
-    Schema({ timestamps: true })
+exports.Order = Order = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], Order);
-export { Order };
-export const OrderSchema = SchemaFactory.createForClass(Order);
+exports.OrderSchema = mongoose_1.SchemaFactory.createForClass(Order);
 //# sourceMappingURL=order.schema.js.map

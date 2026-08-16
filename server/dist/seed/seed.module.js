@@ -1,31 +1,34 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { SeedService } from './seed.service';
-import { User, UserSchema } from '../users/schemas/user.schema';
-import { Product, ProductSchema } from '../products/schemas/product.schema';
-import { Order, OrderSchema } from '../orders/schemas/order.schema';
-import { Notification, NotificationSchema } from '../notifications/schemas/notification.schema';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SeedModule = void 0;
+const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const seed_service_1 = require("./seed.service");
+const user_schema_1 = require("../users/schemas/user.schema");
+const product_schema_1 = require("../products/schemas/product.schema");
+const order_schema_1 = require("../orders/schemas/order.schema");
+const notification_schema_1 = require("../notifications/schemas/notification.schema");
 let SeedModule = class SeedModule {
 };
-SeedModule = __decorate([
-    Module({
+exports.SeedModule = SeedModule;
+exports.SeedModule = SeedModule = __decorate([
+    (0, common_1.Module)({
         imports: [
-            MongooseModule.forFeature([
-                { name: User.name, schema: UserSchema },
-                { name: Product.name, schema: ProductSchema },
-                { name: Order.name, schema: OrderSchema },
-                { name: Notification.name, schema: NotificationSchema },
+            mongoose_1.MongooseModule.forFeature([
+                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
+                { name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema },
+                { name: order_schema_1.Order.name, schema: order_schema_1.OrderSchema },
+                { name: notification_schema_1.Notification.name, schema: notification_schema_1.NotificationSchema },
             ]),
         ],
-        providers: [SeedService],
-        exports: [SeedService],
+        providers: [seed_service_1.SeedService],
+        exports: [seed_service_1.SeedService],
     })
 ], SeedModule);
-export { SeedModule };
 //# sourceMappingURL=seed.module.js.map

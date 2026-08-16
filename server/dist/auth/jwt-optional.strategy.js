@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,27 +11,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Injectable, Inject } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from '../users/schemas/user.schema';
-/**
- * Same as the default JWT strategy but NEVER throws — instead it sets
- * request.user to null when the token is absent or invalid.
- * Used on endpoints that are public but can optionally use the identity
- * of an authenticated caller (e.g. role-elevated registration).
- */
-let JwtOptionalStrategy = class JwtOptionalStrategy extends PassportStrategy(Strategy, 'jwt-optional') {
-    userModel;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.JwtOptionalStrategy = void 0;
+const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
+const passport_jwt_1 = require("passport-jwt");
+const config_1 = require("@nestjs/config");
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const user_schema_1 = require("../users/schemas/user.schema");
+let JwtOptionalStrategy = class JwtOptionalStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy, 'jwt-optional') {
     constructor(config, userModel) {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
             secretOrKey: config.get('JWT_SECRET'),
-            // passport-jwt will call validate() only when a token is present
             passReqToCallback: false,
         });
         this.userModel = userModel;
@@ -48,12 +43,11 @@ let JwtOptionalStrategy = class JwtOptionalStrategy extends PassportStrategy(Str
         }
     }
 };
-JwtOptionalStrategy = __decorate([
-    Injectable(),
-    __param(0, Inject(ConfigService)),
-    __param(1, InjectModel(User.name)),
-    __metadata("design:paramtypes", [ConfigService,
-        Model])
+exports.JwtOptionalStrategy = JwtOptionalStrategy;
+exports.JwtOptionalStrategy = JwtOptionalStrategy = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(config_1.ConfigService)),
+    __param(1, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __metadata("design:paramtypes", [config_1.ConfigService, mongoose_2.Model])
 ], JwtOptionalStrategy);
-export { JwtOptionalStrategy };
 //# sourceMappingURL=jwt-optional.strategy.js.map

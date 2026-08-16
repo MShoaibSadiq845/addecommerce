@@ -7,4 +7,5 @@ export declare class NotificationsGateway implements OnGatewayInit, OnGatewayCon
     handleConnection(client: Socket): void;
     handleDisconnect(client: Socket): void;
     broadcastNotification(notification: any): void;
+    broadcastReview(review: any): void;
 }
