@@ -479,7 +479,7 @@ function ShopContent() {
                 onChange={(e) => setPendingIsOnSale(e.target.checked)}
                 className="w-4 h-4 accent-black rounded"
               />
-              <span className="font-medium text-gray-700">On Sale</span>
+             
             </label>
           </FilterSection>
 
@@ -589,9 +589,7 @@ function ShopContent() {
                   </button>
                 </span>
               ))}
-              <button onClick={clearAll} className="text-xs text-red-500 font-bold hover:underline ml-2">
-                Clear All
-              </button>
+             
             </div>
           )}
 
