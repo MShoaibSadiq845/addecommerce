@@ -132,7 +132,7 @@ export function StorefrontHeader() {
               onMouseLeave={() => setShowShopMenu(false)}
               className="flex items-center gap-1 hover:text-black transition-colors py-1"
             >
-              Shop <ChevronDown className="w-3.5 h-3.5" />
+              Collections <ChevronDown className="w-3.5 h-3.5" />
             </button>
             {showShopMenu && (
               <div

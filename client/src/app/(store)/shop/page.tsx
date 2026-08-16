@@ -312,19 +312,14 @@ function ShopContent() {
       <div className="flex gap-8 items-start">
         {/* ═══════════════════ SIDEBAR FILTERS ═══════════════════ */}
         <aside
-          className={`shrink-0 w-72 bg-white border border-gray-200 rounded-[24px] p-6 flex flex-col gap-2 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${
-            sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
-          }`}
+          className={`shrink-0 w-72 bg-white border border-gray-200 rounded-[24px] p-6 flex flex-col gap-2 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+            }`}
         >
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-bold text-lg text-black flex items-center gap-2" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </h3>
-            {hasActiveFilters && (
-              <button onClick={clearAll} className="text-xs text-red-500 font-bold hover:underline">
-                Clear All
-              </button>
-            )}
+
           </div>
 
           {dynamicCategories.length > 0 && (
@@ -334,11 +329,10 @@ function ShopContent() {
                   <button
                     key={cat}
                     onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
-                    className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${
-                      pendingCategory === cat
+                    className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${pendingCategory === cat
                         ? 'text-black font-bold bg-gray-100'
                         : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <span className="capitalize">{cat}</span>
                     <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
@@ -363,15 +357,13 @@ function ShopContent() {
                 onChange={(e) => setPendingMaxPrice(Number(e.target.value))}
                 className="w-full h-1.5 rounded-full accent-black cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, #000 ${
-                    ((effectiveMaxPrice - dynamicPriceRange.min) /
+                  background: `linear-gradient(to right, #000 ${((effectiveMaxPrice - dynamicPriceRange.min) /
                       Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
                     100
-                  }%, #e5e7eb ${
-                    ((effectiveMaxPrice - dynamicPriceRange.min) /
+                    }%, #e5e7eb ${((effectiveMaxPrice - dynamicPriceRange.min) /
                       Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
                     100
-                  }%)`,
+                    }%)`,
                 }}
               />
             </div>
@@ -419,9 +411,8 @@ function ShopContent() {
                       onClick={() => toggleColor(c)}
                       title={c}
                       aria-label={`${isSelected ? 'Deselect' : 'Select'} color ${c}`}
-                      className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${
-                        isLight ? 'border border-gray-300' : ''
-                      } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
+                      className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${isLight ? 'border border-gray-300' : ''
+                        } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
                       style={{ backgroundColor: bg }}
                     >
                       {isSelected && (
@@ -457,11 +448,10 @@ function ShopContent() {
                     <button
                       key={s}
                       onClick={() => toggleSize(s)}
-                      className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
-                        pendingSizes.includes(s)
+                      className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${pendingSizes.includes(s)
                           ? 'bg-black text-white border-black shadow-sm'
                           : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
                       {label}
                     </button>
@@ -479,7 +469,7 @@ function ShopContent() {
                 onChange={(e) => setPendingIsOnSale(e.target.checked)}
                 className="w-4 h-4 accent-black rounded"
               />
-             
+
             </label>
           </FilterSection>
 
@@ -536,7 +526,7 @@ function ShopContent() {
           {/* Active Filter Chips */}
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
-            
+
               {activeCategory && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
                   {activeCategory}
@@ -545,7 +535,7 @@ function ShopContent() {
                   </button>
                 </span>
               )}
-           
+
               {activeMaxPrice < dynamicPriceRange.max && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full">
                   Max: ₨{activeMaxPrice.toLocaleString()}
@@ -582,7 +572,7 @@ function ShopContent() {
                   </button>
                 </span>
               ))}
-             
+
             </div>
           )}
 
@@ -626,9 +616,8 @@ function ShopContent() {
                     <button
                       key={num}
                       onClick={() => update({ page: String(num) })}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                        page === num ? 'bg-black text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
-                      }`}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${page === num ? 'bg-black text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
                     >
                       {num}
                     </button>
