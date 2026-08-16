@@ -122,7 +122,7 @@ export default function AdminAddProductPage() {
         ],
       }).unwrap();
       toast.success('Product created successfully!');
-      router.push('/admin/products');
+
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to create product';
       setErrorMsg(msg);
