@@ -12,7 +12,7 @@ import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
 import { getSessionId } from '@/lib/sessionId';
 import { ProductDetailSkeleton } from '@/components/ui/skeletons/ProductDetailSkeleton';
 import ReviewModal from '@/components/storefront/ReviewModal';
-import { ChevronRight, Minus, Plus, ShoppingCart, CheckCircle, PenLine, Star } from 'lucide-react';
+import { ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw } from 'lucide-react';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -58,13 +58,12 @@ export default function ProductDetailPage() {
 
   const { data: reviews = [], isLoading: reviewsLoading } = useGetReviewsByProductQuery(id as string);
 
-  const [addToGuestCart] = useAddToGuestCartMutation();
+  const [addToGuestCart, { isLoading: isAddingToCart }] = useAddToGuestCartMutation();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -89,7 +88,7 @@ export default function ProductDetailPage() {
   const sizes: string[] = product.sizes || [];
   const isOutOfStock = product.stock <= 0;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const chosenSize = selectedSize || (sizes[0] ?? '');
     const chosenColor = selectedColor || (colors[0] ?? '');
 
@@ -104,25 +103,24 @@ export default function ProductDetailPage() {
       color: chosenColor,
     }));
 
-    // 2. Persist to DB in the background (fire-and-forget)
+    // 2. Persist to DB in the background
     const sessionId = getSessionId();
     if (sessionId) {
-      addToGuestCart({
-        sessionId,
-        productId: product._id,
-        name: product.name,
-        price: effectivePrice,
-        quantity,
-        size: chosenSize,
-        color: chosenColor,
-        image: images[0],
-      }).catch(() => {
+      try {
+        await addToGuestCart({
+          sessionId,
+          productId: product._id,
+          name: product.name,
+          price: effectivePrice,
+          quantity,
+          size: chosenSize,
+          color: chosenColor,
+          image: images[0],
+        }).unwrap();
+      } catch {
         // Non-fatal — local cart still works even if DB sync fails
-      });
+      }
     }
-
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2500);
   };
 
   return (
@@ -231,13 +229,19 @@ export default function ProductDetailPage() {
               </div>
 
               <button
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || isAddingToCart}
                 onClick={handleAddToCart}
-                className={`flex-1 py-3.5 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${added ? 'bg-green-600 text-white' : 'bg-black hover:bg-gray-800 text-white'}`}
+                className="flex-1 py-3.5 rounded-full text-sm font-bold flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white transition-all disabled:opacity-50"
               >
-                {added
-                  ? <><CheckCircle className="w-4 h-4" /> Added!</>
-                  : <><ShoppingCart className="w-4 h-4" /> Add to Cart</>}
+                {isAddingToCart ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Adding...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4" /> Add to Cart
+                  </>
+                )}
               </button>
             </div>
 
