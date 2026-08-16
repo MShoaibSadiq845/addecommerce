@@ -8,7 +8,7 @@ import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X } from 'lu
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
-import { useLoading } from '@/context/LoadingContext'; // 👈 Global loading hook import kiya
+import { useLoading } from '@/context/LoadingContext';
 
 type ProductFormInputs = {
   name: string;
@@ -35,13 +35,14 @@ export default function AdminAddProductPage() {
   const [createProduct, { isLoading }] = useCreateProductMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const { setLoading } = useLoading(); // 👈 Global loading state control
+  const { setLoading } = useLoading();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset, // 👈 Form fields clear karne ke liye reset add kiya gaya hai
     formState: { errors },
   } = useForm<ProductFormInputs>({
     defaultValues: {
@@ -61,7 +62,7 @@ export default function AdminAddProductPage() {
 
   const watchImageInput = watch('imageInput');
 
-  // 👈 Yeh useEffect product save ya image upload hone par global loading handle karega
+  // Global loading handle karne ke liye useEffect
   useEffect(() => {
     if (isLoading || isUploading) {
       setLoading(true);
@@ -69,7 +70,6 @@ export default function AdminAddProductPage() {
       setLoading(false);
     }
 
-    // Cleanup function taake component unmount ho toh loading band ho jaye
     return () => {
       setLoading(false);
     };
@@ -121,7 +121,13 @@ export default function AdminAddProductPage() {
           data.category.toLowerCase(),
         ],
       }).unwrap();
+
       toast.success('Product created successfully!');
+
+      reset(); // 👈 Product successful create hone ke baad saare fields reset/clear ho jayenge
+
+      // SKU ko dobara naya generate karwana ho toh reset ke sath default sku update kar saktay hain ya phir it's fine.
+      // Agar product page par wapas bhejna ho toh router.push('/admin/products') use kar sakte hain.
 
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to create product';
@@ -225,7 +231,7 @@ export default function AdminAddProductPage() {
             {errors.rating && <span className="text-[10px] text-red-500 font-semibold">{errors.rating.message}</span>}
           </div>
 
-          {/* Category (free text) */}
+          {/* Category */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Category</label>
             <input
