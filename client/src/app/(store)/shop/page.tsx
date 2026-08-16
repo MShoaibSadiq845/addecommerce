@@ -219,7 +219,7 @@ function ShopContent() {
   }, [dynamicPriceRange.max, pendingMaxPrice, searchParams, activeMaxPrice]);
 
   const effectiveMaxPrice = pendingMaxPrice ?? dynamicPriceRange.max;
-  const { data, isLoading } = useGetProductsQuery({
+  const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
     limit: activeNewArrivals ? 100 : 9,
     sort: sortRaw,
@@ -234,9 +234,9 @@ function ShopContent() {
 
   React.useEffect(() => {
     if (setIsLoading) {
-      setIsLoading(isLoading);
+      setIsLoading(isLoading || isFetching);
     }
-  }, [isLoading, setIsLoading]);
+  }, [isLoading, isFetching, setIsLoading]);
 
   const products = data?.products || [];
   const totalPages = data?.pages || 1;
@@ -504,7 +504,11 @@ function ShopContent() {
                   ? `Search: "${activeSearch}"`
                   : activeNewArrivals ? 'New Arrivals' : activeCategory || 'All Products'}
               </h1>
-              <p className="text-xs text-gray-500 mt-1">Showing {products.length} of {totalProducts} products available</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {isLoading || isFetching
+                  ? 'Loading products...'
+                  : `Showing ${products.length} of ${totalProducts} products available`}
+              </p>
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -591,8 +595,10 @@ function ShopContent() {
             </div>
           )}
 
-          {isLoading ? (
-            <ProductGridSkeleton count={9} />
+          {isLoading || isFetching ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              <ProductGridSkeleton count={9} />
+            </div>
           ) : products.length === 0 ? (
             <div className="py-20 flex flex-col items-center gap-3 bg-[#f2f0f1] rounded-[24px] text-center px-4">
               <p className="font-bold text-lg text-black">No products found</p>
@@ -612,7 +618,7 @@ function ShopContent() {
             </div>
           )}
 
-          {totalPages > 1 && (
+          {totalPages > 1 && !isLoading && !isFetching && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
               <button
                 disabled={page <= 1}
