@@ -16,8 +16,12 @@ function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} className={`w-3.5 h-3.5 ${i < Math.floor(rating) ? 'text-amber-400' : 'text-gray-200'}`}
-          fill="currentColor" viewBox="0 0 20 20">
+        <svg
+          key={i}
+          className={`w-3.5 h-3.5 ${i < Math.floor(rating) ? 'text-amber-400' : 'text-gray-200'}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
@@ -30,20 +34,23 @@ function ProductCard({ product }: { product: any }) {
   const img = product.images?.[0] || '/images/7.png';
   const price = product.isOnSale ? product.salePrice : product.price;
   const discount = product.isOnSale
-    ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0;
+    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+    : 0;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(addToCart({
-      id: product._id,
-      name: product.name,
-      price: price,
-      image: img,
-      quantity: 1,
-      size: product.sizes?.[0] || '',
-      color: product.colors?.[0] || '',
-    }));
+    dispatch(
+      addToCart({
+        id: product._id,
+        name: product.name,
+        price: price,
+        image: img,
+        quantity: 1,
+        size: product.sizes?.[0] || '',
+        color: product.colors?.[0] || '',
+      })
+    );
     toast.success(`${product.name} added to cart!`, { duration: 1500 });
   };
 
@@ -51,16 +58,22 @@ function ProductCard({ product }: { product: any }) {
     <div className="group flex flex-col gap-3 relative">
       <Link href={`/shop/${product._id}`}>
         <div className="relative w-full aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden">
-          <Image src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500" />
+          <Image
+            src={img}
+            alt={product.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
           {product.isOnSale && (
             <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
               -{discount}%
             </span>
           )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
-            <button onClick={handleQuickAdd}
-              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors">
+            <button
+              onClick={handleQuickAdd}
+              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
+            >
               <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
             </button>
           </div>
@@ -86,7 +99,17 @@ function ProductCard({ product }: { product: any }) {
   );
 }
 
-function FilterSection({ title, children, open, onToggle }: { title: string; children: React.ReactNode; open: boolean; onToggle: () => void }) {
+function FilterSection({
+  title,
+  children,
+  open,
+  onToggle,
+}: {
+  title: string;
+  children: React.ReactNode;
+  open: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div className="border-t border-gray-100 pt-4">
       <button onClick={onToggle} className="w-full flex items-center justify-between mb-3 group">
@@ -105,7 +128,7 @@ function FilterSection({ title, children, open, onToggle }: { title: string; chi
 function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { setIsLoading } = useLoading();
+  const { setIsLoading } = useLoading() || {};
 
   const page = Number(searchParams.get('page') || '1');
   const sortRaw = searchParams.get('sort') || 'newest';
@@ -131,11 +154,11 @@ function ShopContent() {
   const activeMaxPrice = Number(searchParams.get('maxPrice') || '50000');
   const activeColors = useMemo(
     () => (searchParams.get('color') ? searchParams.get('color')!.split(',').filter(Boolean) : []),
-    [searchParams],
+    [searchParams]
   );
   const activeSizes = useMemo(
     () => (searchParams.get('size') ? searchParams.get('size')!.split(',').filter(Boolean) : []),
-    [searchParams],
+    [searchParams]
   );
 
   const { data: allProductsData } = useGetProductsQuery({ limit: 1000 });
@@ -184,15 +207,15 @@ function ShopContent() {
     if (searchParams.get('maxPrice')) {
       setPendingMaxPrice(activeMaxPrice);
     }
-  }, [activeCategory, activeIsOnSale, activeColors, activeSizes]);
+  }, [activeCategory, activeIsOnSale, activeColors, activeSizes, activeMaxPrice, searchParams]);
 
   React.useEffect(() => {
     if (dynamicPriceRange.max > 0 && pendingMaxPrice === null) {
       setPendingMaxPrice(
-        searchParams.get('maxPrice') ? activeMaxPrice : dynamicPriceRange.max,
+        searchParams.get('maxPrice') ? activeMaxPrice : dynamicPriceRange.max
       );
     }
-  }, [dynamicPriceRange.max]);
+  }, [dynamicPriceRange.max, pendingMaxPrice, searchParams, activeMaxPrice]);
 
   const effectiveMaxPrice = pendingMaxPrice ?? dynamicPriceRange.max;
   const { data, isLoading } = useGetProductsQuery({
@@ -282,12 +305,20 @@ function ShopContent() {
       </nav>
 
       <div className="flex gap-6 items-start">
-        <aside className={`shrink-0 w-64 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-1 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+        <aside
+          className={`shrink-0 w-64 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-1 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${
+            sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+          }`}
+        >
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-base text-black flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </h3>
-            {(pendingCategory || pendingIsOnSale || pendingColors.length || pendingSizes.length || effectiveMaxPrice < dynamicPriceRange.max) && (
+            {(pendingCategory ||
+              pendingIsOnSale ||
+              pendingColors.length ||
+              pendingSizes.length ||
+              effectiveMaxPrice < dynamicPriceRange.max) && (
               <button onClick={clearAll} className="text-xs text-red-500 font-bold hover:underline">
                 Clear
               </button>
@@ -412,13 +443,13 @@ function ShopContent() {
               <div className="flex flex-wrap gap-2">
                 {dynamicSizes.map((s: any) => {
                   const sizeLabels: Record<string, string> = {
-                    'XXS': 'XX-Small',
-                    'XS': 'X-Small',
-                    'S': 'Small',
-                    'M': 'Medium',
-                    'L': 'Large',
-                    'XL': 'X-Large',
-                    'XXL': 'XX-Large',
+                    XXS: 'XX-Small',
+                    XS: 'X-Small',
+                    S: 'Small',
+                    M: 'Medium',
+                    L: 'Large',
+                    XL: 'X-Large',
+                    XXL: 'XX-Large',
                     '2XL': 'XX-Large',
                     '3XL': '3X-Large',
                     '4XL': '4X-Large',
@@ -471,21 +502,25 @@ function ShopContent() {
             <div>
               <h1 className="text-xl font-bold text-black capitalize">
                 {activeSearch
-                ? `Search: "${activeSearch}"`
-                : activeNewArrivals ? 'New Arrivals' : activeCategory || 'All Products'}
+                  ? `Search: "${activeSearch}"`
+                  : activeNewArrivals ? 'New Arrivals' : activeCategory || 'All Products'}
               </h1>
               <p className="text-xs text-gray-400">{totalProducts} products found</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => setSidebarOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full text-sm">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full text-sm"
+              >
                 <SlidersHorizontal className="w-4 h-4" /> Filters
               </button>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-400">Sort:</span>
-                <select value={sortRaw}
+                <select
+                  value={sortRaw}
                   onChange={(e) => update({ sort: e.target.value, page: '1' })}
-                  className="bg-transparent text-sm font-medium outline-none border-b border-gray-300 pb-0.5 cursor-pointer">
+                  className="bg-transparent text-sm font-medium outline-none border-b border-gray-300 pb-0.5 cursor-pointer"
+                >
                   <option value="newest">Newest</option>
                   <option value="most-popular">Most Popular</option>
                   <option value="price-asc">Price: Low to High</option>
@@ -501,35 +536,52 @@ function ShopContent() {
             <div className="py-20 flex flex-col items-center gap-3 bg-gray-50 rounded-2xl text-center">
               <p className="font-bold text-gray-700">No products found</p>
               <p className="text-xs text-gray-400">Try adjusting your filters.</p>
-              <button onClick={() => router.replace('/shop')}
-                className="mt-2 px-6 py-2 bg-black text-white rounded-full text-xs font-bold">
+              <button
+                onClick={() => router.replace('/shop')}
+                className="mt-2 px-6 py-2 bg-black text-white rounded-full text-xs font-bold"
+              >
                 Clear Filters
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              {products.map((p: any) => <ProductCard key={p._id} product={p} />)}
+              {products.map((p: any) => (
+                <ProductCard key={p._id} product={p} />
+              ))}
             </div>
           )}
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-              <button disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all">
+              <button
+                disabled={page <= 1}
+                onClick={() => update({ page: String(page - 1) })}
+                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all"
+              >
                 <ChevronLeft className="w-4 h-4" /> Previous
               </button>
               <div className="flex items-center gap-1">
                 {pageNumbers().map((num, i) =>
-                  num === '...' ? <span key={i} className="px-2 text-gray-400">…</span> : (
-                    <button key={num} onClick={() => update({ page: String(num) })}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${page === num ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'}`}>
+                  num === '...' ? (
+                    <span key={i} className="px-2 text-gray-400">…</span>
+                  ) : (
+                    <button
+                      key={num}
+                      onClick={() => update({ page: String(num) })}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                        page === num ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
                       {num}
                     </button>
                   )
                 )}
               </div>
-              <button disabled={page >= totalPages} onClick={() => update({ page: String(page + 1) })}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all">
+              <button
+                disabled={page >= totalPages}
+                onClick={() => update({ page: String(page + 1) })}
+                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all"
+              >
                 Next <ChevronRight className="w-4 h-4" />
               </button>
             </div>
