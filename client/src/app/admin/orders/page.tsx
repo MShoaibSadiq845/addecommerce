@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
 import { Eye, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useLoading } from '@/context/LoadingContext'; // 👈 Global loading hook import kiya
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -17,11 +18,27 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
-  const { data: orders = [], isLoading } = useGetAllOrdersQuery(selectedStatus || undefined, {
+  const { setLoading } = useLoading(); // 👈 Global loading state control
+
+  const { data: orders = [], isLoading, isFetching } = useGetAllOrdersQuery(selectedStatus || undefined, {
     refetchOnMountOrArgChange: true,
   });
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // 👈 Yeh useEffect data fetch ya status update hone par global loading handle karega
+  useEffect(() => {
+    if (isLoading || isFetching || updatingId !== null) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+
+    // Cleanup function taake component unmount ho toh loading band ho jaye
+    return () => {
+      setLoading(false);
+    };
+  }, [isLoading, isFetching, updatingId, setLoading]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     setUpdatingId(id);

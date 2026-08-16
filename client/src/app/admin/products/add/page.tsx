@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useCreateProductMutation } from '@/store/services/productsApi';
@@ -8,6 +8,7 @@ import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X } from 'lu
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
+import { useLoading } from '@/context/LoadingContext'; // 👈 Global loading hook import kiya
 
 type ProductFormInputs = {
   name: string;
@@ -34,6 +35,7 @@ export default function AdminAddProductPage() {
   const [createProduct, { isLoading }] = useCreateProductMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const { setLoading } = useLoading(); // 👈 Global loading state control
 
   const {
     register,
@@ -58,6 +60,20 @@ export default function AdminAddProductPage() {
   });
 
   const watchImageInput = watch('imageInput');
+
+  // 👈 Yeh useEffect product save ya image upload hone par global loading handle karega
+  useEffect(() => {
+    if (isLoading || isUploading) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+
+    // Cleanup function taake component unmount ho toh loading band ho jaye
+    return () => {
+      setLoading(false);
+    };
+  }, [isLoading, isUploading, setLoading]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -211,7 +227,8 @@ export default function AdminAddProductPage() {
 
           {/* Category (free text) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Category</label>            <input
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Category</label>
+            <input
               type="text"
               placeholder="e.g. Casual, Formal, Gym..."
               {...register('category', { required: 'Category is required' })}
