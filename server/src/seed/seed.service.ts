@@ -183,7 +183,7 @@ export class SeedService implements OnModuleInit {
     this.logger.log(`Seeded ${products.length} products.`);
   }
 
-  // ── Sample guest orders ────────────────────────────────────────────────────
+  // ── Sample guest orders ────────────────────────────────────────────────    
   async seedOrders() {
     const products = await this.productModel.find().limit(3).exec();
     if (products.length < 2) return;
@@ -244,7 +244,7 @@ export class SeedService implements OnModuleInit {
         },
         createdAt: dateB,
       },
-    ]);
+    ] as any);
     this.logger.log('Seeded 2 sample guest orders.');
   }
 
