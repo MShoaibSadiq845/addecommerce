@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useForm } from 'react-hook-form';
 import {
   Package,
   Search,
@@ -57,7 +58,6 @@ const STATUS_STEPS = ['Processing', 'Shipped', 'Delivered'] as const;
 type OrderStatus = string;
 
 function OrderProgressBar({ status }: { status: OrderStatus }) {
-  // Canceled orders get their own treatment
   if (status === 'Canceled') {
     return (
       <div className="flex items-center gap-2 px-2 py-3">
@@ -67,9 +67,7 @@ function OrderProgressBar({ status }: { status: OrderStatus }) {
     );
   }
 
-  // For Pending, treat as "not yet Processing"
   const steps = STATUS_STEPS;
-  // currentIndex: -1 = Pending (before Processing), 0,1,2 = steps index
   const currentIndex =
     status === 'Pending' ? -1 : steps.indexOf(status as typeof steps[number]);
 
@@ -85,11 +83,9 @@ function OrderProgressBar({ status }: { status: OrderStatus }) {
         {steps.map((step, i) => {
           const isDone = currentIndex > i;
           const isActive = currentIndex === i;
-          const isPending = currentIndex < i;
 
           return (
             <React.Fragment key={step}>
-              {/* Step circle */}
               <div className="flex flex-col items-center gap-1.5 shrink-0">
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all ${
@@ -111,7 +107,6 @@ function OrderProgressBar({ status }: { status: OrderStatus }) {
                 </span>
               </div>
 
-              {/* Connector line (between steps) */}
               {i < steps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-1 mb-5 rounded-full transition-all ${
@@ -139,7 +134,6 @@ function OrderCard({ order }: { order: any }) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-gray-100">
         <div className="flex flex-col">
           <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
@@ -179,18 +173,12 @@ function OrderCard({ order }: { order: any }) {
           className="ml-auto p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500"
           aria-label={expanded ? 'Collapse' : 'Expand'}
         >
-          {expanded ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Expandable items */}
       {expanded && (
         <div className="px-6 py-4 flex flex-col gap-4">
-          {/* Status progress bar */}
           <div className="bg-gray-50 rounded-2xl px-4 pt-3 pb-1 border border-gray-100">
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
               Order Progress
@@ -198,18 +186,12 @@ function OrderCard({ order }: { order: any }) {
             <OrderProgressBar status={order.status} />
           </div>
 
-          {/* Item list */}
           <div className="flex flex-col divide-y divide-gray-50">
             {order.items?.map((item: any, idx: number) => (
               <div key={idx} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                 {item.image && (
                   <div className="relative w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -223,9 +205,7 @@ function OrderCard({ order }: { order: any }) {
                       {item.size && `Size: ${item.size}`}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Qty: {item.quantity}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">Qty: {item.quantity}</p>
                 </div>
                 <span className="font-bold text-sm text-black shrink-0">
                   ₨{(item.price * item.quantity).toLocaleString()}
@@ -234,7 +214,6 @@ function OrderCard({ order }: { order: any }) {
             ))}
           </div>
 
-          {/* Shipping */}
           <div className="flex items-start gap-2 text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3">
             <Truck className="w-4 h-4 shrink-0 mt-0.5 text-gray-400" />
             <span>
@@ -252,21 +231,31 @@ function OrderCard({ order }: { order: any }) {
 // ─── Main component ──────────────────────────────────────────────────────────
 
 interface MyOrdersProps {
-  /** Pre-fill the email input (e.g. passed from order confirmation redirect) */
   initialEmail?: string;
 }
 
+type FormValues = {
+  email: string;
+};
+
 export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
-  const [emailInput, setEmailInput] = useState(initialEmail);
   const [submittedEmail, setSubmittedEmail] = useState(initialEmail);
 
-  // If a parent passes a new initialEmail (e.g. from URL param), sync it
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: { email: initialEmail },
+  });
+
   useEffect(() => {
     if (initialEmail) {
-      setEmailInput(initialEmail);
+      setValue('email', initialEmail);
       setSubmittedEmail(initialEmail);
     }
-  }, [initialEmail]);
+  }, [initialEmail, setValue]);
 
   const {
     data: orders = [],
@@ -277,42 +266,60 @@ export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
     skip: !submittedEmail,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = emailInput.trim().toLowerCase();
-    if (trimmed) setSubmittedEmail(trimmed);
+  const onSubmit = (data: FormValues) => {
+    const trimmed = data.email.trim().toLowerCase();
+    if (trimmed) {
+      setSubmittedEmail(trimmed);
+    }
   };
+
+  const isButtonLoading = isLoading || isFetching;
 
   return (
     <div className="flex flex-col gap-6">
       {/* Email lookup form */}
-      <form onSubmit={handleSubmit} className="flex gap-3 max-w-md">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            type="email"
-            placeholder="Enter the email used at checkout…"
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            className="w-full bg-gray-100 rounded-full py-3 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-black/20 placeholder:text-gray-400"
-          />
-        </div>
-        <button
-          type="submit"
-          className="px-6 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors shrink-0"
-        >
-          Look Up
-        </button>
-        {submittedEmail && (
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-1.5 max-w-md">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="email"
+              placeholder="Enter the email used at checkout…"
+              {...register('email', {
+                required: 'Please enter your email',
+              })}
+              className={`w-full bg-gray-100 rounded-full py-3 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-black/20 placeholder:text-gray-400 ${
+                errors.email ? 'border border-red-500 bg-red-50' : ''
+              }`}
+            />
+          </div>
           <button
-            type="button"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors text-gray-500 disabled:opacity-50"
-            aria-label="Refresh"
+            type="submit"
+            disabled={isButtonLoading}
+            className="px-6 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors shrink-0 disabled:opacity-50 flex items-center justify-center gap-2 min-w-[100px]"
           >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            {isButtonLoading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              'Look Up'
+            )}
           </button>
+          {submittedEmail && (
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isButtonLoading}
+              className="p-3 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors text-gray-500 disabled:opacity-50"
+              aria-label="Refresh"
+            >
+              <RefreshCw className={`w-4 h-4 ${isButtonLoading ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+        </div>
+        {errors.email && (
+          <span className="text-xs text-red-500 font-medium pl-4">
+            {errors.email.message}
+          </span>
         )}
       </form>
 
@@ -331,7 +338,6 @@ export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
           </h2>
 
           {isLoading ? (
-            /* Skeleton */
             <div className="flex flex-col gap-4">
               {[1, 2].map((n) => (
                 <div
