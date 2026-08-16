@@ -32,7 +32,7 @@ export default function CartPage() {
   const { items } = useSelector((state: RootState) => state.cart);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [createOrder, { isLoading: isCheckingOut }] = useCreateOrderMutation();
-  const [clearGuestCart] = useClearGuestCartMutation();
+  const [clearGuestCart, { isLoading: isClearingCart }] = useClearGuestCartMutation();
   const [orderSuccess, setOrderSuccess] = useState<any>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -93,7 +93,9 @@ export default function CartPage() {
       dispatch(clearCart());
       // Also wipe the guest cart from the DB
       const sessionId = getSessionId();
-      if (sessionId) clearGuestCart(sessionId).catch(() => {});
+      if (sessionId) {
+        await clearGuestCart(sessionId).unwrap().catch(() => {});
+      }
       toast.success('Order placed successfully!');
     } catch (err: any) {
       const msg = err?.data?.message || 'Checkout failed. Please try again.';
@@ -389,9 +391,9 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={isCheckingOut}
+              <button type="submit" disabled={isCheckingOut || isClearingCart}
                 className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-full text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2">
-                {isCheckingOut
+                {isCheckingOut || isClearingCart
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Placing Order…</>
                   : <><CheckCircle className="w-4 h-4" /> Place Order</>}
               </button>
