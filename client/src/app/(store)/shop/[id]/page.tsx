@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
   const dispatch = useDispatch();
 
   const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
-  const { data: relatedData } = useGetProductsQuery({ limit: 4, sort: 'rating' });
+  const { data: relatedData, isLoading: isRelatedLoading } = useGetProductsQuery({ limit: 4, sort: 'rating' });
   const relatedProducts = relatedData?.products?.filter((p: any) => p._id !== id).slice(0, 4) || [];
 
   const { data: reviews = [], isLoading: reviewsLoading } = useGetReviewsByProductQuery(id as string);
@@ -357,15 +357,29 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Related products */}
-        {relatedProducts.length > 0 && (
+        {(isRelatedLoading || relatedProducts.length > 0) && (
           <section className="mt-16">
             <h2 className="text-2xl font-extrabold text-black text-center mb-8"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
               YOU MIGHT ALSO LIKE
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
-              {relatedProducts.map((p: any) => <RelatedCard key={p._id} product={p} />)}
-            </div>
+            {isRelatedLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 animate-pulse">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex flex-col gap-3">
+                    <div className="w-full aspect-square bg-gray-200 rounded-2xl" />
+                    <div className="px-1 flex flex-col gap-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      <div className="h-4 bg-gray-100 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                {relatedProducts.map((p: any) => <RelatedCard key={p._id} product={p} />)}
+              </div>
+            )}
           </section>
         )}
       </div>
