@@ -30,6 +30,8 @@ const parseTags = (raw: string): string[] =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+const generateSKU = () => `SKU-${Math.floor(100000 + Math.random() * 900000)}`;
+
 export default function AdminAddProductPage() {
   const router = useRouter();
   const [createProduct, { isLoading }] = useCreateProductMutation();
@@ -42,7 +44,7 @@ export default function AdminAddProductPage() {
     handleSubmit,
     watch,
     setValue,
-    reset, // 👈 Form fields clear karne ke liye reset add kiya gaya hai
+    reset,
     formState: { errors },
   } = useForm<ProductFormInputs>({
     defaultValues: {
@@ -53,7 +55,7 @@ export default function AdminAddProductPage() {
       category: '',
       brand: 'SHOP.CO',
       stock: '50',
-      sku: `SKU-${Date.now().toString().slice(-6)}`,
+      sku: generateSKU(),
       imageInput: '',
       colorsInput: '',
       sizesInput: '',
@@ -124,10 +126,20 @@ export default function AdminAddProductPage() {
 
       toast.success('Product created successfully!');
 
-      reset(); // 👈 Product successful create hone ke baad saare fields reset/clear ho jayenge
-
-      // SKU ko dobara naya generate karwana ho toh reset ke sath default sku update kar saktay hain ya phir it's fine.
-      // Agar product page par wapas bhejna ho toh router.push('/admin/products') use kar sakte hain.
+      // Reset form and generate a fresh unique SKU for the next product
+      reset({
+        name: '',
+        description: '',
+        price: '',
+        rating: '4.5',
+        category: '',
+        brand: 'SHOP.CO',
+        stock: '50',
+        sku: generateSKU(),
+        imageInput: '',
+        colorsInput: '',
+        sizesInput: '',
+      });
 
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to create product';

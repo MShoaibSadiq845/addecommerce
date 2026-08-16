@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
-import { useGetProductsQuery } from '@/store/services/productsApi';
+import { useGetProductsQuery, useGetCategoriesQuery } from '@/store/services/productsApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
 import { LoadingProvider } from '@/context/LoadingContext';
@@ -112,10 +112,39 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── Dynamic Category Section ─── */
+function CategorySection({ category }: { category: string }) {
+  const { data, isLoading } = useGetProductsQuery({ category, limit: 4 });
+  const products = data?.products || [];
+
+  if (!isLoading && products.length === 0) return null;
+
+  return (
+    <>
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col items-center gap-10">
+        <SectionHeading>{category.toUpperCase()}</SectionHeading>
+        <ProductRow products={products} loading={isLoading} />
+        <Link
+          href={`/shop?category=${encodeURIComponent(category)}`}
+          className="px-16 py-3.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-all"
+        >
+          View All
+        </Link>
+      </section>
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
+        <hr className="border-gray-200" />
+      </div>
+    </>
+  );
+}
+
 /* ─── Main Home Content ─── */
 function HomeContent() {
   const { data: newArrivalsData, isLoading: loadingNew } = useGetProductsQuery({ limit: 4, sort: 'newest' });
   const { data: topSellingData, isLoading: loadingTop } = useGetProductsQuery({ limit: 4, sort: 'rating' });
+  const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const { data: fetchedReviews = [], isLoading: loadingReviews } = useGetAllReviewsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
@@ -254,6 +283,15 @@ function HomeContent() {
           View All
         </Link>
       </section>
+
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
+        <hr className="border-gray-200" />
+      </div>
+
+      {/* ═══════════════════ DYNAMIC CATEGORIES ═══════════════════ */}
+      {!loadingCategories && Array.isArray(categories) && categories
+        .filter((cat): cat is string => typeof cat === 'string' && cat.trim().length > 0)
+        .map((cat) => <CategorySection key={cat} category={cat} />)}
 
       {/* ═══════════════════ BROWSE BY DRESS STYLE ═══════════════════ */}
       <section className="w-full px-4 sm:px-6 lg:px-20 py-10">
