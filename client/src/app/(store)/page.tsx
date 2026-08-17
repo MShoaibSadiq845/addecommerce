@@ -195,9 +195,9 @@ function HomeContent() {
     <div className="w-full flex flex-col items-center">
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section className="w-full bg-[#f2f0f1] overflow-hidden relative">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-8 sm:pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between min-h-[500px] lg:min-h-[600px] relative gap-6">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-8 sm:pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 lg:gap-8">
           {/* Left Text & Stats Box */}
-          <div className="flex flex-col gap-5 sm:gap-6 max-w-xl z-10 pb-6 lg:pb-16 w-full">
+          <div className="flex flex-col gap-5 sm:gap-6 max-w-xl z-10 pb-6 lg:pb-12 w-full lg:flex-1">
             <h1
               className="text-3xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
@@ -237,14 +237,14 @@ function HomeContent() {
             </div>
           </div>
 
-          {/* Models Image Container (Stacked below stats on mobile, right-aligned on desktop) */}
-          <div className="relative w-full h-[320px] sm:h-[450px] lg:h-full lg:absolute lg:right-0 lg:bottom-0 lg:w-[50%] flex items-end justify-center lg:justify-end pointer-events-none mt-2 lg:mt-0">
+          {/* Models Image Container with explicit responsive width & height */}
+          <div className="relative w-full lg:w-[550px] xl:w-[620px] h-[360px] sm:h-[480px] lg:h-[580px] xl:h-[650px] flex-shrink-0 flex items-end justify-center lg:justify-end self-end mt-2 lg:mt-0">
             <Image
               src="/images/59.png"
               alt="Fashion Models"
-              width={600}
-              height={660}
-              className="w-auto h-full object-contain object-bottom max-h-[350px] sm:max-h-[480px] lg:max-h-[660px]"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 620px"
+              className="object-contain object-bottom lg:object-right-bottom"
               priority
             />
           </div>
