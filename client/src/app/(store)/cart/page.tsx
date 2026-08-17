@@ -161,7 +161,7 @@ export default function CartPage() {
       // Also wipe the guest cart from the DB
       const sessionId = getSessionId();
       if (sessionId) {
-        await clearGuestCart(sessionId).unwrap().catch(() => {});
+        await clearGuestCart(sessionId).unwrap().catch(() => { });
       }
       toast.success('Order placed successfully!');
     } catch (err: any) {
@@ -419,13 +419,12 @@ export default function CartPage() {
                       required: 'Email is required',
                       pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
                     })}
-                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${
-                      isAuthenticated
+                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${isAuthenticated
                         ? 'bg-gray-100 text-gray-600 cursor-not-allowed border-gray-200 select-none'
                         : errors.guestEmail
-                        ? 'border-red-500 bg-red-50'
-                        : 'border-gray-200'
-                    }`}
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-gray-200'
+                      }`}
                   />
                   {errors.guestEmail && <span className="text-[10px] text-red-500">{errors.guestEmail.message}</span>}
                 </div>

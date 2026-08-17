@@ -13,6 +13,7 @@ import { getSessionId } from '@/lib/sessionId';
 import { ProductDetailSkeleton } from '@/components/ui/skeletons/ProductDetailSkeleton';
 import ReviewModal from '@/components/storefront/ReviewModal';
 import { ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -51,6 +52,7 @@ function RelatedCard({ product }: { product: any }) {
 export default function ProductDetailPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const { setLoading } = useLoading();
 
   const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
   const { data: relatedData, isLoading: isRelatedLoading } = useGetProductsQuery({ limit: 4, sort: 'rating' });
@@ -59,6 +61,11 @@ export default function ProductDetailPage() {
   const { data: reviews = [], isLoading: reviewsLoading } = useGetReviewsByProductQuery(id as string);
 
   const [addToGuestCart, { isLoading: isAddingToCart }] = useAddToGuestCartMutation();
+
+  React.useEffect(() => {
+    setLoading(isLoading || isAddingToCart);
+    return () => setLoading(false);
+  }, [isLoading, isAddingToCart, setLoading]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
