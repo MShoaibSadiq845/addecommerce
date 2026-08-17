@@ -297,30 +297,42 @@ function HomeContent() {
       <section className="w-full px-4 sm:px-6 lg:px-20 py-10">
         <div className="w-full max-w-[1440px] mx-auto bg-[#f2f0f1] rounded-[40px] p-6 sm:p-8 lg:p-14 flex flex-col items-center gap-10">
           <SectionHeading>BROWSE BY DRESS STYLE</SectionHeading>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 w-full">
             <Link
               href="/shop?category=Casual"
-              className="relative h-[170px] sm:h-[220px] rounded-[20px] overflow-hidden group bg-white col-span-1"
+              className="relative h-[200px] sm:h-[260px] rounded-[20px] overflow-hidden group bg-white col-span-1 shadow-sm hover:shadow-md transition-shadow"
             >
-              <Image src="/images/15.png" alt="Casual" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <span className="absolute top-6 left-6 sm:top-8 sm:left-8 text-2xl sm:text-3xl font-bold text-black z-10" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                Casual
+              </span>
+              <Image src="/images/62.png" alt="Casual" fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
             </Link>
             <Link
               href="/shop?category=Formal"
-              className="relative h-[170px] sm:h-[220px] rounded-[20px] overflow-hidden group bg-white col-span-1 md:col-span-2"
+              className="relative h-[200px] sm:h-[260px] rounded-[20px] overflow-hidden group bg-white col-span-1 sm:col-span-2 md:col-span-2 shadow-sm hover:shadow-md transition-shadow"
             >
-              <Image src="/images/16.png" alt="Formal" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <span className="absolute top-6 left-6 sm:top-8 sm:left-8 text-2xl sm:text-3xl font-bold text-black z-10" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                Formal
+              </span>
+              <Image src="/images/64.png" alt="Formal" fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
             </Link>
             <Link
               href="/shop?category=Party"
-              className="relative h-[170px] sm:h-[220px] rounded-[20px] overflow-hidden group bg-white col-span-1 md:col-span-2"
+              className="relative h-[200px] sm:h-[260px] rounded-[20px] overflow-hidden group bg-white col-span-1 sm:col-span-2 md:col-span-2 shadow-sm hover:shadow-md transition-shadow"
             >
-              <Image src="/images/17.png" alt="Party" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <span className="absolute top-6 left-6 sm:top-8 sm:left-8 text-2xl sm:text-3xl font-bold text-black z-10" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                Party
+              </span>
+              <Image src="/images/65.png" alt="Party" fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
             </Link>
             <Link
               href="/shop?category=Gym"
-              className="relative h-[170px] sm:h-[220px] rounded-[20px] overflow-hidden group bg-white col-span-1"
+              className="relative h-[200px] sm:h-[260px] rounded-[20px] overflow-hidden group bg-white col-span-1 shadow-sm hover:shadow-md transition-shadow"
             >
-              <Image src="/images/18.png" alt="Gym" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <span className="absolute top-6 left-6 sm:top-8 sm:left-8 text-2xl sm:text-3xl font-bold text-black z-10" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                Gym
+              </span>
+              <Image src="/images/63.png" alt="Gym" fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
             </Link>
           </div>
         </div>
