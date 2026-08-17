@@ -195,11 +195,10 @@ function HomeContent() {
     <div className="w-full flex flex-col items-center">
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section className="w-full bg-[#f2f0f1] overflow-hidden relative">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-8 sm:pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 lg:gap-8">
-          {/* Left Text & Stats Box */}
-          <div className="flex flex-col gap-5 sm:gap-6 max-w-xl z-10 pb-6 lg:pb-12 w-full lg:flex-1">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6">
+          <div className="flex flex-col gap-6 max-w-xl z-10 pb-10 lg:pb-16 self-center">
             <h1
-              className="text-3xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
             >
               FIND CLOTHES THAT MATCHES YOUR STYLE
@@ -209,45 +208,34 @@ function HomeContent() {
             </p>
             <Link
               href="/shop"
-              className="w-full sm:w-fit text-center px-14 py-4 bg-black text-white rounded-full font-medium text-base hover:bg-gray-900 transition-colors"
+              className="w-fit px-14 py-4 bg-black text-white rounded-full font-medium text-base hover:bg-gray-900 transition-colors"
             >
               Shop Now
             </Link>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-0 pt-6 border-t border-black/10 sm:divide-x sm:divide-black/10">
-              <div className="flex flex-col gap-1 sm:pr-6">
-                <span className="text-2xl sm:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
-                  200+
-                </span>
-                <span className="text-xs text-gray-500">International Brands</span>
-              </div>
-              <div className="flex flex-col gap-1 sm:px-6">
-                <span className="text-2xl sm:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
-                  2,000+
-                </span>
-                <span className="text-xs text-gray-500">High-Quality Products</span>
-              </div>
-              <div className="flex flex-col gap-1 col-span-2 sm:col-span-1 sm:pl-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-black/10">
-                <span className="text-2xl sm:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
-                  30,000+
-                </span>
-                <span className="text-xs text-gray-500">Happy Customers</span>
-              </div>
+            <div className="flex flex-wrap gap-0 pt-6 border-t border-black/10 divide-x divide-black/10">
+              {[
+                { value: '200+', label: 'International Brands' },
+                { value: '2,000+', label: 'High-Quality Products' },
+                { value: '30,000+', label: 'Happy Customers' },
+              ].map(({ value, label }) => (
+                <div key={label} className="flex flex-col gap-1 pr-8 last:pr-0 pl-8 first:pl-0">
+                  <span className="text-2xl lg:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                    {value}
+                  </span>
+                  <span className="text-xs text-gray-500">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Models Image Container with explicit responsive width & height */}
-          <div className="relative w-full lg:w-[550px] xl:w-[620px] h-[360px] sm:h-[480px] lg:h-[580px] xl:h-[650px] flex-shrink-0 flex items-end justify-center lg:justify-end self-end mt-2 lg:mt-0">
-            <Image
-              src="/images/59.png"
-              alt="Fashion Models"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 620px"
-              className="object-contain object-bottom lg:object-right-bottom"
-              priority
-            />
-          </div>
+          <Image
+            src="/images/59.png"
+            alt="Fashion Models"
+            fill
+            className="object-contain object-bottom"
+            priority
+          />
         </div>
       </section>
 
