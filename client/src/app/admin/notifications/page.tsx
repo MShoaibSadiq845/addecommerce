@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   useGetNotificationsQuery,
   useMarkAsReadMutation,
@@ -11,23 +11,46 @@ import {
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
 import { CheckCheck, Flame, ShoppingCart, Info, Loader2, Mail, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useLoading } from '@/context/LoadingContext';
+import Pagination from '@/components/ui/Pagination';
 
 export default function AdminNotificationsPage() {
-  const { data: notifications = [], isLoading } = useGetNotificationsQuery(undefined, {
+  const { setLoading } = useLoading();
+
+  const {
+    data: notifications = [],
+    isLoading,
+    isFetching: isFetchingNotifs,
+  } = useGetNotificationsQuery(undefined, {
     pollingInterval: 10000,
     refetchOnMountOrArgChange: true,
   });
-  const { data: contactMessages = [], isLoading: isLoadingContacts } = useGetContactMessagesQuery(undefined, {
+
+  const {
+    data: contactMessages = [],
+    isLoading: isLoadingContacts,
+    isFetching: isFetchingContacts,
+  } = useGetContactMessagesQuery(undefined, {
     pollingInterval: 10000,
     refetchOnMountOrArgChange: true,
   });
-  const [markAsRead, { isLoading: isMarkingOne }] = useMarkAsReadMutation();
+
+  const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();
   const [markContactAsRead] = useMarkContactAsReadMutation();
 
   // Track which single notification id is being marked read
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [markingContactId, setMarkingContactId] = useState<string | null>(null);
+
+  // Pagination states (10 per page)
+  const [notifPage, setNotifPage] = useState(1);
+  const [contactPage, setContactPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(isLoading || isLoadingContacts || isFetchingNotifs || isFetchingContacts);
+    return () => setLoading(false);
+  }, [isLoading, isLoadingContacts, isFetchingNotifs, isFetchingContacts, setLoading]);
 
   const handleMarkOne = async (id: string) => {
     setMarkingId(id);
@@ -62,6 +85,22 @@ export default function AdminNotificationsPage() {
 
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
   const unreadContactCount = contactMessages.filter((c: any) => !c.isRead).length;
+
+  const itemsPerPage = 10;
+
+  // Paginated notifications
+  const notifTotalPages = Math.ceil(notifications.length / itemsPerPage);
+  const paginatedNotifications = notifications.slice(
+    (notifPage - 1) * itemsPerPage,
+    notifPage * itemsPerPage
+  );
+
+  // Paginated contact messages
+  const contactTotalPages = Math.ceil(contactMessages.length / itemsPerPage);
+  const paginatedContactMessages = contactMessages.slice(
+    (contactPage - 1) * itemsPerPage,
+    contactPage * itemsPerPage
+  );
 
   return (
     <div className="flex flex-col gap-8 font-['Rubik'] max-w-5xl mx-auto">
@@ -107,7 +146,7 @@ export default function AdminNotificationsPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {notifications.map((n: any) => {
+            {paginatedNotifications.map((n: any) => {
               let icon = <Info className="w-5 h-5 text-blue-500" />;
               if (n.type === 'sale') icon = <Flame className="w-5 h-5 text-red-500" />;
               if (n.type === 'order') icon = <ShoppingCart className="w-5 h-5 text-green-600" />;
@@ -147,6 +186,15 @@ export default function AdminNotificationsPage() {
                 </div>
               );
             })}
+
+            <Pagination
+              currentPage={notifPage}
+              totalPages={notifTotalPages}
+              onPageChange={setNotifPage}
+              totalItems={notifications.length}
+              itemsPerPage={itemsPerPage}
+              className="mt-2"
+            />
           </div>
         )}
       </div>
@@ -177,7 +225,7 @@ export default function AdminNotificationsPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {contactMessages.map((msg: any) => {
+            {paginatedContactMessages.map((msg: any) => {
               const isThisMarking = markingContactId === msg._id;
 
               return (
@@ -221,6 +269,15 @@ export default function AdminNotificationsPage() {
                 </div>
               );
             })}
+
+            <Pagination
+              currentPage={contactPage}
+              totalPages={contactTotalPages}
+              onPageChange={setContactPage}
+              totalItems={contactMessages.length}
+              itemsPerPage={itemsPerPage}
+              className="mt-2"
+            />
           </div>
         )}
       </div>

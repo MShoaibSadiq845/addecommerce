@@ -1,17 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGetNewsletterSubscribersQuery } from '@/store/services/newsletterApi';
 import { Mail, Search, Users } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
+import Pagination from '@/components/ui/Pagination';
 
 export default function NewsletterSubscribersPage() {
-  const { data: subscribers = [], isLoading } = useGetNewsletterSubscribersQuery(undefined, {
+  const { setLoading } = useLoading();
+  const { data: subscribers = [], isLoading, isFetching } = useGetNewsletterSubscribersQuery(undefined, {
     pollingInterval: 30000,
   });
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(isLoading || isFetching);
+    return () => setLoading(false);
+  }, [isLoading, isFetching, setLoading]);
+
+  // Reset pagination on search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const filtered = subscribers.filter((s: any) =>
-    s.email.toLowerCase().includes(search.toLowerCase()),
+    s.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Pagination (10 per page)
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedSubscribers = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -29,9 +51,9 @@ export default function NewsletterSubscribersPage() {
       </div>
 
       {/* Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-5 flex flex-col gap-4">
         {/* Search bar */}
-        <div className="p-5 border-b border-gray-100 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -73,30 +95,41 @@ export default function NewsletterSubscribersPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((sub: any, index: number) => (
-                  <tr key={sub._id} className="hover:bg-gray-50 transition-all">
-                    <td className="px-6 py-4 text-gray-400">{index + 1}</td>
-                    <td className="px-6 py-4 flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {sub.email[0].toUpperCase()}
-                      </div>
-                      {sub.email}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(sub.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-                  </tr>
-                ))
+                paginatedSubscribers.map((sub: any, index: number) => {
+                  const globalIndex = (currentPage - 1) * itemsPerPage + index + 1;
+                  return (
+                    <tr key={sub._id} className="hover:bg-gray-50 transition-all">
+                      <td className="px-6 py-4 text-gray-400">{globalIndex}</td>
+                      <td className="px-6 py-4 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {sub.email?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        {sub.email}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {new Date(sub.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filtered.length}
+          itemsPerPage={itemsPerPage}
+        />
       </div>
     </div>
   );

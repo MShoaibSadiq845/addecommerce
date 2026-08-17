@@ -12,15 +12,17 @@ import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
 import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
+import Pagination from '@/components/ui/Pagination';
 
 function AdminProductsContent() {
-  const { data, isLoading } = useGetProductsQuery({ limit: 50 });
+  const { data, isLoading, isFetching } = useGetProductsQuery({ limit: 1000 });
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [toggleSale, { isLoading: isToggling }] = useToggleSaleMutation();
 
   const { setLoading } = useLoading();
 
   const products = data?.products || [];
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [saleModalProduct, setSaleModalProduct] = useState<any>(null);
   const [salePriceInput, setSalePriceInput] = useState('');
@@ -33,8 +35,16 @@ function AdminProductsContent() {
 
   // Synchronize global loading state during fetching and mutations
   useEffect(() => {
-    setLoading(isLoading || isDeleting || isToggling);
-  }, [isLoading, isDeleting, isToggling, setLoading]);
+    setLoading(isLoading || isFetching || isDeleting || isToggling);
+  }, [isLoading, isFetching, isDeleting, isToggling, setLoading]);
+
+  // Pagination (10 per page)
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleDeleteClick = (product: any) => {
     setDeleteConfirmProduct(product);
@@ -115,7 +125,7 @@ function AdminProductsContent() {
       {isLoading ? (
         <TableSkeleton rows={8} />
       ) : (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm overflow-x-auto">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4 overflow-x-auto">
           <table className="w-full text-left text-xs font-['Open_Sans']">
             <thead>
               <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
@@ -130,7 +140,7 @@ function AdminProductsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-              {products.map((product: any) => {
+              {paginatedProducts.map((product: any) => {
                 const isThisDeleting = deletingId === product._id;
                 const isThisToggling = togglingId === product._id;
 
@@ -264,6 +274,14 @@ function AdminProductsContent() {
               })}
             </tbody>
           </table>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={products.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       )}
 

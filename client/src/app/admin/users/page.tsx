@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGetAllUsersQuery } from '@/store/services/authApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
 import { Users, Award, Shield, ShieldCheck, User } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
+import Pagination from '@/components/ui/Pagination';
 
 type UserRole = 'User' | 'Admin' | 'Super Admin';
 
@@ -34,12 +36,24 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 export default function AdminUsersPage() {
-  const { data: users = [], isLoading } = useGetAllUsersQuery(undefined, {
+  const { setLoading } = useLoading();
+  const { data: users = [], isLoading, isFetching } = useGetAllUsersQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(isLoading || isFetching);
+    return () => setLoading(false);
+  }, [isLoading, isFetching, setLoading]);
+
+  // Reset pagination on search / filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, roleFilter]);
 
   const filtered = users.filter((u: any) => {
     const matchesSearch =
@@ -53,6 +67,14 @@ export default function AdminUsersPage() {
   const totalUsers = users.length;
   const adminCount = users.filter((u: any) => u.role === 'Admin' || u.role === 'Super Admin').length;
   const totalPoints = users.reduce((sum: number, u: any) => sum + (u.loyaltyPoints || 0), 0);
+
+  // Pagination (10 per page)
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedUsers = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="flex flex-col gap-6 font-['Rubik']">
@@ -145,41 +167,49 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-              {filtered.map((user: any, idx: number) => (
-                <tr key={user._id} className="hover:bg-gray-50 transition-all">
-                  <td className="py-4 text-gray-400 font-mono">{idx + 1}</td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      {/* Avatar circle with initials */}
-                      <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold shrink-0 uppercase">
-                        {user.name?.[0] ?? '?'}
+              {paginatedUsers.map((user: any, idx: number) => {
+                const globalIndex = (currentPage - 1) * itemsPerPage + idx + 1;
+                return (
+                  <tr key={user._id} className="hover:bg-gray-50 transition-all">
+                    <td className="py-4 text-gray-400 font-mono">{globalIndex}</td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        {/* Avatar circle with initials */}
+                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold shrink-0 uppercase">
+                          {user.name?.[0] ?? '?'}
+                        </div>
+                        <span className="font-bold text-gray-900">{user.name}</span>
                       </div>
-                      <span className="font-bold text-gray-900">{user.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-gray-500">{user.email}</td>
-                  <td className="py-4">
-                    <RoleBadge role={user.role} />
-                  </td>
-                  <td className="py-4">
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Award className="w-3.5 h-3.5" />
-                      {(user.loyaltyPoints ?? 0).toLocaleString()} pts
-                    </span>
-                  </td>
-                  <td className="py-4 text-gray-500">
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
-                      : '—'}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-4 text-gray-500">{user.email}</td>
+                    <td className="py-4">
+                      <RoleBadge role={user.role} />
+                    </td>
+                    <td className="py-4">
+                      <span className="flex items-center gap-1 text-amber-600 font-bold">
+                        <Award className="w-3.5 h-3.5" />
+                        {(user.loyaltyPoints ?? 0).toLocaleString()} pts
+                      </span>
+                    </td>
+                    <td className="py-4 text-gray-500">
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
-          <p className="text-[10px] text-gray-400 font-semibold mt-4 pt-4 border-t">
-            Showing {filtered.length} of {totalUsers} user{totalUsers !== 1 ? 's' : ''}
-          </p>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+            className="mt-4"
+          />
         </div>
       )}
     </div>
