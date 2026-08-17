@@ -201,7 +201,7 @@ function HomeContent() {
               className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
             >
-              FIND CLOTHES THAT MATCHES YOUR STYLE
+              FIND FABRICS THAT MATCHES YOUR STYLE
             </h1>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-md">
               Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
@@ -230,7 +230,7 @@ function HomeContent() {
           </div>
 
           <Image
-            src="/images/59.png"
+            src="/images/90.jpeg"
             alt="Fashion Models"
             fill
             className="object-contain object-bottom"
