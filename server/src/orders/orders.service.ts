@@ -164,13 +164,13 @@ export class OrdersService {
     const canceledOrders = await this.orderModel.countDocuments({ status: OrderStatus.CANCELED });
 
     const revenueResult = await this.orderModel.aggregate([
-      { $match: { status: { $ne: OrderStatus.CANCELED } } },
+      { $match: { status: { $regex: /^delivered$/i } } },
       { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } },
     ]);
     const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
     const monthlyIncome = await this.orderModel.aggregate([
-      { $match: { status: { $ne: OrderStatus.CANCELED } } },
+      { $match: { status: { $regex: /^delivered$/i } } },
       {
         $group: {
           _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },

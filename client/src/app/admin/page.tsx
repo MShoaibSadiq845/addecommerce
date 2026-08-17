@@ -54,73 +54,73 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <div className="flex flex-col gap-8 font-['Rubik']">
+    <div className="flex flex-col gap-6 sm:gap-8 font-['Rubik'] w-full min-w-0">
       {/* Page Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-xs text-gray-400 font-['Open_Sans']">Home &gt; Dashboard Overview</p>
         </div>
-        <div className="text-xs bg-white border border-gray-200 px-4 py-2 rounded-xl text-gray-600 font-semibold w-fit">
+        <div className="text-xs bg-white border border-gray-200 px-3.5 py-2 rounded-xl text-gray-600 font-semibold w-fit shadow-sm">
           📅 Real-time Data Aggregation Active
         </div>
       </div>
 
       {/* Metric Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-center text-gray-500 text-xs font-semibold">
             <span>Total Orders</span>
-            <ShoppingCart className="w-5 h-5 text-blue-600" />
+            <ShoppingCart className="w-5 h-5 text-blue-600 shrink-0" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-bold text-gray-900">{totalOrders}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900">{totalOrders}</span>
             <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
               +12.5%
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-center text-gray-500 text-xs font-semibold">
             <span>Active Orders</span>
-            <Clock className="w-5 h-5 text-amber-500" />
+            <Clock className="w-5 h-5 text-amber-500 shrink-0" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-bold text-gray-900">{activeOrders}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900">{activeOrders}</span>
             <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
               Pending
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-center text-gray-500 text-xs font-semibold">
             <span>Completed Orders</span>
-            <PackageCheck className="w-5 h-5 text-green-600" />
+            <PackageCheck className="w-5 h-5 text-green-600 shrink-0" />
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-bold text-gray-900">{completedOrders}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900">{completedOrders}</span>
             <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
               Delivered
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-4">
+        {/* Total Revenue Card (Strictly PKR format without $) */}
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col justify-between gap-3">
           <div className="flex justify-between items-center text-gray-500 text-xs font-semibold">
             <span>Total Revenue</span>
-            <TrendingUp className="w-5 h-5 text-purple-600" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</span>
-              <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">
-                Gross
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">
+                Delivered
               </span>
+              <TrendingUp className="w-4 h-4 text-purple-600 shrink-0" />
             </div>
-            <span className="text-xs font-semibold text-gray-400">
-              ≈ Rs{(totalRevenue * 278).toLocaleString('en-PK', { maximumFractionDigits: 0 })} PKR
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900 whitespace-nowrap">
+              Rs {Number(totalRevenue).toLocaleString('en-PK', { maximumFractionDigits: 0 })}
             </span>
           </div>
         </div>
@@ -129,14 +129,14 @@ export default function AdminDashboardPage() {
       {/* Main Content Grid: Sales Chart + Best Sellers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Analytics Chart Widget */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-6 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
             <div>
               <h3 className="font-bold text-base text-gray-900">Sales Analytics</h3>
-              <p className="text-xs text-gray-400 font-['Open_Sans']">Monthly revenue distribution in real-time</p>
+              <p className="text-xs text-gray-400 font-['Open_Sans']">Monthly delivered revenue distribution</p>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               {/* Year Dropdown */}
               <select
                 value={selectedYear}
@@ -166,11 +166,11 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="pt-2 min-h-64 flex items-center justify-center">
+          <div className="pt-2 min-h-64 flex items-center justify-center w-full min-w-0 overflow-x-auto">
             {mounted ? (
               filteredSalesData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={filteredSalesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <BarChart data={filteredSalesData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis
                       dataKey="month"
@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }}
-                      tickFormatter={(val) => `$${val}`}
+                      tickFormatter={(val) => `Rs ${val.toLocaleString()}`}
                     />
                     <Tooltip
                       cursor={{ fill: '#f9fafb' }}
@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
                                 {payload[0].payload.month} {payload[0].payload.year || ''}
                               </span>
                               <span className="text-sm font-extrabold text-black">
-                                Income: ${Number(payload[0].value).toLocaleString()}
+                                Income: Rs {Number(payload[0].value).toLocaleString()}
                               </span>
                             </div>
                           );
@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
                   <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  No income data for the selected filters.
+                  No delivered income data for the selected filters.
                 </div>
               )
             ) : (
@@ -225,7 +225,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Best Sellers Widget */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 min-w-0">
           <div className="flex items-center justify-between border-b pb-3">
             <h3 className="font-bold text-base text-gray-900">Best Sellers</h3>
             <Link href="/admin/products" className="text-xs font-bold text-blue-600 hover:underline">
@@ -236,7 +236,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col gap-3">
             {bestSellers.slice(0, 4).map((product: any) => (
               <div key={product._id} className="flex items-center justify-between gap-3 p-2 hover:bg-gray-50 rounded-xl transition-all">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="relative w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                     <Image
                       src={product.images?.[0] || '/images/7.png'}
@@ -245,9 +245,9 @@ export default function AdminDashboardPage() {
                       className="object-cover"
                     />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-xs text-gray-900 line-clamp-1">{product.name}</span>
-                    <span className="text-[10px] text-gray-400">${product.price}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-xs text-gray-900 truncate">{product.name}</span>
+                    <span className="text-[10px] text-gray-400">Rs {product.price?.toLocaleString()}</span>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-black bg-gray-100 px-2.5 py-1 rounded-full shrink-0">
@@ -260,7 +260,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Recent Customer Orders Table */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 min-w-0">
         <div className="flex items-center justify-between border-b pb-4">
           <h3 className="font-bold text-base text-gray-900">Recent Customer Orders</h3>
           <Link href="/admin/orders" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
@@ -268,8 +268,8 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-['Open_Sans']">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs font-['Open_Sans'] min-w-[500px]">
             <thead>
               <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
                 <th className="pb-3">Order ID</th>
@@ -285,7 +285,7 @@ export default function AdminDashboardPage() {
                   <td className="py-3.5 font-bold text-black">#{order._id.slice(-6)}</td>
                   <td className="py-3.5">{order.user?.name || 'Customer'}</td>
                   <td className="py-3.5">{order.items?.length || 1} Products</td>
-                  <td className="py-3.5 font-bold text-black">${order.totalAmount}</td>
+                  <td className="py-3.5 font-bold text-black">Rs {order.totalAmount?.toLocaleString()}</td>
                   <td className="py-3.5">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
                       {order.status}

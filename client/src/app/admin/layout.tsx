@@ -16,6 +16,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [mounted, setMounted] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // The login page lives inside /admin but must NOT be wrapped
   // in the sidebar/topbar shell — render it bare.
@@ -24,6 +25,11 @@ export default function AdminLayout({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Automatically close mobile sidebar on navigation
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!mounted || isLoginPage) return;
@@ -40,7 +46,6 @@ export default function AdminLayout({
   }
 
   // Other /admin/* pages — render nothing until client has hydrated
-  // (prevents SSR flash since auth lives in localStorage)
   if (
     !mounted ||
     !isAuthenticated ||
@@ -50,11 +55,16 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex font-['Rubik'] text-black">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <AdminTopbar />
-        <main className="p-8 flex-1">{children}</main>
+    <div className="min-h-screen bg-[#f8f9fa] flex font-['Rubik'] text-black relative">
+      <AdminSidebar
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
+      <div className="flex-1 flex flex-col min-w-0 w-full">
+        <AdminTopbar
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        />
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );

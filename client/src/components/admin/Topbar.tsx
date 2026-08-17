@@ -6,11 +6,14 @@ import { RootState } from '@/store/store';
 import { logout } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
 import { useGetNotificationsQuery, useMarkAsReadMutation } from '@/store/services/notificationsApi';
-import { Bell, LogOut, X, Search } from 'lucide-react';
-import Image from 'next/image';
+import { Bell, LogOut, X, Search, Menu } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-export function AdminTopbar() {
+interface AdminTopbarProps {
+  onToggleMobileSidebar?: () => void;
+}
+
+export function AdminTopbar({ onToggleMobileSidebar }: AdminTopbarProps) {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
@@ -24,19 +27,28 @@ export function AdminTopbar() {
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
   return (
-    <header className="w-full bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between font-['Rubik'] sticky top-0 z-40">
-      <div className="flex items-center gap-4 flex-1 max-w-md">
+    <header className="w-full bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between font-['Rubik'] sticky top-0 z-40 gap-3">
+      {/* Mobile Hamburger + Search */}
+      <div className="flex items-center gap-3 flex-1 max-w-md">
+        <button
+          onClick={onToggleMobileSidebar}
+          className="p-2 text-gray-600 hover:text-black hover:bg-gray-100 rounded-xl lg:hidden transition-all shrink-0"
+          title="Open Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <div className="relative w-full">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search orders, products, customers..."
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-black"
+            placeholder="Search..."
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2 pl-9 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 sm:gap-6 shrink-0">
         {/* Real-time Notifications Popover */}
         <div className="relative">
           <button
@@ -52,9 +64,9 @@ export function AdminTopbar() {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50 text-xs">
+            <div className="absolute right-0 mt-3 w-72 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50 text-xs">
               <div className="flex items-center justify-between border-b pb-3 mb-3">
-                <h3 className="font-bold text-sm text-gray-900">Admin Alerts & Socket.IO Events</h3>
+                <h3 className="font-bold text-sm text-gray-900">Admin Alerts</h3>
                 <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-black">
                   <X className="w-4 h-4" />
                 </button>
@@ -72,12 +84,12 @@ export function AdminTopbar() {
                       }`}
                     >
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-gray-900">{n.title}</span>
-                        <span className="text-[10px] text-gray-400">
+                        <span className="font-bold text-gray-900 line-clamp-1">{n.title}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">
                           {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className="text-gray-600">{n.message}</p>
+                      <p className="text-gray-600 line-clamp-2">{n.message}</p>
                     </div>
                   ))
                 )}
@@ -87,24 +99,22 @@ export function AdminTopbar() {
         </div>
 
         {/* User Info & Logout */}
-        <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
-          <div className="w-9 h-9 rounded-xl bg-black text-white font-bold flex items-center justify-center text-sm">
+        <div className="flex items-center gap-2 sm:gap-3 border-l border-gray-200 pl-3 sm:pl-6">
+          <div className="w-9 h-9 rounded-xl bg-black text-white font-bold flex items-center justify-center text-sm shrink-0">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
           </div>
-          <div className="hidden sm:flex flex-col">
-            <span className="font-semibold text-xs text-gray-900">{user?.name || 'Admin User'}</span>
-            <span className="text-[10px] text-gray-400 font-['Open_Sans']">{user?.role || 'Super Admin'}</span>
+          <div className="hidden md:flex flex-col max-w-[120px]">
+            <span className="font-semibold text-xs text-gray-900 truncate">{user?.name || 'Admin User'}</span>
+            <span className="text-[10px] text-gray-400 font-['Open_Sans'] truncate">{user?.role || 'Super Admin'}</span>
           </div>
           <button
             onClick={() => {
-              // Clear Redux state + localStorage
               dispatch(logout());
-              // Clear the cookies the middleware reads
               Cookies.remove('admin_token', { path: '/' });
               Cookies.remove('admin_role', { path: '/' });
               router.push('/admin/login');
             }}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all ml-2"
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
