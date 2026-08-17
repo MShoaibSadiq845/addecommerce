@@ -52,13 +52,15 @@ export class CartsService {
   }
 
   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
-    const cart = await this.cartModel.findOne({ user: userId }).exec();
-    if (!cart) throw new NotFoundException('Cart not found');
+    let cart = await this.cartModel.findOne({ user: userId }).exec();
+    if (!cart) {
+      return { user: userId, items: [] };
+    }
 
     const item: any = cart.items.find(
-      (i: any) => i._id?.toString() === itemId || i.id === itemId,
+      (i: any) => i._id?.toString() === itemId || i.id === itemId || i.product?.toString() === itemId,
     );
-    if (!item) throw new NotFoundException('Cart item not found');
+    if (!item) return cart;
 
     if (dto.quantity !== undefined) item.quantity = Math.max(1, dto.quantity);
     if (dto.size !== undefined) item.size = dto.size;
@@ -70,7 +72,9 @@ export class CartsService {
 
   async removeItem(userId: string, itemId: string, size?: string, color?: string) {
     const cart = await this.cartModel.findOne({ user: userId }).exec();
-    if (!cart) throw new NotFoundException('Cart not found');
+    if (!cart) {
+      return { user: userId, items: [] };
+    }
 
     cart.items = cart.items.filter((item: any) => {
       const idMatch =

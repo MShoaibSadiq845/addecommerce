@@ -18,6 +18,9 @@ const jwt_strategy_1 = require("./jwt.strategy");
 const jwt_optional_strategy_1 = require("./jwt-optional.strategy");
 const jwt_optional_guard_1 = require("./jwt-optional.guard");
 const roles_guard_1 = require("./roles.guard");
+const google_strategy_1 = require("./google.strategy");
+const github_strategy_1 = require("./github.strategy");
+const discord_strategy_1 = require("./discord.strategy");
 const user_schema_1 = require("../users/schemas/user.schema");
 let AuthModule = class AuthModule {
 };
@@ -40,7 +43,16 @@ exports.AuthModule = AuthModule = __decorate([
             mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, jwt_optional_strategy_1.JwtOptionalStrategy, jwt_optional_guard_1.JwtOptionalGuard, roles_guard_1.RolesGuard],
+        providers: [
+            auth_service_1.AuthService,
+            jwt_strategy_1.JwtStrategy,
+            jwt_optional_strategy_1.JwtOptionalStrategy,
+            jwt_optional_guard_1.JwtOptionalGuard,
+            roles_guard_1.RolesGuard,
+            google_strategy_1.GoogleStrategy,
+            github_strategy_1.GithubStrategy,
+            discord_strategy_1.DiscordStrategy,
+        ],
         exports: [passport_1.PassportModule, jwt_1.JwtModule, auth_service_1.AuthService, jwt_optional_guard_1.JwtOptionalGuard, roles_guard_1.RolesGuard],
     })
 ], AuthModule);

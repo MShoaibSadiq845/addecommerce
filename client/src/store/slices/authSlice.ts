@@ -9,6 +9,10 @@ export interface AuthUser {
   avatar?: string;
   phone?: string;
   address?: string;
+  provider?: string;
+  providerId?: string;
+  lastLogin?: string | Date;
+  linkedProviders?: Array<{ provider: string; providerId: string }>;
 }
 
 interface AuthState {

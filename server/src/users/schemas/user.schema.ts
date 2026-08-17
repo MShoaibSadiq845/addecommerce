@@ -17,8 +17,8 @@ export class User {
   @Prop({ type: String, required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
-  @Prop({ type: String, required: true })
-  password: string;
+  @Prop({ type: String, required: false, default: '' })
+  password?: string;
 
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER })
   role: UserRole;
@@ -34,6 +34,18 @@ export class User {
 
   @Prop({ type: String, default: '' })
   address: string;
+
+  @Prop({ type: String, default: 'local' })
+  provider: string;
+
+  @Prop({ type: String, default: '' })
+  providerId: string;
+
+  @Prop({ type: Date })
+  lastLogin?: Date;
+
+  @Prop({ type: Array, default: [] })
+  linkedProviders?: Array<{ provider: string; providerId: string }>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

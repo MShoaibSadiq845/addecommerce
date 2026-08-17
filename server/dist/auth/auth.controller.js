@@ -15,14 +15,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const config_1 = require("@nestjs/config");
 const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
 const get_user_decorator_1 = require("./get-user.decorator");
 const jwt_optional_guard_1 = require("./jwt-optional.guard");
 let AuthController = class AuthController {
-    constructor(authService) {
+    constructor(authService, configService) {
         this.authService = authService;
+        this.configService = configService;
     }
     async login(dto) {
         return this.authService.login(dto);
@@ -32,6 +34,34 @@ let AuthController = class AuthController {
     }
     async getMe(userId) {
         return this.authService.getMe(userId);
+    }
+    async googleAuth() {
+    }
+    async googleAuthCallback(req, res) {
+        const authResult = await this.authService.validateSocialUser(req.user);
+        return res.redirect(this.getRedirectUrl(req, authResult));
+    }
+    async githubAuth() {
+    }
+    async githubAuthCallback(req, res) {
+        const authResult = await this.authService.validateSocialUser(req.user);
+        return res.redirect(this.getRedirectUrl(req, authResult));
+    }
+    async discordAuth() {
+    }
+    async discordAuthCallback(req, res) {
+        const authResult = await this.authService.validateSocialUser(req.user);
+        return res.redirect(this.getRedirectUrl(req, authResult));
+    }
+    getRedirectUrl(req, authResult) {
+        const host = req.headers.host || '';
+        let clientBase = this.configService.get('CLIENT_URL') || 'http://localhost:3000';
+        if (host.includes('localhost') || host.includes('127.0.0.1')) {
+            clientBase = 'http://localhost:3000';
+        }
+        const token = authResult.token;
+        const userStr = encodeURIComponent(JSON.stringify(authResult.user));
+        return `${clientBase}/auth/callback?token=${token}&user=${userStr}`;
     }
 };
 exports.AuthController = AuthController;
@@ -61,9 +91,58 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getMe", null);
+__decorate([
+    (0, common_1.Get)('google'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('google')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleAuth", null);
+__decorate([
+    (0, common_1.Get)('google/callback'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('google')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleAuthCallback", null);
+__decorate([
+    (0, common_1.Get)('github'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('github')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "githubAuth", null);
+__decorate([
+    (0, common_1.Get)('github/callback'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('github')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "githubAuthCallback", null);
+__decorate([
+    (0, common_1.Get)('discord'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('discord')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "discordAuth", null);
+__decorate([
+    (0, common_1.Get)('discord/callback'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('discord')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "discordAuthCallback", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __param(0, (0, common_1.Inject)(auth_service_1.AuthService)),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __param(1, (0, common_1.Inject)(config_1.ConfigService)),
+    __metadata("design:paramtypes", [auth_service_1.AuthService, config_1.ConfigService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

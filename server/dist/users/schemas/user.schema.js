@@ -29,7 +29,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: false, default: '' }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
@@ -52,6 +52,22 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String, default: '' }),
     __metadata("design:type", String)
 ], User.prototype, "address", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: 'local' }),
+    __metadata("design:type", String)
+], User.prototype, "provider", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
+    __metadata("design:type", String)
+], User.prototype, "providerId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Date }),
+    __metadata("design:type", Date)
+], User.prototype, "lastLogin", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Array, default: [] }),
+    __metadata("design:type", Array)
+], User.prototype, "linkedProviders", void 0);
 exports.User = User = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], User);

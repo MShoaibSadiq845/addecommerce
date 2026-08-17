@@ -64,10 +64,15 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid email or password');
         }
+        if (!user.password) {
+            throw new common_1.UnauthorizedException(`This account was created using ${user.provider || 'social'} login. Please sign in with ${user.provider || 'social login'}.`);
+        }
         const passwordMatches = await bcrypt.compare(dto.password, user.password);
         if (!passwordMatches) {
             throw new common_1.UnauthorizedException('Invalid email or password');
         }
+        user.lastLogin = new Date();
+        await user.save();
         return this.buildAuthResponse(user);
     }
     async register(dto, registeredBy) {
@@ -91,7 +96,57 @@ let AuthService = class AuthService {
             password: hashed,
             role: assignedRole,
             avatar: dto.avatar ?? '',
+            provider: 'local',
+            providerId: '',
+            lastLogin: new Date(),
+            linkedProviders: [{ provider: 'local', providerId: dto.email.toLowerCase().trim() }],
         });
+        return this.buildAuthResponse(user);
+    }
+    async validateSocialUser(socialUser) {
+        const { email, name, avatar, provider, providerId } = socialUser;
+        const cleanEmail = email ? email.toLowerCase().trim() : '';
+        let user = null;
+        if (cleanEmail) {
+            user = await this.userModel.findOne({ email: cleanEmail }).exec();
+        }
+        if (!user && providerId) {
+            user = await this.userModel
+                .findOne({
+                $or: [
+                    { provider, providerId },
+                    { 'linkedProviders.provider': provider, 'linkedProviders.providerId': providerId },
+                ],
+            })
+                .exec();
+        }
+        if (user) {
+            if (!user.linkedProviders) {
+                user.linkedProviders = [];
+            }
+            const alreadyLinked = user.linkedProviders.some((p) => p.provider === provider && p.providerId === providerId);
+            if (!alreadyLinked) {
+                user.linkedProviders.push({ provider, providerId });
+            }
+            if (!user.avatar && avatar) {
+                user.avatar = avatar;
+            }
+            user.lastLogin = new Date();
+            await user.save();
+        }
+        else {
+            user = await this.userModel.create({
+                name: name || (cleanEmail ? cleanEmail.split('@')[0] : `${provider} User`),
+                email: cleanEmail || `${provider}_${providerId}@social.com`,
+                password: '',
+                avatar: avatar || '',
+                provider,
+                providerId,
+                role: user_schema_1.UserRole.USER,
+                lastLogin: new Date(),
+                linkedProviders: [{ provider, providerId }],
+            });
+        }
         return this.buildAuthResponse(user);
     }
     async getMe(userId) {
@@ -118,6 +173,10 @@ let AuthService = class AuthService {
             avatar: user.avatar,
             phone: user.phone || '',
             address: user.address || '',
+            provider: user.provider || 'local',
+            providerId: user.providerId || '',
+            lastLogin: user.lastLogin,
+            linkedProviders: user.linkedProviders || [],
         };
     }
 };

@@ -30,7 +30,7 @@ export default function AdminLayout({
     if (!isAuthenticated) {
       router.push('/admin/login');
     } else if (user && user.role !== 'Admin' && user.role !== 'Super Admin') {
-      router.push('/admin/login');
+      router.push('/');
     }
   }, [mounted, isAuthenticated, user, router, isLoginPage]);
 

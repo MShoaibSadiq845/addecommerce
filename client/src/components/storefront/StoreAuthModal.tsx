@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 
 import { useLoginMutation, useRegisterMutation } from '@/store/services/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
+import { SocialLoginButtons } from '@/components/storefront/SocialLoginButtons';
 
 interface StoreAuthModalProps {
   isOpen: boolean;
@@ -419,6 +420,11 @@ export function StoreAuthModal({
               </button>
             </form>
           )}
+
+          {/* Social Logins */}
+          <div className="mt-4">
+            <SocialLoginButtons compact={true} />
+          </div>
 
           {/* Switch tab prompt */}
           <div className="mt-4 pt-3 border-t border-gray-100 text-center text-xs text-gray-500">

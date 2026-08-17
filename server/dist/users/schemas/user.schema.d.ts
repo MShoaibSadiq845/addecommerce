@@ -8,12 +8,19 @@ export declare enum UserRole {
 export declare class User {
     name: string;
     email: string;
-    password: string;
+    password?: string;
     role: UserRole;
     loyaltyPoints: number;
     avatar: string;
     phone: string;
     address: string;
+    provider: string;
+    providerId: string;
+    lastLogin?: Date;
+    linkedProviders?: Array<{
+        provider: string;
+        providerId: string;
+    }>;
 }
 export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, any, any, User>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, User, Document<unknown, {}, User, {
     id: string;
@@ -88,6 +95,45 @@ export declare const UserSchema: import("mongoose").Schema<User, import("mongoos
         id: string;
     }>>;
     address?: import("mongoose").SchemaDefinitionProperty<string, User, Document<unknown, {}, User, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<User & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    provider?: import("mongoose").SchemaDefinitionProperty<string, User, Document<unknown, {}, User, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<User & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    providerId?: import("mongoose").SchemaDefinitionProperty<string, User, Document<unknown, {}, User, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<User & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    lastLogin?: import("mongoose").SchemaDefinitionProperty<Date, User, Document<unknown, {}, User, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<User & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    linkedProviders?: import("mongoose").SchemaDefinitionProperty<{
+        provider: string;
+        providerId: string;
+    }[], User, Document<unknown, {}, User, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<User & {
         _id: import("mongoose").Types.ObjectId;

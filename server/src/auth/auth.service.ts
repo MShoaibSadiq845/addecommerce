@@ -15,6 +15,14 @@ import { User, UserDocument, UserRole } from '../users/schemas/user.schema';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
+export interface SocialUserDto {
+  email: string;
+  name: string;
+  avatar: string;
+  provider: 'google' | 'github' | 'discord';
+  providerId: string;
+}
+
 /** Shape returned by every auth endpoint */
 export interface AuthResponse {
   token: string;
@@ -27,6 +35,10 @@ export interface AuthResponse {
     avatar: string;
     phone?: string;
     address?: string;
+    provider?: string;
+    providerId?: string;
+    lastLogin?: Date;
+    linkedProviders?: Array<{ provider: string; providerId: string }>;
   };
 }
 
@@ -47,10 +59,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.password) {
+      throw new UnauthorizedException(
+        `This account was created using ${user.provider || 'social'} login. Please sign in with ${user.provider || 'social login'}.`,
+      );
+    }
+
     const passwordMatches = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    user.lastLogin = new Date();
+    await user.save();
 
     return this.buildAuthResponse(user);
   }
@@ -92,7 +113,70 @@ export class AuthService {
       password: hashed,
       role: assignedRole,
       avatar: dto.avatar ?? '',
+      provider: 'local',
+      providerId: '',
+      lastLogin: new Date(),
+      linkedProviders: [{ provider: 'local', providerId: dto.email.toLowerCase().trim() }],
     });
+
+    return this.buildAuthResponse(user);
+  }
+
+  // ── Validate Social User (OAuth) ──────────────────────────────────────────
+  async validateSocialUser(socialUser: SocialUserDto): Promise<AuthResponse> {
+    const { email, name, avatar, provider, providerId } = socialUser;
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+
+    let user: UserDocument | null = null;
+
+    if (cleanEmail) {
+      user = await this.userModel.findOne({ email: cleanEmail }).exec();
+    }
+
+    if (!user && providerId) {
+      user = await this.userModel
+        .findOne({
+          $or: [
+            { provider, providerId },
+            { 'linkedProviders.provider': provider, 'linkedProviders.providerId': providerId },
+          ],
+        })
+        .exec();
+    }
+
+    if (user) {
+      // User exists. Link this provider if not already present
+      if (!user.linkedProviders) {
+        user.linkedProviders = [];
+      }
+      const alreadyLinked = user.linkedProviders.some(
+        (p) => p.provider === provider && p.providerId === providerId,
+      );
+      if (!alreadyLinked) {
+        user.linkedProviders.push({ provider, providerId });
+      }
+
+      // Update avatar if empty
+      if (!user.avatar && avatar) {
+        user.avatar = avatar;
+      }
+
+      user.lastLogin = new Date();
+      await user.save();
+    } else {
+      // Create new user
+      user = await this.userModel.create({
+        name: name || (cleanEmail ? cleanEmail.split('@')[0] : `${provider} User`),
+        email: cleanEmail || `${provider}_${providerId}@social.com`,
+        password: '',
+        avatar: avatar || '',
+        provider,
+        providerId,
+        role: UserRole.USER,
+        lastLogin: new Date(),
+        linkedProviders: [{ provider, providerId }],
+      });
+    }
 
     return this.buildAuthResponse(user);
   }
@@ -108,13 +192,13 @@ export class AuthService {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  private buildAuthResponse(user: UserDocument): AuthResponse {
+  public buildAuthResponse(user: UserDocument): AuthResponse {
     const payload = { sub: user._id.toString(), email: user.email };
     const token = this.jwtService.sign(payload);
     return { token, user: this.serializeUser(user) };
   }
 
-  private serializeUser(user: UserDocument): AuthResponse['user'] {
+  public serializeUser(user: UserDocument): AuthResponse['user'] {
     return {
       id: user._id.toString(),
       name: user.name,
@@ -124,6 +208,10 @@ export class AuthService {
       avatar: user.avatar,
       phone: user.phone || '',
       address: user.address || '',
+      provider: user.provider || 'local',
+      providerId: user.providerId || '',
+      lastLogin: user.lastLogin,
+      linkedProviders: user.linkedProviders || [],
     };
   }
 }

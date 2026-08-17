@@ -20,7 +20,15 @@ export default function RootLayout({
         <ReduxProvider>
           <LoadingProvider> {/* 👈 2. Wrap children and toaster inside LoadingProvider */}
             {children}
-            <Toaster position="top-right" reverseOrder={false} />
+            <Toaster
+              position="top-right"
+              reverseOrder={false}
+              toastOptions={{
+                style: { fontFamily: 'Rubik, sans-serif', fontSize: '13px' },
+                success: { duration: 3500 },
+                error: { duration: 4000 },
+              }}
+            />
           </LoadingProvider>
         </ReduxProvider>
       </body>

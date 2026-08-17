@@ -98,10 +98,12 @@ export default function CartPage() {
 
       // Sync local Redux store
       dispatch(removeFromCart(idx));
-      toast.success(res?.message || `${item.name} removed from cart`);
+      toast.success(res?.message || `${item.name || 'Item'} removed from cart`);
     } catch (err: any) {
-      const msg = err?.data?.message || 'Failed to remove item. Please try again.';
-      toast.error(msg);
+      console.warn('Backend cart item removal error:', err);
+      // Fallback: Remove item from local Redux store
+      dispatch(removeFromCart(idx));
+      toast.success(`${item.name || 'Item'} removed from cart`);
     } finally {
       setDeletingIndex(null);
     }

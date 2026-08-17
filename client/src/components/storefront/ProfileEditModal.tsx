@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { updateUser } from '@/store/slices/authSlice';
 import { useUpdateProfileMutation } from '@/store/services/authApi';
-import { X, User, Phone, MapPin, Image as ImageIcon, Loader2, Save, Sparkles, Upload, Check } from 'lucide-react';
+import { X, User, Phone, MapPin, Image as ImageIcon, Loader2, Save, Upload, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface ProfileEditModalProps {
@@ -85,6 +85,9 @@ export function ProfileEditModal({ isOpen, onClose }: ProfileEditModalProps) {
       toast.error(Array.isArray(msg) ? msg[0] : msg);
     }
   };
+
+  const activeProvider = user?.provider || 'local';
+  const linkedProviders = user?.linkedProviders || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -198,6 +201,41 @@ export function ProfileEditModal({ isOpen, onClose }: ProfileEditModalProps) {
               onChange={(e) => setAddress(e.target.value)}
               className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black resize-none"
             />
+          </div>
+
+          {/* Social Logins & Account Security Info */}
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Authentication Provider
+              </span>
+              <span className="text-[11px] font-extrabold capitalize bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> {activeProvider}
+              </span>
+            </div>
+
+            {linkedProviders.length > 0 && (
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-200">
+                <span className="text-[11px] font-bold text-gray-600">Connected Accounts:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {linkedProviders.map((lp, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] font-bold bg-white border border-gray-300 text-gray-700 px-2.5 py-1 rounded-lg capitalize"
+                    >
+                      {lp.provider}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {user?.lastLogin && (
+              <div className="flex items-center gap-1.5 text-[11px] text-gray-500 pt-1">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <span>Last login: {new Date(user.lastLogin).toLocaleString()}</span>
+              </div>
+            )}
           </div>
 
           {/* Submit Action */}

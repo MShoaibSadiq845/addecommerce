@@ -10,6 +10,9 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtOptionalStrategy } from './jwt-optional.strategy';
 import { JwtOptionalGuard } from './jwt-optional.guard';
 import { RolesGuard } from './roles.guard';
+import { GoogleStrategy } from './google.strategy';
+import { GithubStrategy } from './github.strategy';
+import { DiscordStrategy } from './discord.strategy';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 @Module({
@@ -29,7 +32,16 @@ import { User, UserSchema } from '../users/schemas/user.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtOptionalStrategy, JwtOptionalGuard, RolesGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtOptionalStrategy,
+    JwtOptionalGuard,
+    RolesGuard,
+    GoogleStrategy,
+    GithubStrategy,
+    DiscordStrategy,
+  ],
   exports: [PassportModule, JwtModule, AuthService, JwtOptionalGuard, RolesGuard],
 })
 export class AuthModule {}

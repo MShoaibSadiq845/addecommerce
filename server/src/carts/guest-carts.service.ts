@@ -62,9 +62,11 @@ export class GuestCartsService {
     itemId: string,
     size?: string,
     color?: string,
-  ): Promise<GuestCartDocument> {
+  ): Promise<any> {
     const cart = await this.guestCartModel.findOne({ sessionId }).exec();
-    if (!cart) throw new NotFoundException('Cart not found');
+    if (!cart) {
+      return { sessionId, items: [] };
+    }
 
     cart.items = cart.items.filter((item) => {
       const idMatch =

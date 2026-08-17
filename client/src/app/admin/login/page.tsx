@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 
 import { useLoginMutation, useRegisterMutation } from '@/store/services/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
+import { SocialLoginButtons } from '@/components/storefront/SocialLoginButtons';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,7 +59,6 @@ function AdminLoginInner() {
 
   // ── Persist auth after a successful API response ────────────────────────
   function persistAuth(data: { token: string; user: any }) {
-    // 1. Redux + localStorage (drives admin layout guard)
     dispatch(
       setCredentials({
         token: data.token,
@@ -73,8 +73,6 @@ function AdminLoginInner() {
       }),
     );
 
-    // 2. HTTP-only-style cookies (drives Next.js Edge middleware)
-    //    SameSite=Strict keeps them from being sent on cross-origin requests.
     const cookieOpts: Cookies.CookieAttributes = {
       expires: 7,          // days
       sameSite: 'Strict',
@@ -143,7 +141,7 @@ function AdminLoginInner() {
     }`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 flex items-center justify-center px-4 py-12 font-['Satoshi']">
       <div className="w-full max-w-[420px] flex flex-col gap-6">
 
         {/* Logo / Brand */}
@@ -186,208 +184,214 @@ function AdminLoginInner() {
 
             {/* ── LOGIN FORM ── */}
             {tab === 'login' && (
-              <form onSubmit={handleLoginSubmit(onLogin)} className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="email"
-                      placeholder="admin@shop.co"
-                      autoComplete="email"
-                      className={inputCls(!!loginErrors.email)}
-                      {...regLogin('email', {
-                        required: 'Email is required',
-                        pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: 'Enter a valid email',
-                        },
-                      })}
-                    />
+              <div className="flex flex-col gap-5">
+                <form onSubmit={handleLoginSubmit(onLogin)} className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="email"
+                        placeholder="admin@shop.co"
+                        autoComplete="email"
+                        className={inputCls(!!loginErrors.email)}
+                        {...regLogin('email', {
+                          required: 'Email is required',
+                          pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message: 'Enter a valid email',
+                          },
+                        })}
+                      />
+                    </div>
+                    {loginErrors.email && (
+                      <p className="text-xs text-red-500">{loginErrors.email.message}</p>
+                    )}
                   </div>
-                  {loginErrors.email && (
-                    <p className="text-xs text-red-500">{loginErrors.email.message}</p>
-                  )}
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      className={`${inputCls(!!loginErrors.password)} pr-11`}
-                      {...regLogin('password', {
-                        required: 'Password is required',
-                        minLength: { value: 6, message: 'Min 6 characters' },
-                      })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        className={`${inputCls(!!loginErrors.password)} pr-11`}
+                        {...regLogin('password', {
+                          required: 'Password is required',
+                          minLength: { value: 6, message: 'Min 6 characters' },
+                        })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {loginErrors.password && (
+                      <p className="text-xs text-red-500">{loginErrors.password.message}</p>
+                    )}
                   </div>
-                  {loginErrors.password && (
-                    <p className="text-xs text-red-500">{loginErrors.password.message}</p>
-                  )}
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={loggingIn}
-                  className="w-full py-3.5 bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-                >
-                  {loggingIn ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Signing in…</>
-                  ) : (
-                    <><ShieldCheck className="w-4 h-4" /> Sign In to Dashboard</>
-                  )}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={loggingIn}
+                    className="w-full py-3.5 bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                  >
+                    {loggingIn ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Signing in…</>
+                    ) : (
+                      <><ShieldCheck className="w-4 h-4" /> Sign In to Dashboard</>
+                    )}
+                  </button>
+                </form>
 
-                <p className="text-center text-xs text-gray-400 mt-1">
-                  Default credentials are seeded on first run.
-                </p>
-              </form>
+                {/* Social Login Buttons */}
+                <SocialLoginButtons labelPrefix="Sign in with" />
+              </div>
             )}
 
             {/* ── REGISTER FORM ── */}
             {tab === 'register' && (
-              <form onSubmit={handleRegisterSubmit(onRegister)} className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      autoComplete="name"
-                      className={inputCls(!!regErrors.name)}
-                      {...regReg('name', {
-                        required: 'Name is required',
-                        minLength: { value: 2, message: 'Min 2 characters' },
-                      })}
-                    />
+              <div className="flex flex-col gap-5">
+                <form onSubmit={handleRegisterSubmit(onRegister)} className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        autoComplete="name"
+                        className={inputCls(!!regErrors.name)}
+                        {...regReg('name', {
+                          required: 'Name is required',
+                          minLength: { value: 2, message: 'Min 2 characters' },
+                        })}
+                      />
+                    </div>
+                    {regErrors.name && (
+                      <p className="text-xs text-red-500">{regErrors.name.message}</p>
+                    )}
                   </div>
-                  {regErrors.name && (
-                    <p className="text-xs text-red-500">{regErrors.name.message}</p>
-                  )}
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      className={inputCls(!!regErrors.email)}
-                      {...regReg('email', {
-                        required: 'Email is required',
-                        pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: 'Enter a valid email',
-                        },
-                      })}
-                    />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        className={inputCls(!!regErrors.email)}
+                        {...regReg('email', {
+                          required: 'Email is required',
+                          pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message: 'Enter a valid email',
+                          },
+                        })}
+                      />
+                    </div>
+                    {regErrors.email && (
+                      <p className="text-xs text-red-500">{regErrors.email.message}</p>
+                    )}
                   </div>
-                  {regErrors.email && (
-                    <p className="text-xs text-red-500">{regErrors.email.message}</p>
-                  )}
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Min. 6 characters"
-                      autoComplete="new-password"
-                      className={`${inputCls(!!regErrors.password)} pr-11`}
-                      {...regReg('password', {
-                        required: 'Password is required',
-                        minLength: { value: 6, message: 'Min 6 characters' },
-                      })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Min. 6 characters"
+                        autoComplete="new-password"
+                        className={`${inputCls(!!regErrors.password)} pr-11`}
+                        {...regReg('password', {
+                          required: 'Password is required',
+                          minLength: { value: 6, message: 'Min 6 characters' },
+                        })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {regErrors.password && (
+                      <p className="text-xs text-red-500">{regErrors.password.message}</p>
+                    )}
                   </div>
-                  {regErrors.password && (
-                    <p className="text-xs text-red-500">{regErrors.password.message}</p>
-                  )}
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type={showConfirm ? 'text' : 'password'}
-                      placeholder="Repeat password"
-                      autoComplete="new-password"
-                      className={`${inputCls(!!regErrors.confirmPassword)} pr-11`}
-                      {...regReg('confirmPassword', {
-                        required: 'Please confirm your password',
-                        validate: (v) =>
-                          v === watchPassword || 'Passwords do not match',
-                      })}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((p) => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      tabIndex={-1}
-                    >
-                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type={showConfirm ? 'text' : 'password'}
+                        placeholder="Repeat password"
+                        autoComplete="new-password"
+                        className={`${inputCls(!!regErrors.confirmPassword)} pr-11`}
+                        {...regReg('confirmPassword', {
+                          required: 'Please confirm your password',
+                          validate: (v) =>
+                            v === watchPassword || 'Passwords do not match',
+                        })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        tabIndex={-1}
+                      >
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {regErrors.confirmPassword && (
+                      <p className="text-xs text-red-500">{regErrors.confirmPassword.message}</p>
+                    )}
                   </div>
-                  {regErrors.confirmPassword && (
-                    <p className="text-xs text-red-500">{regErrors.confirmPassword.message}</p>
-                  )}
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={registering}
-                  className="w-full py-3.5 bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-                >
-                  {registering ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>
-                  ) : (
-                    'Create Account'
-                  )}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={registering}
+                    className="w-full py-3.5 bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+                  >
+                    {registering ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>
+                    ) : (
+                      'Create Account'
+                    )}
+                  </button>
+                </form>
+
+                {/* Social Login Buttons */}
+                <SocialLoginButtons labelPrefix="Register with" />
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700 text-center">
                   New accounts are created as regular users.
                   Contact a Super Admin to grant admin privileges.
                 </div>
-              </form>
+              </div>
             )}
           </div>
         </div>
