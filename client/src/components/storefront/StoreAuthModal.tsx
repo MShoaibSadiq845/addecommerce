@@ -136,10 +136,13 @@ export function StoreAuthModal({
         role: 'User',
       }).unwrap();
 
-      persistAuth(data);
-      toast.success(`Account created! Welcome, ${data.user.name}!`);
-      onClose();
-      if (onSuccess) onSuccess();
+      toast.success('Account created successfully! Please log in with your email and password.');
+      resetReg();
+      resetLogin({
+        email: values.email.trim().toLowerCase(),
+        password: '',
+      });
+      setTab('login');
     } catch (err: any) {
       const message =
         err?.data?.message ||

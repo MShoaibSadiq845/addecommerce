@@ -44,6 +44,7 @@ function AdminLoginInner() {
   const {
     register: regLogin,
     handleSubmit: handleLoginSubmit,
+    reset: resetLogin,
     formState: { errors: loginErrors },
   } = useForm<LoginForm>();
 
@@ -51,6 +52,7 @@ function AdminLoginInner() {
   const {
     register: regReg,
     handleSubmit: handleRegisterSubmit,
+    reset: resetReg,
     watch,
     formState: { errors: regErrors },
   } = useForm<RegisterForm>();
@@ -116,15 +118,13 @@ function AdminLoginInner() {
         password: values.password,
       }).unwrap();
 
-      persistAuth(data);
-      toast.success(`Account created. Welcome, ${data.user.name}!`);
-
-      const role: string = data.user?.role ?? '';
-      if (role === 'Admin' || role === 'Super Admin') {
-        window.location.href = nextPath || '/admin';
-      } else {
-        window.location.href = '/';
-      }
+      toast.success('Account created successfully! Please sign in with your credentials.');
+      resetReg();
+      resetLogin({
+        email: values.email.trim().toLowerCase(),
+        password: '',
+      });
+      setTab('login');
     } catch (err: any) {
       const msg =
         err?.data?.message || 'Registration failed. Please try again.';

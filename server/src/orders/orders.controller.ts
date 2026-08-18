@@ -37,6 +37,7 @@ export class OrdersController {
   // Place a guest order (COD or Stripe)
   @Post()
   async createOrder(@Body() dto: CreateOrderDto) {
+    console.log('📥 [OrdersController.createOrder] Received POST /orders with email:', dto?.guestEmail);
     return this.ordersService.create(dto);
   }
 
