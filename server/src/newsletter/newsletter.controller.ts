@@ -1,10 +1,10 @@
-import { Controller, Post, Get, Body, BadRequestException, Inject } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, BadRequestException, Inject } from '@nestjs/common';
 import { NewsletterService } from './newsletter.service';
 
 @Controller('newsletter')
 export class NewsletterController {
   constructor(
-    @Inject(NewsletterService) // 👈 Explicitly inject NewsletterService here
+    @Inject(NewsletterService)
     private readonly newsletterService: NewsletterService,
   ) {}
 
@@ -17,7 +17,7 @@ export class NewsletterController {
   }
 
   @Get('subscribers')
-  async getAll() {
-    return this.newsletterService.getAll();
+  async getAll(@Query('search') search?: string) {
+    return this.newsletterService.getAll(search);
   }
 }

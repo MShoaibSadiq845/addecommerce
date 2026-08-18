@@ -26,10 +26,14 @@ type DeliveryForm = {
   province: string;
   postalCode: string;
   country: string;
+  paymentMethod: 'COD' | 'Card';
 };
 
-export default function CartPage() {
+import { useSearchParams } from 'next/navigation';
+
+export default function CartPage({ defaultShowCheckout = false }: { defaultShowCheckout?: boolean }) {
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
   const { items } = useSelector((state: RootState) => state.cart);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [createOrder, { isLoading: isCheckingOut }] = useCreateOrderMutation();
@@ -40,9 +44,15 @@ export default function CartPage() {
 
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<any>(null);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(defaultShowCheckout || searchParams.get('checkout') === 'true');
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+
+  useEffect(() => {
+    if (defaultShowCheckout || searchParams.get('checkout') === 'true') {
+      setShowCheckout(true);
+    }
+  }, [defaultShowCheckout, searchParams]);
 
   const {
     register,
@@ -58,6 +68,7 @@ export default function CartPage() {
       province: '',
       postalCode: '',
       country: '',
+      paymentMethod: 'COD',
     },
   });
 
@@ -155,6 +166,7 @@ export default function CartPage() {
           postalCode: formData.postalCode,
           country: formData.country,
         },
+        paymentMethod: formData.paymentMethod || 'COD',
       }).unwrap();
       setOrderSuccess(res);
       dispatch(clearCart());
@@ -216,11 +228,19 @@ export default function CartPage() {
         <nav className="flex items-center gap-1.5 text-xs text-gray-400">
           <Link href="/" className="hover:text-black">Home</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-black font-medium">Cart</span>
+          {showCheckout ? (
+            <>
+              <button onClick={() => setShowCheckout(false)} className="hover:text-black">Cart</button>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="text-black font-medium">Checkout</span>
+            </>
+          ) : (
+            <span className="text-black font-medium">Cart</span>
+          )}
         </nav>
 
         <h1 className="text-3xl lg:text-4xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
-          YOUR CART
+          {showCheckout ? 'CHECKOUT' : 'YOUR CART'}
         </h1>
 
         {items.length === 0 ? (
@@ -471,6 +491,48 @@ export default function CartPage() {
                     {...register('country', { required: 'Country is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.country ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.country && <span className="text-[10px] text-red-500">{errors.country.message}</span>}
+                </div>
+
+                {/* Payment Method — Cash on Delivery */}
+                <div className="sm:col-span-2 flex flex-col gap-3">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Payment Method</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* COD option */}
+                    <label
+                      htmlFor="payment-cod"
+                      className="flex items-center gap-3 border-2 border-black rounded-xl p-4 cursor-pointer bg-black/[0.02] hover:bg-black/5 transition-colors"
+                    >
+                      <input
+                        id="payment-cod"
+                        type="radio"
+                        value="COD"
+                        {...register('paymentMethod')}
+                        defaultChecked
+                        className="accent-black w-4 h-4"
+                      />
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-extrabold text-black">💵 Cash on Delivery</span>
+                        <span className="text-[11px] text-gray-500">Pay when your order arrives</span>
+                      </div>
+                    </label>
+                    {/* Card option — coming soon */}
+                    <label
+                      htmlFor="payment-card"
+                      className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 cursor-not-allowed opacity-50 bg-gray-50"
+                    >
+                      <input
+                        id="payment-card"
+                        type="radio"
+                        value="Card"
+                        disabled
+                        className="accent-black w-4 h-4"
+                      />
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-extrabold text-gray-500">💳 Credit / Debit Card</span>
+                        <span className="text-[11px] text-gray-400">Coming soon</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
 

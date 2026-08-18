@@ -1,19 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 import { useGetProductByIdQuery, useGetProductsQuery } from '@/store/services/productsApi';
 import { useGetReviewsByProductQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
 import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
+import { useAddToCartBackendMutation } from '@/store/services/cartApi';
 import { getSessionId } from '@/lib/sessionId';
 import { ProductDetailSkeleton } from '@/components/ui/skeletons/ProductDetailSkeleton';
 import ReviewModal from '@/components/storefront/ReviewModal';
-import { ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw } from 'lucide-react';
+import { ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw, Zap, Loader2 } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
+import { toast } from 'react-hot-toast';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -50,9 +53,12 @@ function RelatedCard({ product }: { product: any }) {
 }
 
 export default function ProductDetailPage() {
+  // 1. ALL Hooks declared unconditionally at top level
   const { id } = useParams();
+  const router = useRouter();
   const dispatch = useDispatch();
   const { setLoading } = useLoading();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
   const { data: relatedData, isLoading: isRelatedLoading } = useGetProductsQuery({ limit: 4, sort: 'rating' });
@@ -61,11 +67,7 @@ export default function ProductDetailPage() {
   const { data: reviews = [], isLoading: reviewsLoading } = useGetReviewsByProductQuery(id as string);
 
   const [addToGuestCart, { isLoading: isAddingToCart }] = useAddToGuestCartMutation();
-
-  React.useEffect(() => {
-    setLoading(isLoading || isAddingToCart);
-    return () => setLoading(false);
-  }, [isLoading, isAddingToCart, setLoading]);
+  const [addToCartBackend] = useAddToCartBackendMutation();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
@@ -73,7 +75,15 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
   const [modalOpen, setModalOpen] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
+  const [activeActionButton, setActiveActionButton] = useState<'cart' | 'buy'>('buy');
 
+  useEffect(() => {
+    setLoading(isLoading || isAddingToCart || buyingNow);
+    return () => setLoading(false);
+  }, [isLoading, isAddingToCart, buyingNow, setLoading]);
+
+  // 2. Early return AFTER all hooks
   if (isLoading) return <ProductDetailSkeleton />;
   if (error || !product) {
     return (
@@ -96,10 +106,11 @@ export default function ProductDetailPage() {
   const isOutOfStock = product.stock <= 0;
 
   const handleAddToCart = async () => {
+    setActiveActionButton('cart');
     const chosenSize = selectedSize || (sizes[0] ?? '');
     const chosenColor = selectedColor || (colors[0] ?? '');
 
-    // 1. Update local Redux state immediately (instant UI feedback)
+    // 1. Update local Redux state immediately
     dispatch(addToCart({
       id: product._id,
       name: product.name,
@@ -109,24 +120,74 @@ export default function ProductDetailPage() {
       size: chosenSize,
       color: chosenColor,
     }));
+    toast.success(`${product.name} added to cart!`, { duration: 1500 });
 
     // 2. Persist to DB in the background
     const sessionId = getSessionId();
-    if (sessionId) {
-      try {
-        await addToGuestCart({
-          sessionId,
-          productId: product._id,
-          name: product.name,
-          price: effectivePrice,
-          quantity,
-          size: chosenSize,
-          color: chosenColor,
-          image: images[0],
-        }).unwrap();
-      } catch {
-        // Non-fatal — local cart still works even if DB sync fails
+    const itemPayload = {
+      productId: product._id,
+      name: product.name,
+      price: effectivePrice,
+      quantity,
+      size: chosenSize,
+      color: chosenColor,
+      image: images[0],
+    };
+
+    try {
+      if (isAuthenticated) {
+        await addToCartBackend(itemPayload).unwrap();
+      } else if (sessionId) {
+        await addToGuestCart({ sessionId, ...itemPayload }).unwrap();
       }
+    } catch {
+      // Non-fatal — local cart still works even if DB sync fails
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (buyingNow || isOutOfStock) return;
+    setActiveActionButton('buy');
+    setBuyingNow(true);
+    try {
+      const chosenSize = selectedSize || (sizes[0] ?? '');
+      const chosenColor = selectedColor || (colors[0] ?? '');
+      const itemPayload = {
+        productId: product._id,
+        name: product.name,
+        price: effectivePrice,
+        quantity,
+        size: chosenSize,
+        color: chosenColor,
+        image: images[0],
+      };
+
+      // 1. Update local Redux state
+      dispatch(addToCart({
+        id: product._id,
+        name: product.name,
+        price: effectivePrice,
+        image: images[0],
+        quantity,
+        size: chosenSize,
+        color: chosenColor,
+      }));
+
+      // 2. Execute Server-side DB Save & await confirmation
+      const sessionId = getSessionId();
+      if (isAuthenticated) {
+        await addToCartBackend(itemPayload).unwrap();
+      } else if (sessionId) {
+        await addToGuestCart({ sessionId, ...itemPayload }).unwrap();
+      }
+
+      // 3. Only after server DB response confirmation, redirect directly to /checkout
+      router.push('/checkout');
+    } catch (err: any) {
+      console.warn('Buy Now DB save warning:', err);
+      router.push('/checkout');
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -223,33 +284,59 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Quantity + Add to Cart */}
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-3 bg-gray-100 rounded-full px-4 py-3 w-36">
+            {/* Quantity + Add to Cart + Buy Now */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="flex items-center justify-between gap-3 bg-gray-100 rounded-full px-4 py-3 sm:w-36">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-gray-600 hover:text-black">
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="font-bold text-sm w-5 text-center">{quantity}</span>
+                <span className="font-bold text-sm text-center">{quantity}</span>
                 <button onClick={() => setQuantity(quantity + 1)} className="text-gray-600 hover:text-black">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
 
-              <button
-                disabled={isOutOfStock || isAddingToCart}
-                onClick={handleAddToCart}
-                className="flex-1 py-3.5 rounded-full text-sm font-bold flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white transition-all disabled:opacity-50"
-              >
-                {isAddingToCart ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" /> Adding...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4" /> Add to Cart
-                  </>
-                )}
-              </button>
+              <div className="flex flex-1 gap-3">
+                <button
+                  disabled={isOutOfStock || isAddingToCart || buyingNow}
+                  onClick={handleAddToCart}
+                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
+                    activeActionButton === 'cart'
+                      ? 'bg-black text-white hover:bg-gray-800 shadow-md'
+                      : 'bg-white text-black border-2 border-black hover:bg-gray-100'
+                  }`}
+                >
+                  {isAddingToCart ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Adding…
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                    </>
+                  )}
+                </button>
+
+                <button
+                  disabled={isOutOfStock || isAddingToCart || buyingNow}
+                  onClick={handleBuyNow}
+                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
+                    activeActionButton === 'buy'
+                      ? 'bg-black text-white hover:bg-gray-800 shadow-md'
+                      : 'bg-white text-black border-2 border-black hover:bg-gray-100'
+                  }`}
+                >
+                  {buyingNow ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Buying…
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" /> Buy Now
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {isOutOfStock && (

@@ -9,8 +9,11 @@ export const newsletterApi = apiSlice.injectEndpoints({
         body: { email },
       }),
     }),
-    getNewsletterSubscribers: builder.query({
-      query: () => '/newsletter/subscribers',
+    getNewsletterSubscribers: builder.query<any[], string | void>({
+      query: (search) => ({
+        url: '/newsletter/subscribers',
+        params: search ? { search } : undefined,
+      }),
     }),
   }),
 });

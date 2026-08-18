@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useGetAllUsersQuery } from '@/store/services/authApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { Users, Award, Shield, ShieldCheck, User } from 'lucide-react';
+import { Users, Award, Shield, ShieldCheck, User, Search } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
 
@@ -37,43 +37,45 @@ function RoleBadge({ role }: { role: string }) {
 
 export default function AdminUsersPage() {
   const { setLoading } = useLoading();
-  const { data: users = [], isLoading, isFetching } = useGetAllUsersQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
 
-  const [search, setSearch] = useState('');
+  // Local UI state (raw, unthrottled)
+  const [searchInput, setSearchInput] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounced search — only fires API after 350 ms of inactivity
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Reset pagination whenever server-side filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, roleFilter]);
+
+  // Server-side fetching — params sent as query strings to the API
+  const { data: users = [], isLoading, isFetching } = useGetAllUsersQuery(
+    { search: debouncedSearch || undefined, role: roleFilter || undefined },
+    { refetchOnMountOrArgChange: true },
+  );
 
   useEffect(() => {
     setLoading(isLoading || isFetching);
     return () => setLoading(false);
   }, [isLoading, isFetching, setLoading]);
 
-  // Reset pagination on search / filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, roleFilter]);
-
-  const filtered = users.filter((u: any) => {
-    const matchesSearch =
-      !search ||
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = !roleFilter || u.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
-
   const totalUsers = users.length;
   const adminCount = users.filter((u: any) => u.role === 'Admin' || u.role === 'Super Admin').length;
   const totalPoints = users.reduce((sum: number, u: any) => sum + (u.loyaltyPoints || 0), 0);
 
-  // Pagination (10 per page)
+  // Client-side pagination only (data is already filtered server-side)
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginatedUsers = filtered.slice(
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const paginatedUsers = users.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   return (
@@ -83,7 +85,7 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-xs text-gray-400 font-['Open_Sans']">
-            All registered accounts — fetched live from the database
+            All registered accounts — filtered &amp; fetched live from the database
           </p>
         </div>
         <div className="text-xs bg-white border border-gray-200 px-4 py-2 rounded-xl text-gray-600 font-semibold w-fit">
@@ -125,16 +127,24 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Server-Side Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Search by name or email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-black/20"
-        />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <input
+            id="user-search"
+            type="text"
+            placeholder="Search by name or email… (server-side)"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-9 pr-4 bg-white border border-gray-200 rounded-xl py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-black/20"
+          />
+          {isFetching && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+          )}
+        </div>
         <select
+          id="user-role-filter"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
           className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold outline-none min-w-[160px]"
@@ -149,9 +159,9 @@ export default function AdminUsersPage() {
       {/* Table */}
       {isLoading ? (
         <TableSkeleton rows={8} />
-      ) : filtered.length === 0 ? (
+      ) : users.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center text-gray-400 text-xs font-semibold">
-          {search || roleFilter ? 'No users match the current filters.' : 'No users found.'}
+          {debouncedSearch || roleFilter ? 'No users match the current filters.' : 'No users found.'}
         </div>
       ) : (
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm overflow-x-auto">
@@ -174,7 +184,6 @@ export default function AdminUsersPage() {
                     <td className="py-4 text-gray-400 font-mono">{globalIndex}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        {/* Avatar circle with initials */}
                         <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold shrink-0 uppercase">
                           {user.name?.[0] ?? '?'}
                         </div>
@@ -206,7 +215,7 @@ export default function AdminUsersPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={filtered.length}
+            totalItems={users.length}
             itemsPerPage={itemsPerPage}
             className="mt-4"
           />

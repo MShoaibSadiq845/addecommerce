@@ -4,13 +4,21 @@ import React, { useRef, useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
 import { useGetProductsQuery, useGetCategoriesQuery } from '@/store/services/productsApi';
+import { useCreateOrderMutation } from '@/store/services/ordersApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
 import { LoadingProvider } from '@/context/LoadingContext';
-import { ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
+
+import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
+import { useAddToCartBackendMutation } from '@/store/services/cartApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { getSessionId } from '@/lib/sessionId';
 
 /* ─── Rating Stars helper ─── */
 function Stars({ rating }: { rating: number }) {
@@ -26,14 +34,22 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+/* ─── Single Product Card with Add to Cart + Buy Now ─── */
 function ProductCard({ product }: { product: any }) {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [addToGuestCart] = useAddToGuestCartMutation();
+  const [addToCartBackend] = useAddToCartBackendMutation();
+  const [buyingNow, setBuyingNow] = useState(false);
+
   const img = product.images?.[0] || '/images/7.png';
   const price = product.isOnSale ? product.salePrice : product.price;
   const discount = product.isOnSale
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0;
 
+  /* Add to Cart — local Redux only */
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -43,6 +59,53 @@ function ProductCard({ product }: { product: any }) {
       size: product.sizes?.[0] || '', color: product.colors?.[0] || '',
     }));
     toast.success(`${product.name} added!`, { duration: 1500 });
+  };
+
+  /* Buy Now — Server DB Save & Redirect to /checkout */
+  const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (buyingNow) return;
+
+    setBuyingNow(true);
+    try {
+      const itemPayload = {
+        productId: product._id,
+        name: product.name,
+        price,
+        quantity: 1,
+        size: product.sizes?.[0] || '',
+        color: product.colors?.[0] || '',
+        image: img,
+      };
+
+      // 1. Update Redux cart state locally
+      dispatch(addToCart({
+        id: product._id,
+        name: product.name,
+        price,
+        image: img,
+        quantity: 1,
+        size: product.sizes?.[0] || '',
+        color: product.colors?.[0] || '',
+      }));
+
+      // 2. Trigger Server-side DB Save
+      const sessionId = getSessionId();
+      if (isAuthenticated) {
+        await addToCartBackend(itemPayload).unwrap();
+      } else if (sessionId) {
+        await addToGuestCart({ sessionId, ...itemPayload }).unwrap();
+      }
+
+      // 3. On successful server DB response, redirect to /checkout
+      router.push('/checkout');
+    } catch (err: any) {
+      console.warn('Buy Now DB save warning:', err);
+      router.push('/checkout');
+    } finally {
+      setBuyingNow(false);
+    }
   };
 
   return (
@@ -56,10 +119,24 @@ function ProductCard({ product }: { product: any }) {
               -{discount}%
             </span>
           )}
-          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={handleQuickAdd}
-              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors">
-              <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+          {/* Hover action buttons */}
+          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={handleQuickAdd}
+              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" /> Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={buyingNow}
+              className="flex items-center gap-1.5 bg-black text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-70"
+            >
+              {buyingNow ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Buying…</>
+              ) : (
+                <><Zap className="w-3.5 h-3.5" /> Buy Now</>
+              )}
             </button>
           </div>
         </div>
@@ -81,56 +158,148 @@ function ProductCard({ product }: { product: any }) {
   );
 }
 
-/* ─── Horizontal scroll product row ─── */
-function ProductRow({ products, loading }: { products: any[]; loading: boolean }) {
-  if (loading) return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full animate-pulse">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-3">
-          <div className="w-full aspect-[3/4] bg-gray-200 rounded-[20px]" />
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-1/2" />
-          <div className="h-5 bg-gray-200 rounded w-1/3" />
-        </div>
-      ))}
-    </div>
-  );
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full">
-      {products.slice(0, 4).map((p: any) => <ProductCard key={p._id} product={p} />)}
-    </div>
-  );
-}
-
-/* ─── Section heading ─── */
+/* ─── Section Heading (standalone, without arrows) ─── */
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center tracking-tight"
+    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
       style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
       {children}
     </h2>
   );
 }
 
+/* ─── Product Slider — 10 items, shifts 1 item at a time smoothly ─── */
+function ProductSlider({
+  products,
+  loading,
+  title,
+  viewAllHref,
+}: {
+  products: any[];
+  loading: boolean;
+  title: string;
+  viewAllHref: string;
+}) {
+  const [startIndex, setStartIndex] = useState(0);
+
+  /* Reset startIndex when products change */
+  useEffect(() => { setStartIndex(0); }, [products]);
+
+  const maxIndex = Math.max(0, products.length - 4);
+  const canPrev = startIndex > 0;
+  const canNext = startIndex < maxIndex;
+
+  const visibleProducts = products.slice(startIndex, startIndex + 4);
+
+  /* Skeleton while loading */
+  if (loading) {
+    return (
+      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col gap-10">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse" />
+          <div className="flex gap-2">
+            <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+            <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-3">
+              <div className="w-full aspect-[3/4] bg-gray-200 rounded-[20px]" />
+              <div className="h-4 bg-gray-200 rounded w-3/4" />
+              <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div className="h-5 bg-gray-200 rounded w-1/3" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (products.length === 0) return null;
+
+  return (
+    <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col gap-10">
+      {/* Section header row with circular arrows */}
+      <div className="flex items-center justify-between gap-4">
+        <SectionHeading>{title}</SectionHeading>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setStartIndex((i) => Math.max(0, i - 1))}
+            disabled={!canPrev}
+            aria-label="Previous product"
+            className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${canPrev
+              ? 'border-black bg-black text-white hover:bg-gray-800'
+              : 'border-gray-200 bg-white text-gray-300 cursor-not-allowed'
+              }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setStartIndex((i) => Math.min(maxIndex, i + 1))}
+            disabled={!canNext}
+            aria-label="Next product"
+            className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${canNext
+              ? 'border-black bg-black text-white hover:bg-gray-800'
+              : 'border-gray-200 bg-white text-gray-300 cursor-not-allowed'
+              }`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 4-column grid — slides smooth 1 item at a time */}
+      <div
+        key={startIndex}
+        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full"
+        style={{ animation: 'fadeSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
+        {visibleProducts.map((p: any) => (
+          <ProductCard key={p._id} product={p} />
+        ))}
+      </div>
+
+      {/* Step indicators */}
+      {maxIndex > 0 && (
+        <div className="flex justify-center gap-1.5">
+          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setStartIndex(i)}
+              aria-label={`Go to position ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === startIndex ? 'bg-black w-6' : 'bg-gray-300 w-1.5 hover:bg-gray-400'
+                }`}
+            />
+          ))}
+        </div>
+      )}
+
+      <Link
+        href={viewAllHref}
+        className="self-center px-16 py-3.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-all"
+      >
+        View All
+      </Link>
+    </section>
+  );
+}
+
 /* ─── Dynamic Category Section ─── */
 function CategorySection({ category }: { category: string }) {
-  const { data, isLoading } = useGetProductsQuery({ category, limit: 4 });
+  const { data, isLoading } = useGetProductsQuery({ category, limit: 10 });
   const products = data?.products || [];
 
   if (!isLoading && products.length === 0) return null;
 
   return (
     <>
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col items-center gap-10">
-        <SectionHeading>{category.toUpperCase()}</SectionHeading>
-        <ProductRow products={products} loading={isLoading} />
-        <Link
-          href={`/shop?category=${encodeURIComponent(category)}`}
-          className="px-16 py-3.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-all"
-        >
-          View All
-        </Link>
-      </section>
+      <ProductSlider
+        products={products}
+        loading={isLoading}
+        title={category.toUpperCase()}
+        viewAllHref={`/shop?category=${encodeURIComponent(category)}`}
+      />
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
         <hr className="border-gray-200" />
       </div>
@@ -140,8 +309,8 @@ function CategorySection({ category }: { category: string }) {
 
 /* ─── Main Home Content ─── */
 function HomeContent() {
-  const { data: newArrivalsData, isLoading: loadingNew } = useGetProductsQuery({ limit: 4, sort: 'newest' });
-  const { data: topSellingData, isLoading: loadingTop } = useGetProductsQuery({ limit: 4, sort: 'rating' });
+  const { data: newArrivalsData, isLoading: loadingNew } = useGetProductsQuery({ limit: 10, sort: 'newest' });
+  const { data: topSellingData, isLoading: loadingTop } = useGetProductsQuery({ limit: 10, sort: 'rating' });
   const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
@@ -170,9 +339,7 @@ function HomeContent() {
       toast.success(`⭐ New review from ${review.name}!`, { duration: 3000 });
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => { socket.disconnect(); };
   }, []);
 
   const newArrivals = newArrivalsData?.products || [];
@@ -193,6 +360,14 @@ function HomeContent() {
 
   return (
     <div className="w-full flex flex-col items-center">
+      {/* Keyframe animation for page slide */}
+      <style>{`
+        @keyframes fadeSlide {
+          from { opacity: 0; transform: translateX(16px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section className="w-full bg-[#f2f0f1] overflow-hidden relative">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6">
@@ -257,32 +432,24 @@ function HomeContent() {
       </section>
 
       {/* ═══════════════════ NEW ARRIVALS ═══════════════════ */}
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col items-center gap-10">
-        <SectionHeading>NEW ARRIVALS</SectionHeading>
-        <ProductRow products={newArrivals} loading={loadingNew} />
-        <Link
-          href="/shop?sort=newest"
-          className="px-16 py-3.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-all"
-        >
-          View All
-        </Link>
-      </section>
+      <ProductSlider
+        products={newArrivals}
+        loading={loadingNew}
+        title="NEW ARRIVALS"
+        viewAllHref="/shop?sort=newest"
+      />
 
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
         <hr className="border-gray-200" />
       </div>
 
       {/* ═══════════════════ TOP SELLING ═══════════════════ */}
-      <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col items-center gap-10">
-        <SectionHeading>TOP SELLING</SectionHeading>
-        <ProductRow products={topSelling} loading={loadingTop} />
-        <Link
-          href="/shop?sort=rating"
-          className="px-16 py-3.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-all"
-        >
-          View All
-        </Link>
-      </section>
+      <ProductSlider
+        products={topSelling}
+        loading={loadingTop}
+        title="TOP SELLING"
+        viewAllHref="/shop?sort=rating"
+      />
 
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
         <hr className="border-gray-200" />
@@ -296,7 +463,10 @@ function HomeContent() {
       {/* ═══════════════════ BROWSE BY DRESS STYLE ═══════════════════ */}
       <section className="w-full px-4 sm:px-6 lg:px-20 py-10">
         <div className="w-full max-w-[1440px] mx-auto bg-[#f2f0f1] rounded-[40px] p-6 sm:p-8 lg:p-14 flex flex-col items-center gap-10">
-          <SectionHeading>BROWSE BY DRESS STYLE</SectionHeading>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center tracking-tight"
+            style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+            BROWSE BY DRESS STYLE
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 w-full">
             <Link
               href="/shop?category=Casual"
@@ -341,7 +511,10 @@ function HomeContent() {
       {/* ═══════════════════ HAPPY CUSTOMERS ═══════════════════ */}
       <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col gap-8">
         <div className="flex items-center justify-between">
-          <SectionHeading>OUR HAPPY CUSTOMERS</SectionHeading>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
+            style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+            OUR HAPPY CUSTOMERS
+          </h2>
           <div className="flex gap-2">
             <button
               onClick={() => scrollReviews('left')}

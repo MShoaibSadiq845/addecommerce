@@ -18,7 +18,11 @@ export class NewsletterService {
     return this.newsletterModel.create({ email });
   }
 
-  async getAll() {
-    return this.newsletterModel.find().sort({ createdAt: -1 }).exec();
+  async getAll(search?: string) {
+    const filter: any = {};
+    if (search) {
+      filter.email = { $regex: search, $options: 'i' };
+    }
+    return this.newsletterModel.find(filter).sort({ createdAt: -1 }).exec();
   }
 }

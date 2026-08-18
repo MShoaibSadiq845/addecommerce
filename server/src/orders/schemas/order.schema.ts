@@ -12,6 +12,11 @@ export enum OrderStatus {
   CANCELED = 'Canceled',
 }
 
+export enum PaymentMethod {
+  COD = 'COD',
+  CARD = 'Card',
+}
+
 @Schema()
 export class OrderItem {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
@@ -55,6 +60,9 @@ export class Order {
 
   @Prop({ type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING })
   status: OrderStatus;
+
+  @Prop({ type: String, enum: Object.values(PaymentMethod), default: PaymentMethod.COD })
+  paymentMethod: PaymentMethod;
 
   @Prop({
     type: {

@@ -8,30 +8,35 @@ import Pagination from '@/components/ui/Pagination';
 
 export default function NewsletterSubscribersPage() {
   const { setLoading } = useLoading();
-  const { data: subscribers = [], isLoading, isFetching } = useGetNewsletterSubscribersQuery(undefined, {
-    pollingInterval: 30000,
-  });
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounce search input by 350 ms
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const { data: subscribers = [], isLoading, isFetching } = useGetNewsletterSubscribersQuery(
+    debouncedSearch || undefined,
+    { pollingInterval: 30000, refetchOnMountOrArgChange: true }
+  );
 
   useEffect(() => {
     setLoading(isLoading || isFetching);
     return () => setLoading(false);
   }, [isLoading, isFetching, setLoading]);
 
-  // Reset pagination on search change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
-
-  const filtered = subscribers.filter((s: any) =>
-    s.email.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Pagination (10 per page)
+  // Client-side pagination over server-filtered results (10 per page)
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginatedSubscribers = filtered.slice(
+  const totalPages = Math.ceil(subscribers.length / itemsPerPage);
+  const paginatedSubscribers = subscribers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -58,11 +63,14 @@ export default function NewsletterSubscribersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black bg-gray-50"
+              placeholder="Search by email… (server-side)"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black bg-gray-50"
             />
+            {isFetching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            )}
           </div>
         </div>
 
@@ -85,12 +93,12 @@ export default function NewsletterSubscribersPage() {
                     <td className="px-6 py-4"><div className="h-3 w-32 bg-gray-100 rounded animate-pulse" /></td>
                   </tr>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : subscribers.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-16 text-center text-gray-400">
                     <div className="flex flex-col items-center gap-2">
                       <Mail className="w-8 h-8 text-gray-200" />
-                      {search ? 'No subscribers match your search.' : 'No subscribers yet.'}
+                      {debouncedSearch ? 'No subscribers match your search.' : 'No subscribers yet.'}
                     </div>
                   </td>
                 </tr>
@@ -127,7 +135,7 @@ export default function NewsletterSubscribersPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          totalItems={filtered.length}
+          totalItems={subscribers.length}
           itemsPerPage={itemsPerPage}
         />
       </div>

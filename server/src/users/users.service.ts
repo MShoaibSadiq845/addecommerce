@@ -7,8 +7,18 @@ import { User, UserDocument } from './schemas/user.schema';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async findAll() {
-    return this.userModel.find().select('-password').exec();
+  async findAll(search?: string, role?: string) {
+    const filter: any = {};
+    if (role) {
+      filter.role = role;
+    }
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    return this.userModel.find(filter).select('-password').exec();
   }
 
   async findById(id: string) {

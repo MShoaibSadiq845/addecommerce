@@ -24,8 +24,11 @@ export const authApi = apiSlice.injectEndpoints({
       query: () => '/users/loyalty-points',
       providesTags: ['User'],
     }),
-    getAllUsers: builder.query({
-      query: () => '/users',
+    getAllUsers: builder.query<any[], { search?: string; role?: string } | void>({
+      query: (params) => ({
+        url: '/users',
+        params: params || {},
+      }),
       providesTags: ['User'],
     }),
     updateProfile: builder.mutation({

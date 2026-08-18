@@ -26,8 +26,21 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
+import { useAddToCartBackendMutation } from '@/store/services/cartApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { getSessionId } from '@/lib/sessionId';
+import { Zap, Loader2 } from 'lucide-react';
+
 function ProductCard({ product }: { product: any }) {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [addToGuestCart] = useAddToGuestCartMutation();
+  const [addToCartBackend] = useAddToCartBackendMutation();
+  const [buyingNow, setBuyingNow] = useState(false);
+
   const img = product.images?.[0] || '/images/7.png';
   const price = product.isOnSale ? product.salePrice : product.price;
   const discount = product.isOnSale
@@ -51,6 +64,54 @@ function ProductCard({ product }: { product: any }) {
     toast.success(`${product.name} added to cart!`, { duration: 1500 });
   };
 
+  const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (buyingNow) return;
+
+    setBuyingNow(true);
+    try {
+      const itemPayload = {
+        productId: product._id,
+        name: product.name,
+        price,
+        quantity: 1,
+        size: product.sizes?.[0] || '',
+        color: product.colors?.[0] || '',
+        image: img,
+      };
+
+      // 1. Update Redux cart state locally
+      dispatch(
+        addToCart({
+          id: product._id,
+          name: product.name,
+          price,
+          image: img,
+          quantity: 1,
+          size: product.sizes?.[0] || '',
+          color: product.colors?.[0] || '',
+        })
+      );
+
+      // 2. Trigger Server-side DB Save
+      const sessionId = getSessionId();
+      if (isAuthenticated) {
+        await addToCartBackend(itemPayload).unwrap();
+      } else if (sessionId) {
+        await addToGuestCart({ sessionId, ...itemPayload }).unwrap();
+      }
+
+      // 3. On successful server DB response, redirect directly to /checkout
+      router.push('/checkout');
+    } catch (err: any) {
+      console.warn('Buy Now DB save warning:', err);
+      router.push('/checkout');
+    } finally {
+      setBuyingNow(false);
+    }
+  };
+
   const reviewCount = product.reviewsCount ?? product.numReviews ?? 0;
 
   return (
@@ -68,12 +129,23 @@ function ProductCard({ product }: { product: any }) {
               -{discount}%
             </span>
           )}
-          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={handleQuickAdd}
-              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
+              className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
             >
-              <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
+              <ShoppingCart className="w-3.5 h-3.5" /> Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={buyingNow}
+              className="flex items-center gap-1.5 bg-black text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-70"
+            >
+              {buyingNow ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Buying…</>
+              ) : (
+                <><Zap className="w-3.5 h-3.5" /> Buy Now</>
+              )}
             </button>
           </div>
         </div>

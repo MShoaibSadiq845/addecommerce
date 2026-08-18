@@ -33,6 +33,10 @@ export function StorefrontHeader() {
   const isFirstRender = useRef(true);
   const isUrlSync = useRef(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: filterOptions, isLoading: loadingCategories } = useGetFilterOptionsQuery(undefined);
   const categories: string[] = filterOptions?.categories || [];
@@ -218,15 +222,15 @@ export function StorefrontHeader() {
               className="p-1.5 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
               aria-label="User Account"
             >
-              {isAuthenticated && user?.avatar ? (
+              {mounted && isAuthenticated && user?.avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.avatar}
-                  alt={user.name}
+                  alt={user.name || 'User'}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-gray-300"
                 />
               ) : (
-                <div className={`p-1 sm:p-1.5 rounded-full ${isAuthenticated ? 'bg-black text-white' : 'text-gray-800'}`}>
+                <div className={`p-1 sm:p-1.5 rounded-full ${mounted && isAuthenticated ? 'bg-black text-white' : 'text-gray-800'}`}>
                   <User className="w-5 h-5 sm:w-5 sm:h-5" />
                 </div>
               )}

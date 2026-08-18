@@ -5,50 +5,67 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   useGetProductsQuery,
+  useGetCategoriesQuery,
   useDeleteProductMutation,
   useToggleSaleMutation,
 } from '@/store/services/productsApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
 
+const ITEMS_PER_PAGE = 10;
+
 function AdminProductsContent() {
-  const { data, isLoading, isFetching } = useGetProductsQuery({ limit: 1000 });
+  const { setLoading } = useLoading();
+
+  /* ─── Server-side filter state ─── */
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Debounce search input by 350 ms
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, categoryFilter]);
+
+  /* ─── API calls ─── */
+  const { data, isLoading, isFetching } = useGetProductsQuery({
+    search: debouncedSearch || undefined,
+    category: categoryFilter || undefined,
+    limit: ITEMS_PER_PAGE,
+    page: currentPage,
+  });
+
+  const { data: categories = [] } = useGetCategoriesQuery(undefined);
+
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [toggleSale, { isLoading: isToggling }] = useToggleSaleMutation();
 
-  const { setLoading } = useLoading();
-
   const products = data?.products || [];
-  const [currentPage, setCurrentPage] = useState(1);
+  const total = data?.total || 0;
+  const totalPages = data?.pages || 1;
 
   const [saleModalProduct, setSaleModalProduct] = useState<any>(null);
   const [salePriceInput, setSalePriceInput] = useState('');
   const [salePriceError, setSalePriceError] = useState('');
-
-  // Track which product id is mid-delete / mid-toggle so we show a per-row spinner
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState<any>(null);
 
-  // Synchronize global loading state during fetching and mutations
   useEffect(() => {
     setLoading(isLoading || isFetching || isDeleting || isToggling);
   }, [isLoading, isFetching, isDeleting, isToggling, setLoading]);
 
-  // Pagination (10 per page)
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(products.length / itemsPerPage);
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleDeleteClick = (product: any) => {
-    setDeleteConfirmProduct(product);
-  };
+  const handleDeleteClick = (product: any) => setDeleteConfirmProduct(product);
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmProduct) return;
@@ -75,7 +92,6 @@ function AdminProductsContent() {
     e.preventDefault();
     if (!saleModalProduct) return;
 
-    // Only validate price when turning sale ON
     if (!saleModalProduct.isOnSale) {
       const val = Number(salePriceInput);
       if (isNaN(val) || val <= 0 || val >= saleModalProduct.price) {
@@ -93,9 +109,7 @@ function AdminProductsContent() {
         isOnSale: !saleModalProduct.isOnSale,
         salePrice: Number(salePriceInput),
       }).unwrap();
-      toast.success(
-        saleModalProduct.isOnSale ? 'Sale removed.' : 'Flash sale activated!',
-      );
+      toast.success(saleModalProduct.isOnSale ? 'Sale removed.' : 'Flash sale activated!');
       setSaleModalProduct(null);
       setSalePriceError('');
     } catch (err: any) {
@@ -122,166 +136,214 @@ function AdminProductsContent() {
         </Link>
       </div>
 
+      {/* ─── Server-Side Filters ─── */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <input
+            id="product-search"
+            type="text"
+            placeholder="Search by name, description… (server-side)"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-9 pr-4 bg-white border border-gray-200 rounded-xl py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-black/20"
+          />
+          {isFetching && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+          )}
+        </div>
+        <select
+          id="product-category-filter"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold outline-none min-w-[180px]"
+        >
+          <option value="">All Categories</option>
+          {Array.isArray(categories) &&
+            categories.map((cat: string) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+        </select>
+      </div>
+
       {isLoading ? (
         <TableSkeleton rows={8} />
       ) : (
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4 overflow-x-auto">
-          <table className="w-full text-left text-xs font-['Open_Sans']">
-            <thead>
-              <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
-                <th className="pb-3">Product</th>
-                <th className="pb-3">Category</th>
-                <th className="pb-3">Price</th>
-                <th className="pb-3">Purchase Type</th>
-                <th className="pb-3">Stock</th>
-                <th className="pb-3">Rating</th>
-                <th className="pb-3">Sale Status</th>
-                <th className="pb-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-              {paginatedProducts.map((product: any) => {
-                const isThisDeleting = deletingId === product._id;
-                const isThisToggling = togglingId === product._id;
-
-                return (
-                  <tr
-                    key={product._id}
-                    className={`hover:bg-gray-50 transition-all ${
-                      isThisDeleting ? 'opacity-40 pointer-events-none' : ''
-                    }`}
-                  >
-                    <td className="py-4 flex items-center gap-3">
-                      <div className="relative w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                        <Image
-                          src={product.images?.[0] || '/images/7.png'}
-                          alt=""
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">{product.name}</span>
-                        <span className="text-[10px] text-gray-400 font-mono">
-                          SKU: {product.sku}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="py-4">{product.category}</td>
-
-                    <td className="py-4 font-bold text-black">
-                      ${product.isOnSale ? product.salePrice : product.price}
-                      {product.isOnSale && (
-                        <span className="text-[10px] text-gray-400 line-through block font-normal">
-                          ${product.price}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-4">
-                      {product.purchaseType === 'loyalty_only' ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
-                          <Award className="w-3 h-3" /> Loyalty ({product.pointsPrice} pts)
-                        </span>
-                      ) : product.purchaseType === 'hybrid' ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-1">
-                          <Zap className="w-3 h-3" /> Hybrid (${product.price} /{' '}
-                          {product.pointsPrice} pts)
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
-                          Regular Cash
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-4">
-                      <span
-                        className={`font-bold ${
-                          product.stock < 10 ? 'text-red-600' : 'text-gray-900'
-                        }`}
-                      >
-                        {product.stock} units
-                      </span>
-                    </td>
-
-                    {/* Rating */}
-                    <td className="py-4">
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <svg
-                              key={i}
-                              className={`w-3 h-3 ${i < Math.floor(product.rating ?? 4.5) ? 'text-amber-400' : 'text-gray-200'}`}
-                              fill="currentColor" viewBox="0 0 20 20"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-gray-500 font-bold">{(product.rating ?? 4.5).toFixed(1)}/5</span>
-                      </div>
-                    </td>
-
-                    <td className="py-4">
-                      <button
-                        onClick={() => handleOpenSaleModal(product)}
-                        disabled={isThisToggling || isThisDeleting}
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
-                          product.isOnSale
-                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                            : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                        }`}
-                      >
-                        {isThisToggling ? (
-                          <>
-                            <Loader2 className="w-3 h-3 animate-spin" /> Updating…
-                          </>
-                        ) : product.isOnSale ? (
-                          '🔥 On Sale (Toggle)'
-                        ) : (
-                          '+ Trigger Sale'
-                        )}
-                      </button>
-                    </td>
-
-                    <td className="py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/admin/products/edit/${product._id}`}
-                          className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
-                          title="Edit Product"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteClick(product)}
-                          disabled={isThisDeleting || !!deletingId}
-                          className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Delete Product"
-                        >
-                          {isThisDeleting ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
+          {products.length === 0 ? (
+            <div className="py-12 text-center text-gray-400 text-xs font-semibold">
+              {debouncedSearch || categoryFilter
+                ? 'No products match the current filters.'
+                : 'No products found.'}
+            </div>
+          ) : (
+            <>
+              <table className="w-full text-left text-xs font-['Open_Sans']">
+                <thead>
+                  <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
+                    <th className="pb-3">Product</th>
+                    <th className="pb-3">Category</th>
+                    <th className="pb-3">Price</th>
+                    <th className="pb-3">Purchase Type</th>
+                    <th className="pb-3">Stock</th>
+                    <th className="pb-3">Rating</th>
+                    <th className="pb-3">Sale Status</th>
+                    <th className="pb-3 text-right">Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
+                  {products.map((product: any) => {
+                    const isThisDeleting = deletingId === product._id;
+                    const isThisToggling = togglingId === product._id;
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={products.length}
-            itemsPerPage={itemsPerPage}
-          />
+                    return (
+                      <tr
+                        key={product._id}
+                        className={`hover:bg-gray-50 transition-all ${
+                          isThisDeleting ? 'opacity-40 pointer-events-none' : ''
+                        }`}
+                      >
+                        <td className="py-4 flex items-center gap-3">
+                          <div className="relative w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                            <Image
+                              src={product.images?.[0] || '/images/7.png'}
+                              alt=""
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 text-sm">{product.name}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              SKU: {product.sku}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-4">{product.category}</td>
+
+                        <td className="py-4 font-bold text-black">
+                          ${product.isOnSale ? product.salePrice : product.price}
+                          {product.isOnSale && (
+                            <span className="text-[10px] text-gray-400 line-through block font-normal">
+                              ${product.price}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-4">
+                          {product.purchaseType === 'loyalty_only' ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
+                              <Award className="w-3 h-3" /> Loyalty ({product.pointsPrice} pts)
+                            </span>
+                          ) : product.purchaseType === 'hybrid' ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-1">
+                              <Zap className="w-3 h-3" /> Hybrid (${product.price} /{' '}
+                              {product.pointsPrice} pts)
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
+                              Regular Cash
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-4">
+                          <span
+                            className={`font-bold ${
+                              product.stock < 10 ? 'text-red-600' : 'text-gray-900'
+                            }`}
+                          >
+                            {product.stock} units
+                          </span>
+                        </td>
+
+                        <td className="py-4">
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-0.5">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <svg
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < Math.floor(product.rating ?? 4.5)
+                                      ? 'text-amber-400'
+                                      : 'text-gray-200'
+                                  }`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                            </div>
+                            <span className="text-[10px] text-gray-500 font-bold">
+                              {(product.rating ?? 4.5).toFixed(1)}/5
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-4">
+                          <button
+                            onClick={() => handleOpenSaleModal(product)}
+                            disabled={isThisToggling || isThisDeleting}
+                            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+                              product.isOnSale
+                                ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                                : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                            }`}
+                          >
+                            {isThisToggling ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" /> Updating…
+                              </>
+                            ) : product.isOnSale ? (
+                              '🔥 On Sale (Toggle)'
+                            ) : (
+                              '+ Trigger Sale'
+                            )}
+                          </button>
+                        </td>
+
+                        <td className="py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              href={`/admin/products/edit/${product._id}`}
+                              className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
+                              title="Edit Product"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleDeleteClick(product)}
+                              disabled={isThisDeleting || !!deletingId}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete Product"
+                            >
+                              {isThisDeleting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={total}
+                itemsPerPage={ITEMS_PER_PAGE}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -292,9 +354,7 @@ function AdminProductsContent() {
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
                 <Tag className="w-5 h-5 text-red-600" />
-                {saleModalProduct.isOnSale
-                  ? 'Turn Off Flash Sale'
-                  : 'Trigger Real-Time Flash Sale'}
+                {saleModalProduct.isOnSale ? 'Turn Off Flash Sale' : 'Trigger Real-Time Flash Sale'}
               </h3>
               <button
                 onClick={() => setSaleModalProduct(null)}
@@ -322,9 +382,7 @@ function AdminProductsContent() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-700">
-                  Discounted Sale Price ($)
-                </label>
+                <label className="text-xs font-bold text-gray-700">Discounted Sale Price ($)</label>
                 <input
                   type="number"
                   value={salePriceInput}
@@ -390,7 +448,8 @@ function AdminProductsContent() {
 
             <div className="flex flex-col gap-3">
               <p className="text-sm text-gray-700">
-                Are you sure you want to delete <strong className="text-black">{deleteConfirmProduct.name}</strong>?
+                Are you sure you want to delete{' '}
+                <strong className="text-black">{deleteConfirmProduct.name}</strong>?
               </p>
               <p className="text-xs text-gray-500">
                 This action cannot be undone. The product will be permanently removed from your store.

@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Param, Inject } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Param, Query, Inject } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
@@ -17,8 +17,11 @@ export class UsersController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async getAllUsers() {
-    return this.usersService.findAll();
+  async getAllUsers(
+    @Query('search') search?: string,
+    @Query('role') role?: string,
+  ) {
+    return this.usersService.findAll(search, role);
   }
 
   @Get('loyalty-points')
