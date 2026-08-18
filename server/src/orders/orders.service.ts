@@ -24,19 +24,26 @@ export class OrdersService {
     @Inject(NotificationsService)
     private readonly notificationsService: NotificationsService,
   ) {
-    const stripeKey =
-      process.env.STRIPE_SECRET_KEY ||
-      '12345';
+    const stripeKey = process.env.STRIPE_SECRET_KEY || '12345';
     this.stripe = new Stripe(stripeKey, {
       apiVersion: '2025-02-24.acacia' as any,
     });
 
+    // Explicitly configure Port 587 & STARTTLS to avoid Railway SMTP port blocks
     this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // false for port 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeout: 20000, // 20 seconds timeout limit
+      greetingTimeout: 20000,
+      socketTimeout: 20000,
     });
   }
 
@@ -114,7 +121,7 @@ export class OrdersService {
 
     // Send confirmation email to user in the background (Non-blocking)
     console.log('📧 [OrdersService.create] Dispatching sendOrderConfirmationEmail in background for:', order.guestEmail);
-    this.sendOrderConfirmationEmail(order); // 👈 Await hata diya hai taake request pending na ho
+    this.sendOrderConfirmationEmail(order);
 
     // If Stripe payment selected, create a Stripe Checkout Session
     if (isStripe) {
@@ -339,7 +346,6 @@ export class OrdersService {
     try {
       const emailUser = process.env.EMAIL_USER;
       const emailPass = process.env.EMAIL_PASS;
-      const emailService = process.env.EMAIL_SERVICE || 'gmail';
       const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${emailUser}>`;
 
       if (!emailUser || !emailPass) {
@@ -348,13 +354,8 @@ export class OrdersService {
         return;
       }
 
-      const transporter = nodemailer.createTransport({
-        service: emailService,
-        auth: {
-          user: emailUser,
-          pass: emailPass,
-        },
-      });
+      // Reusing the initialized class-level transporter with explicit port settings
+      const transporter = this.transporter;
 
       const itemsHtml = (order.items || [])
         .map(
