@@ -112,9 +112,9 @@ export class OrdersService {
       console.error('⚠️ [OrdersService.create] Notification broadcast error:', notifyErr?.message || notifyErr);
     }
 
-    // Send confirmation email to user (safely wrapped in try-catch)
-    console.log('📧 [OrdersService.create] Calling sendOrderConfirmationEmail for:', order.guestEmail);
-    await this.sendOrderConfirmationEmail(order);
+    // Send confirmation email to user in the background (Non-blocking)
+    console.log('📧 [OrdersService.create] Dispatching sendOrderConfirmationEmail in background for:', order.guestEmail);
+    this.sendOrderConfirmationEmail(order); // 👈 Await hata diya hai taake request pending na ho
 
     // If Stripe payment selected, create a Stripe Checkout Session
     if (isStripe) {
@@ -122,7 +122,7 @@ export class OrdersService {
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
         const session = await this.stripe.checkout.sessions.create({
           customer_email: dto.guestEmail.toLowerCase(),
-          managed_payments: { enabled: false }, // 👈 Tax code error fix karne ke liye add kiya gaya hai
+          managed_payments: { enabled: false },
           line_items: processedItems.map((item) => {
             const hasValidImageUrl = item.image && (item.image.startsWith('http://') || item.image.startsWith('https://'));
             return {
@@ -220,7 +220,7 @@ export class OrdersService {
     };
   }
 
-  // ── Guest order lookup ────────────────────────────────────────────────────
+  // ── Guest order lookup ────────────────────────────────────────────────    
   async findByGuestEmail(email: string) {
     return this.orderModel
       .find({ guestEmail: email.toLowerCase() })
@@ -255,7 +255,6 @@ export class OrdersService {
 
     order.status = status;
 
-    // AUTO-UPDATE RULE: When Admin changes status to Delivered, automatically convert paymentStatus from Unpaid to Paid!
     if (status === OrderStatus.DELIVERED && order.paymentStatus !== 'Paid') {
       order.paymentStatus = 'Paid';
     }
@@ -330,7 +329,7 @@ export class OrdersService {
     };
   }
 
-  // ── Send order confirmation email via Nodemailer ──────────────────────────
+  // ── Send order confirmation email via Nodemailer (Background Execution) ──
   async sendOrderConfirmationEmail(order: any) {
     const orderShortId = order._id ? order._id.toString().slice(-6).toUpperCase() : 'N/A';
     console.log(`\n======================================================`);
@@ -342,13 +341,6 @@ export class OrdersService {
       const emailPass = process.env.EMAIL_PASS;
       const emailService = process.env.EMAIL_SERVICE || 'gmail';
       const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${emailUser}>`;
-
-      console.log(`📧 [Nodemailer] Checking Config:`, {
-        EMAIL_SERVICE: emailService,
-        EMAIL_USER: emailUser,
-        EMAIL_PASS_CONFIGURED: !!emailPass,
-        EMAIL_FROM: fromHeader,
-      });
 
       if (!emailUser || !emailPass) {
         console.error('❌ [Nodemailer] FAILED: EMAIL_USER or EMAIL_PASS not configured in .env file!');
@@ -364,23 +356,21 @@ export class OrdersService {
         },
       });
 
-      // Build HTML for ordered items
       const itemsHtml = (order.items || [])
         .map(
           (item: any) => `
           <tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 12px 10px; font-size: 14px; color: #1f2937;">
               <strong style="color: #111827;">${item.name}</strong>
-              ${
-                item.color || item.size
-                  ? `<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${[
-                      item.color ? `Color: ${item.color}` : '',
-                      item.size ? `Size: ${item.size}` : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' | ')}</div>`
-                  : ''
-              }
+              ${item.color || item.size
+              ? `<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${[
+                item.color ? `Color: ${item.color}` : '',
+                item.size ? `Size: ${item.size}` : '',
+              ]
+                .filter(Boolean)
+                .join(' | ')}</div>`
+              : ''
+            }
             </td>
             <td style="padding: 12px 10px; font-size: 14px; color: #374151; text-align: center;">${item.quantity}</td>
             <td style="padding: 12px 10px; font-size: 14px; color: #374151; text-align: right;">Rs ${Number(item.price).toLocaleString()}</td>
@@ -419,16 +409,12 @@ export class OrdersService {
               <tr>
                 <td align="center">
                   <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    
-                    <!-- Header -->
                     <tr>
                       <td style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); padding: 32px 24px; text-align: center;">
                         <h1 style="margin: 0; color: #ffffff; font-size: 26px; letter-spacing: 3px; font-weight: 800; text-transform: uppercase;">FABDECOR</h1>
                         <p style="margin: 6px 0 0 0; color: #9ca3af; font-size: 14px; letter-spacing: 1px;">Luxury Furniture & Home Decor</p>
                       </td>
                     </tr>
-
-                    <!-- Body -->
                     <tr>
                       <td style="padding: 32px 28px;">
                         <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 22px; font-weight: 700;">
@@ -437,8 +423,6 @@ export class OrdersService {
                         <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
                           Your order has been placed successfully. We are getting your items ready and will notify you once they ship!
                         </p>
-
-                        <!-- Order Info Card -->
                         <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px; margin-bottom: 28px;">
                           <table width="100%" cellspacing="0" cellpadding="0" style="font-size: 14px;">
                             <tr>
@@ -459,8 +443,6 @@ export class OrdersService {
                             </tr>
                           </table>
                         </div>
-
-                        <!-- Items Table -->
                         <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 17px; font-weight: 700; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px;">
                           Order Summary
                         </h3>
@@ -483,8 +465,6 @@ export class OrdersService {
                             </tr>
                           </tfoot>
                         </table>
-
-                        <!-- Notice / Support -->
                         <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 14px; border-radius: 4px; margin-top: 24px;">
                           <p style="margin: 0; color: #065f46; font-size: 13px; line-height: 1.5;">
                             If you have questions about your order, please reply directly to this email. We are here to help!
@@ -492,15 +472,12 @@ export class OrdersService {
                         </div>
                       </td>
                     </tr>
-
-                    <!-- Footer -->
                     <tr>
                       <td style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
                         <p style="margin: 0 0 6px 0; color: #6b7280; font-size: 13px;">&copy; ${new Date().getFullYear()} FABDECOR. All rights reserved.</p>
                         <p style="margin: 0; color: #9ca3af; font-size: 12px;">This is an automated order confirmation email.</p>
                       </td>
                     </tr>
-
                   </table>
                 </td>
               </tr>
@@ -510,22 +487,29 @@ export class OrdersService {
         `,
       };
 
-      console.log(`📧 [Nodemailer] Sending mail via transporter...`);
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`✅ [Nodemailer] SUCCESS! Order confirmation email sent to: ${order.guestEmail}`);
-      console.log(`✅ [Nodemailer] Response info:`, {
-        messageId: info.messageId,
-        accepted: info.accepted,
-        rejected: info.rejected,
-        response: info.response,
-      });
-      console.log(`======================================================\n`);
+      console.log(`📧 [Nodemailer] Sending mail via transporter in background...`);
+      transporter.sendMail(mailOptions)
+        .then((info) => {
+          console.log(`✅ [Nodemailer] SUCCESS! Order confirmation email sent to: ${order.guestEmail}`);
+          console.log(`✅ [Nodemailer] Response info:`, {
+            messageId: info.messageId,
+            accepted: info.accepted,
+            rejected: info.rejected,
+            response: info.response,
+          });
+          console.log(`======================================================\n`);
+        })
+        .catch((emailError: any) => {
+          console.error(`❌ [Nodemailer] FAILED to send email to ${order.guestEmail}`);
+          console.error(`❌ Error Message:`, emailError?.message || emailError);
+          console.error(`❌ Error Code:`, emailError?.code);
+          console.error(`❌ Error Response:`, emailError?.response);
+          console.error(`❌ Full Error Stack:`, emailError?.stack || emailError);
+          console.log(`======================================================\n`);
+        });
+
     } catch (emailError: any) {
-      console.error(`❌ [Nodemailer] FAILED to send email to ${order.guestEmail}`);
-      console.error(`❌ Error Message:`, emailError?.message || emailError);
-      console.error(`❌ Error Code:`, emailError?.code);
-      console.error(`❌ Error Response:`, emailError?.response);
-      console.error(`❌ Full Error Stack:`, emailError?.stack || emailError);
+      console.error(`❌ [Nodemailer] Setup Error:`, emailError?.message || emailError);
       console.log(`======================================================\n`);
     }
   }
