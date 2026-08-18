@@ -1,7 +1,6 @@
 import {
   IsArray,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -9,7 +8,6 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { PaymentMethod } from '../schemas/order.schema';
 import { Type } from 'class-transformer';
 
 export class OrderItemDto {
@@ -85,7 +83,14 @@ export class CreateOrderDto {
   shippingAddress: ShippingAddressDto;
 
   @IsOptional()
-  @IsEnum(PaymentMethod)
-  paymentMethod?: PaymentMethod;
-}
+  @IsString()
+  paymentMethod?: string;
 
+  @IsOptional()
+  @IsString()
+  paymentStatus?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeSessionId?: string;
+}

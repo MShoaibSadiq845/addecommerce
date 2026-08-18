@@ -127,6 +127,31 @@ function OrderProgressBar({ status }: { status: OrderStatus }) {
   );
 }
 
+
+
+function PaymentStatusBadge({ status }: { status?: string }) {
+  const s = (status || 'Unpaid').toLowerCase();
+  if (s === 'paid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+        ● Paid
+      </span>
+    );
+  }
+  if (s === 'unpaid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+        ● Unpaid
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+      ● {status || 'Pending'}
+    </span>
+  );
+}
+
 // ─── Single order card ───────────────────────────────────────────────────────
 
 function OrderCard({ order }: { order: any }) {
@@ -164,6 +189,18 @@ function OrderCard({ order }: { order: any }) {
           <span className="font-extrabold text-sm text-black">
             ₨{order.totalAmount?.toLocaleString()}
           </span>
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            Payment Method
+          </span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-xs font-bold text-gray-800">
+              {order.paymentMethod === 'Stripe' ? '💳 Credit Card' : '💵 COD'}
+            </span>
+            <PaymentStatusBadge status={order.paymentStatus} />
+          </div>
         </div>
 
         <OrderStatusBadge status={order.status} />

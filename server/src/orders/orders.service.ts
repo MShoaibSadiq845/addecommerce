@@ -10,17 +10,27 @@ import { Order, OrderDocument, OrderStatus } from './schemas/order.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import Stripe from 'stripe';
 
 @Injectable()
 export class OrdersService {
+  private stripe: Stripe;
+
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @Inject(NotificationsService)
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) {
+    const stripeKey =
+      process.env.STRIPE_SECRET_KEY ||
+      '12345';
+    this.stripe = new Stripe(stripeKey, {
+      apiVersion: '2025-02-24.acacia' as any,
+    });
+  }
 
-  // ── Guest order creation ──────────────────────────────────────────────────
+  // ── Create order (COD or Stripe Checkout) ──────────────────────────────
   async create(dto: CreateOrderDto) {
     let totalAmount = 0;
     const processedItems: any[] = [];
@@ -54,12 +64,19 @@ export class OrdersService {
       await product.save();
     }
 
+    const rawMethod = (dto.paymentMethod || 'COD').toUpperCase();
+    const isStripe = rawMethod === 'STRIPE' || rawMethod === 'CARD';
+    const paymentMethod = isStripe ? 'Stripe' : 'COD';
+    const paymentStatus = isStripe ? 'Pending' : 'Unpaid';
+
     const order = await this.orderModel.create({
       guestName: dto.guestName,
       guestEmail: dto.guestEmail.toLowerCase(),
       items: processedItems,
       totalAmount,
       status: OrderStatus.PENDING,
+      paymentMethod,
+      paymentStatus,
       shippingAddress: {
         street: dto.shippingAddress.street,
         city: dto.shippingAddress.city,
@@ -72,12 +89,89 @@ export class OrdersService {
     // Real-time notification for admin
     await this.notificationsService.createAndBroadcast({
       title: '🛒 New Order Placed!',
-      message: `Order #${order._id.toString().slice(-6)} by ${dto.guestName} — PKR ${totalAmount.toFixed(0)}`,
+      message: `Order #${order._id.toString().slice(-6)} by ${dto.guestName} (${paymentMethod}) — Rs ${totalAmount.toFixed(0)}`,
       type: 'order',
       link: `/admin/orders`,
     });
 
+    // If Stripe payment selected, create a Stripe Checkout Session
+    if (isStripe) {
+      try {
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        const session = await this.stripe.checkout.sessions.create({
+          customer_email: dto.guestEmail.toLowerCase(),
+          managed_payments: { enabled: false }, // 👈 Tax code error fix karne ke liye add kiya gaya hai
+          line_items: processedItems.map((item) => {
+            const hasValidImageUrl = item.image && (item.image.startsWith('http://') || item.image.startsWith('https://'));
+            return {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: item.name,
+                  images: hasValidImageUrl ? [item.image] : [],
+                },
+                unit_amount: Math.round(item.price * 100),
+              },
+              quantity: item.quantity,
+            };
+          }),
+          mode: 'payment',
+          success_url: `${clientUrl}/order-confirmed?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(dto.guestEmail)}`,
+          cancel_url: `${clientUrl}/checkout?canceled=true`,
+          metadata: {
+            orderId: order._id.toString(),
+          },
+        });
+
+        order.stripeSessionId = session.id;
+        await order.save();
+
+        return {
+          ...order.toObject(),
+          stripeUrl: session.url,
+        };
+      } catch (stripeErr: any) {
+        console.error('Stripe Checkout Session Error:', stripeErr?.message || stripeErr);
+        throw new BadRequestException(`Stripe Payment Error: ${stripeErr?.message || 'Failed to create Stripe session'}`);
+      }
+    }
+
     return order;
+  }
+
+  // ── Verify Stripe Checkout session & update paymentStatus to Paid ─────────
+  async verifyStripeSession(sessionId: string) {
+    if (!sessionId) {
+      throw new BadRequestException('Stripe session_id is required');
+    }
+
+    try {
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+      if (session && session.payment_status === 'paid') {
+        const orderId = session.metadata?.orderId;
+        let order: OrderDocument | null = null;
+
+        if (orderId) {
+          order = await this.orderModel.findById(orderId);
+        }
+        if (!order) {
+          order = await this.orderModel.findOne({ stripeSessionId: sessionId });
+        }
+
+        if (order) {
+          order.paymentStatus = 'Paid';
+          if (session.payment_intent) {
+            order.stripePaymentIntentId = String(session.payment_intent);
+          }
+          await order.save();
+          return { success: true, message: 'Payment confirmed & marked as Paid', order };
+        }
+      }
+      return { success: false, message: 'Session payment not completed yet' };
+    } catch (err: any) {
+      console.error('Verify Stripe session error:', err);
+      throw new BadRequestException(err?.message || 'Failed to verify Stripe payment');
+    }
   }
 
   // ── Checkout validation ───────────────────────────────────────────────────
@@ -102,12 +196,6 @@ export class OrdersService {
       success: true,
       message: 'Cart verified successfully. Proceeding to checkout.',
     };
-  }
-
-  // ── Coupon validation ─────────────────────────────────────────────────────
-  async validateCoupon(code: string) {
-    // Coupon model removed — always invalid
-    throw new BadRequestException('Invalid or expired coupon code');
   }
 
   // ── Guest order lookup ────────────────────────────────────────────────────
@@ -138,15 +226,23 @@ export class OrdersService {
     return order;
   }
 
+  // ── Admin: update order status + Auto-update COD paymentStatus to Paid ──
   async updateStatus(id: string, status: OrderStatus) {
-    const order = await this.orderModel
-      .findByIdAndUpdate(id, { status }, { new: true })
-      .exec();
+    const order = await this.orderModel.findById(id);
     if (!order) throw new NotFoundException('Order not found');
+
+    order.status = status;
+
+    // AUTO-UPDATE RULE: When Admin changes status to Delivered, automatically convert paymentStatus from Unpaid to Paid!
+    if (status === OrderStatus.DELIVERED && order.paymentStatus !== 'Paid') {
+      order.paymentStatus = 'Paid';
+    }
+
+    await order.save();
 
     await this.notificationsService.createAndBroadcast({
       title: '📦 Order Status Updated',
-      message: `Order #${order._id.toString().slice(-6)} → ${status}`,
+      message: `Order #${order._id.toString().slice(-6)} → ${status} (${order.paymentStatus})`,
       type: 'order',
       link: `/admin/orders`,
     });
@@ -180,7 +276,7 @@ export class OrdersService {
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const salesGraphData = monthlyIncome.map((item) => ({
       year: item._id.year,
       month: monthNames[item._id.month - 1],

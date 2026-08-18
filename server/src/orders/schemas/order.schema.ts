@@ -14,7 +14,14 @@ export enum OrderStatus {
 
 export enum PaymentMethod {
   COD = 'COD',
-  CARD = 'Card',
+  STRIPE = 'Stripe',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'Unpaid',
+  PAID = 'Paid',
+  FAILED = 'Failed',
+  PENDING = 'Pending',
 }
 
 @Schema()
@@ -61,8 +68,17 @@ export class Order {
   @Prop({ type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING })
   status: OrderStatus;
 
-  @Prop({ type: String, enum: Object.values(PaymentMethod), default: PaymentMethod.COD })
-  paymentMethod: PaymentMethod;
+  @Prop({ type: String, default: 'COD' })
+  paymentMethod: string;
+
+  @Prop({ type: String, default: 'Unpaid' })
+  paymentStatus: string;
+
+  @Prop({ type: String })
+  stripeSessionId?: string;
+
+  @Prop({ type: String })
+  stripePaymentIntentId?: string;
 
   @Prop({
     type: {

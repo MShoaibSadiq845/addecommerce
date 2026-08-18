@@ -8,7 +8,6 @@ import { MyOrders } from '@/components/storefront/MyOrders';
 
 function OrdersPageInner() {
   const searchParams = useSearchParams();
-  // The cart confirmation "Check Order Status" button passes ?email=...
   const emailFromUrl = searchParams.get('email') ?? '';
 
   return (
@@ -43,7 +42,7 @@ function OrdersPageInner() {
 // useSearchParams must be wrapped in Suspense for Next.js App Router
 export default function OrdersPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="p-10 text-center text-sm font-semibold">Loading orders…</div>}>
       <OrdersPageInner />
     </Suspense>
   );

@@ -168,6 +168,18 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
         },
         paymentMethod: formData.paymentMethod || 'COD',
       }).unwrap();
+
+      if (res.stripeUrl) {
+        dispatch(clearCart());
+        const sessionId = getSessionId();
+        if (sessionId) {
+          await clearGuestCart(sessionId).unwrap().catch(() => { });
+        }
+        toast.loading('Redirecting to Stripe Checkout...', { duration: 3000 });
+        window.location.href = res.stripeUrl;
+        return;
+      }
+
       setOrderSuccess(res);
       dispatch(clearCart());
       // Also wipe the guest cart from the DB
@@ -515,21 +527,21 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                         <span className="text-[11px] text-gray-500">Pay when your order arrives</span>
                       </div>
                     </label>
-                    {/* Card option — coming soon */}
+                    {/* Card option — Stripe */}
                     <label
                       htmlFor="payment-card"
-                      className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 cursor-not-allowed opacity-50 bg-gray-50"
+                      className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                     >
                       <input
                         id="payment-card"
                         type="radio"
-                        value="Card"
-                        disabled
+                        value="Stripe"
+                        {...register('paymentMethod')}
                         className="accent-black w-4 h-4"
                       />
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-extrabold text-gray-500">💳 Credit / Debit Card</span>
-                        <span className="text-[11px] text-gray-400">Coming soon</span>
+                        <span className="text-xs font-extrabold text-black">💳 Credit / Debit Card (Stripe)</span>
+                        <span className="text-[11px] text-gray-500">Pay securely via Stripe Checkout</span>
                       </div>
                     </label>
                   </div>

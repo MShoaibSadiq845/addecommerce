@@ -15,7 +15,7 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'https://ecommerceclientsocketiofro.vercel.app', // Aapka Vercel production URL
+    // 'https://ecommerceclientsocketiofro.vercel.app', // Aapka Vercel production URL
     process.env.CLIENT_URL, // Agar .env mein koi aur ho toh woh bhi ajaye ga
   ].filter(Boolean);
 

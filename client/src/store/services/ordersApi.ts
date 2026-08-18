@@ -20,6 +20,13 @@ export const ordersApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Order', 'Product'],
     }),
+    verifyStripeSession: builder.mutation({
+      query: (sessionId: string) => ({
+        url: '/orders/verify-stripe-session',
+        params: { session_id: sessionId },
+      }),
+      invalidatesTags: ['Order'],
+    }),
     getOrdersByEmail: builder.query({
       query: (email: string) => ({
         url: '/orders/by-email',
@@ -56,6 +63,7 @@ export const ordersApi = apiSlice.injectEndpoints({
 export const {
   useValidateCheckoutMutation,
   useCreateOrderMutation,
+  useVerifyStripeSessionMutation,
   useGetOrdersByEmailQuery,
   useGetAllOrdersQuery,
   useGetOrderByIdQuery,

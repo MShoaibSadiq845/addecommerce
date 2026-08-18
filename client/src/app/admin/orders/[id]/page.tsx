@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useGetOrderByIdQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
-import { ArrowLeft, User, MapPin, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Package, Loader2, CreditCard, Banknote } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useState } from 'react';
 
 const STATUS_COLORS: Record<string, string> = {
   Pending: 'text-yellow-700 bg-yellow-50',
@@ -16,6 +15,29 @@ const STATUS_COLORS: Record<string, string> = {
   Delivered: 'text-green-700 bg-green-50',
   Canceled: 'text-red-700 bg-red-50',
 };
+
+function PaymentStatusBadge({ status }: { status?: string }) {
+  const s = (status || 'Unpaid').toLowerCase();
+  if (s === 'paid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+        ● Paid
+      </span>
+    );
+  }
+  if (s === 'unpaid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+        ● Unpaid
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+      ● {status || 'Pending'}
+    </span>
+  );
+}
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams();
@@ -27,7 +49,11 @@ export default function AdminOrderDetailPage() {
     setUpdating(true);
     try {
       await updateOrderStatus({ id: order._id, status: newStatus }).unwrap();
-      toast.success(`Status updated to ${newStatus}`);
+      if (newStatus === 'Delivered') {
+        toast.success('Status updated to Delivered! Payment automatically set to Paid.');
+      } else {
+        toast.success(`Status updated to ${newStatus}`);
+      }
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to update status');
     } finally {
@@ -48,6 +74,8 @@ export default function AdminOrderDetailPage() {
     </div>
   );
 
+  const isStripe = order.paymentMethod === 'Stripe' || order.paymentMethod === 'Card';
+
   return (
     <div className="flex flex-col gap-6 font-['Rubik'] max-w-4xl mx-auto">
       {/* Header */}
@@ -57,7 +85,7 @@ export default function AdminOrderDetailPage() {
             <ArrowLeft className="w-4 h-4 text-gray-700" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Order #{order._id.slice(-8)}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Order #{order._id.slice(-8).toUpperCase()}</h1>
             <p className="text-xs text-gray-400">Placed on {new Date(order.createdAt).toLocaleString()}</p>
           </div>
         </div>
@@ -73,24 +101,42 @@ export default function AdminOrderDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Customer Info */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
           <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
             <User className="w-4 h-4 text-blue-600" /> Customer
           </h3>
-          <div className="text-sm space-y-1.5 text-gray-600">
+          <div className="text-xs space-y-2 text-gray-600">
             <p>Name: <strong className="text-black">{order.guestName}</strong></p>
             <p>Email: <strong className="text-black">{order.guestEmail}</strong></p>
           </div>
         </div>
 
-        {/* Shipping */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+        {/* Payment Info */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+          <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
+            <CreditCard className="w-4 h-4 text-purple-600" /> Payment Info
+          </h3>
+          <div className="text-xs space-y-2 text-gray-600">
+            <p className="flex items-center gap-1.5">
+              Method: <strong className="text-black font-semibold">{isStripe ? '💳 Credit Card (Stripe)' : '💵 Cash on Delivery'}</strong>
+            </p>
+            <p className="flex items-center gap-1.5">
+              Status: <PaymentStatusBadge status={order.paymentStatus} />
+            </p>
+            {order.stripeSessionId && (
+              <p className="truncate text-[10px] text-gray-400 font-mono">Session: {order.stripeSessionId}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Shipping Address */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
           <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
             <MapPin className="w-4 h-4 text-red-500" /> Shipping Address
           </h3>
-          <div className="text-sm space-y-1 text-gray-600">
+          <div className="text-xs space-y-1 text-gray-600">
             <p>{order.shippingAddress?.street}</p>
             <p>{order.shippingAddress?.city}{order.shippingAddress?.province ? `, ${order.shippingAddress.province}` : ''}</p>
             <p>{order.shippingAddress?.postalCode}, {order.shippingAddress?.country}</p>
@@ -103,7 +149,7 @@ export default function AdminOrderDetailPage() {
         <h3 className="font-bold text-base text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
           <Package className="w-5 h-5 text-gray-700" /> Items ({order.items?.length || 0})
         </h3>
-        <div className="flex flex-col divide-y">
+        <div className="flex flex-col divide-y divide-gray-100">
           {order.items?.map((item: any, idx: number) => (
             <div key={idx} className="py-4 flex items-center gap-4">
               <div className="relative w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0">

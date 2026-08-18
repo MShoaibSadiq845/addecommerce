@@ -13,7 +13,6 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus } from './schemas/order.schema';
 
-// No authentication on any route — fully public API
 @Controller('orders')
 export class OrdersController {
   constructor(
@@ -28,7 +27,14 @@ export class OrdersController {
     return this.ordersService.validateCheckout(dto);
   }
 
-  // Place a guest order
+  // Verify Stripe Checkout Session
+  @Get('verify-stripe-session')
+  async verifyStripeSession(@Query('session_id') sessionId: string) {
+    if (!sessionId) throw new BadRequestException('Session ID is required');
+    return this.ordersService.verifyStripeSession(sessionId);
+  }
+
+  // Place a guest order (COD or Stripe)
   @Post()
   async createOrder(@Body() dto: CreateOrderDto) {
     return this.ordersService.create(dto);
@@ -59,7 +65,7 @@ export class OrdersController {
     return this.ordersService.findById(id);
   }
 
-  // Admin: update order status
+  // Admin: update order status (Delivered auto-sets paymentStatus to Paid)
   @Put(':id/status')
   async updateOrderStatus(
     @Param('id') id: string,

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { Eye, Loader2 } from 'lucide-react';
+import { Eye, Loader2, CreditCard, Banknote } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
@@ -16,6 +16,29 @@ const STATUS_STYLES: Record<string, string> = {
   Delivered: 'bg-green-50 text-green-700 border-green-200',
   Canceled: 'bg-red-50 text-red-700 border-red-200',
 };
+
+function PaymentStatusBadge({ status }: { status?: string }) {
+  const s = (status || 'Unpaid').toLowerCase();
+  if (s === 'paid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+        ● Paid
+      </span>
+    );
+  }
+  if (s === 'unpaid') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
+        ● Unpaid
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+      ● {status || 'Pending'}
+    </span>
+  );
+}
 
 export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -49,7 +72,11 @@ export default function AdminOrdersPage() {
     setUpdatingId(id);
     try {
       await updateOrderStatus({ id, status: newStatus }).unwrap();
-      toast.success(`Status updated to ${newStatus}`);
+      if (newStatus === 'Delivered') {
+        toast.success(`Status updated to Delivered! Payment automatically marked as Paid.`);
+      } else {
+        toast.success(`Status updated to ${newStatus}`);
+      }
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to update status');
     } finally {
@@ -70,7 +97,7 @@ export default function AdminOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-          <p className="text-xs text-gray-400">All customer orders — fetched live from database</p>
+          <p className="text-xs text-gray-400">All customer orders — tracked live with Stripe &amp; COD payment status</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 font-semibold">Filter:</span>
@@ -97,25 +124,28 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4 overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[650px]">
+          <table className="w-full text-left text-xs min-w-[750px]">
             <thead>
               <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
                 <th className="px-5 py-4">Order ID</th>
                 <th className="px-5 py-4">Customer</th>
                 <th className="px-5 py-4">Date</th>
-                <th className="px-5 py-4">Total (PKR)</th>
-                <th className="px-5 py-4">Items</th>
-                <th className="px-5 py-4">Status</th>
+                <th className="px-5 py-4">Total</th>
+                <th className="px-5 py-4">Payment Method</th>
+                <th className="px-5 py-4">Payment Status</th>
+                <th className="px-5 py-4">Order Status</th>
                 <th className="px-5 py-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {paginatedOrders.map((order: any) => {
                 const isThisUpdating = updatingId === order._id;
+                const isStripe = order.paymentMethod === 'Stripe' || order.paymentMethod === 'Card';
+
                 return (
                   <tr key={order._id} className="hover:bg-gray-50 transition-all">
                     <td className="px-5 py-4 font-bold text-black font-mono">
-                      #{order._id.slice(-6)}
+                      #{order._id.slice(-6).toUpperCase()}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col">
@@ -128,13 +158,30 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-gray-600">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {new Date(order.createdAt).toLocaleDateString('en-PK', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
                     </td>
                     <td className="px-5 py-4 font-extrabold text-black">
                       ₨{order.totalAmount?.toLocaleString()}
                     </td>
-                    <td className="px-5 py-4 text-gray-600">
-                      {order.items?.length || 0} item(s)
+                    <td className="px-5 py-4">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-800">
+                        {isStripe ? (
+                          <>
+                            <CreditCard className="w-3.5 h-3.5 text-blue-600" /> Credit Card (Stripe)
+                          </>
+                        ) : (
+                          <>
+                            <Banknote className="w-3.5 h-3.5 text-green-600" /> Cash on Delivery
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <PaymentStatusBadge status={order.paymentStatus} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
@@ -142,7 +189,7 @@ export default function AdminOrdersPage() {
                           value={order.status}
                           onChange={(e) => handleStatusChange(order._id, e.target.value)}
                           disabled={isThisUpdating}
-                          className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full border outline-none disabled:opacity-50 ${
+                          className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full border outline-none cursor-pointer disabled:opacity-50 ${
                             STATUS_STYLES[order.status] || 'bg-gray-100 text-gray-700'
                           }`}
                         >

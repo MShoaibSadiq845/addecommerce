@@ -369,7 +369,7 @@ function HomeContent() {
       `}</style>
 
       {/* ═══════════════════ HERO ═══════════════════ */}
-      <section className="w-full bg-[#f2f0f1] overflow-hidden relative">
+      <section className="w-full bg-[#ffffff] overflow-hidden relative">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6">
           <div className="flex flex-col gap-6 max-w-xl z-10 pb-10 lg:pb-16 self-center">
             <h1
@@ -408,7 +408,7 @@ function HomeContent() {
             src="/images/90.jpeg"
             alt="Fashion Models"
             fill
-            className="object-contain object-bottom"
+            className="object-bottom"
             priority
           />
         </div>
