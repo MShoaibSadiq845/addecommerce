@@ -64,9 +64,15 @@ export class OrdersService {
 
 
 
+    // Standard SMTP Transporter Configuration
+
     this.transporter = nodemailer.createTransport({
 
-      service: process.env.EMAIL_SERVICE || 'gmail',
+      host: process.env.EMAIL_HOST,
+
+      port: Number(process.env.EMAIL_PORT) || 587,
+
+      secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports like 587
 
       auth: {
 
@@ -246,7 +252,7 @@ export class OrdersService {
 
           customer_email: dto.guestEmail.toLowerCase(),
 
-          managed_payments: { enabled: false }, // 👈 Tax code error fix karne ke liye add kiya gaya hai
+          managed_payments: { enabled: false },
 
           line_items: processedItems.map((item) => {
 
@@ -512,8 +518,6 @@ export class OrdersService {
 
 
 
-    // AUTO-UPDATE RULE: When Admin changes status to Delivered, automatically convert paymentStatus from Unpaid to Paid!
-
     if (status === OrderStatus.DELIVERED && order.paymentStatus !== 'Paid') {
 
       order.paymentStatus = 'Paid';
@@ -662,7 +666,7 @@ export class OrdersService {
 
 
 
-  // ── Send order confirmation email via Nodemailer ──────────────────────────
+  // ── Send order confirmation email via SMTP Nodemailer ──────────────────────
 
   async sendOrderConfirmationEmail(order: any) {
 
@@ -678,19 +682,27 @@ export class OrdersService {
 
     try {
 
+      const emailHost = process.env.EMAIL_HOST;
+
+      const emailPort = Number(process.env.EMAIL_PORT) || 587;
+
+      const emailSecure = process.env.EMAIL_SECURE === 'true';
+
       const emailUser = process.env.EMAIL_USER;
 
       const emailPass = process.env.EMAIL_PASS;
-
-      const emailService = process.env.EMAIL_SERVICE || 'gmail';
 
       const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${emailUser}>`;
 
 
 
-      console.log(`📧 [Nodemailer] Checking Config:`, {
+      console.log(`📧 [Nodemailer] Checking SMTP Config:`, {
 
-        EMAIL_SERVICE: emailService,
+        EMAIL_HOST: emailHost,
+
+        EMAIL_PORT: emailPort,
+
+        EMAIL_SECURE: emailSecure,
 
         EMAIL_USER: emailUser,
 
@@ -702,9 +714,9 @@ export class OrdersService {
 
 
 
-      if (!emailUser || !emailPass) {
+      if (!emailHost || !emailUser || !emailPass) {
 
-        console.error('❌ [Nodemailer] FAILED: EMAIL_USER or EMAIL_PASS not configured in .env file!');
+        console.error('❌ [Nodemailer] FAILED: EMAIL_HOST, EMAIL_USER or EMAIL_PASS not configured in .env file!');
 
         console.log(`======================================================\n`);
 
@@ -716,7 +728,11 @@ export class OrdersService {
 
       const transporter = nodemailer.createTransport({
 
-        service: emailService,
+        host: emailHost,
+
+        port: emailPort,
+
+        secure: emailSecure,
 
         auth: {
 
@@ -838,7 +854,7 @@ export class OrdersService {
 
                   <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
 
-                   
+                    
 
                     <!-- Header -->
 
@@ -1020,7 +1036,7 @@ export class OrdersService {
 
 
 
-      console.log(`📧 [Nodemailer] Sending mail via transporter...`);
+      console.log(`📧 [Nodemailer] Sending mail via SMTP transporter...`);
 
       const info = await transporter.sendMail(mailOptions);
 
