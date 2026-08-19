@@ -8,29 +8,29 @@ import { useSubscribeNewsletterMutation } from '@/store/services/newsletterApi';
 
 const footerLinks = {
   company: [
-    { label: 'About Us',        href: '/shop' },
-    { label: 'New Arrivals',    href: '/shop?newArrivals=true&sort=newest' },
-    { label: 'On Sale',         href: '/shop?isOnSale=true' },
-    { label: 'All Products',    href: '/shop' },
-    { label: 'My Orders',       href: '/orders' },
+    { label: 'About Us', href: '/shop' },
+    { label: 'New Arrivals', href: '/shop?newArrivals=true&sort=newest' },
+    { label: 'On Sale', href: '/shop?isOnSale=true' },
+    { label: 'All Products', href: '/shop' },
+    { label: 'My Orders', href: '/orders' },
   ],
   help: [
-    { label: 'Customer Support',   href: '/help/customer-support' },
-    { label: 'Delivery Details',   href: '/help/delivery-details' },
+    { label: 'Customer Support', href: '/help/customer-support' },
+    { label: 'Delivery Details', href: '/help/delivery-details' },
     { label: 'Terms & Conditions', href: '/help/terms-and-conditions' },
-    { label: 'Privacy Policy',     href: '/help/privacy-policy' },
+    { label: 'Privacy Policy', href: '/help/privacy-policy' },
   ],
   faq: [
-    { label: 'My Account',        href: '/faq/my-account' },
-    { label: 'Track My Order',    href: '/faq/track-my-order' },
-    { label: 'Payments',          href: '/faq/payments' },
+    { label: 'My Account', href: '/faq/my-account' },
+    { label: 'Track My Order', href: '/faq/track-my-order' },
+    { label: 'Payments', href: '/faq/payments' },
     { label: 'Returns & Refunds', href: '/faq/returns-and-refunds' },
   ],
   contact: [
-    { label: '📞 0328-1298871',   href: 'tel:+923281298871' },
-    { label: '📞 0329-1747459',   href: 'tel:+923291747459' },
-    { label: '📧 Email Us: sadiqshoaibbilal9140@gmail.com',       href: 'mailto:sadiqshoaibbilal9140@gmail.com' },
-    { label: '📍 Pakistan',       href: '#' },
+    { label: '📞 0328-1298871', href: 'tel:+923281298871' },
+    { label: '📞 0329-1747459', href: 'tel:+923291747459' },
+    { label: '📧 EmailUs:     sadiqshoaibbilal9140@gmail.com', href: 'mailto:sadiqshoaibbilal9140@gmail.com' },
+    { label: '📍 Pakistan', href: '#' },
   ],
 };
 
