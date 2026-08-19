@@ -110,6 +110,7 @@ export default function AdminOrderDetailPage() {
           <div className="text-xs space-y-2 text-gray-600">
             <p>Name: <strong className="text-black">{order.guestName}</strong></p>
             <p>Email: <strong className="text-black">{order.guestEmail}</strong></p>
+            <p>Phone: <strong className="text-black">{order.guestPhone || 'N/A'}</strong></p>
           </div>
         </div>
 

@@ -155,6 +155,11 @@ export default function AdminOrdersPage() {
                         <span className="text-[10px] text-gray-400">
                           {order.guestEmail || order.user?.email}
                         </span>
+                        {(order.guestPhone || order.user?.phone) && (
+                          <span className="text-[10px] text-gray-500 font-mono">
+                            {order.guestPhone || order.user?.phone}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-5 py-4 text-gray-600">

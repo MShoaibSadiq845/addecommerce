@@ -90,6 +90,7 @@ export class OrdersService {
     const order = await this.orderModel.create({
       guestName: dto.guestName,
       guestEmail: dto.guestEmail.toLowerCase(),
+      guestPhone: dto.guestPhone || '',
       items: processedItems,
       totalAmount,
       status: OrderStatus.PENDING,

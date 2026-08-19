@@ -13,7 +13,7 @@ import { getSessionId } from '@/lib/sessionId';
 import { useForm } from 'react-hook-form';
 import {
   Trash2, ArrowRight, CheckCircle, Minus, Plus,
-  ChevronRight, Loader2, MapPin, User, Mail, Lock, LogIn,
+  ChevronRight, Loader2, MapPin, User, Mail, Lock, LogIn, Phone,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
@@ -21,6 +21,7 @@ import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
 type DeliveryForm = {
   guestName: string;
   guestEmail: string;
+  guestPhone: string;
   street: string;
   city: string;
   province: string;
@@ -63,6 +64,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
     defaultValues: {
       guestName: user?.name || '',
       guestEmail: user?.email || '',
+      guestPhone: user?.phone || '',
       street: '',
       city: '',
       province: '',
@@ -72,11 +74,14 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
     },
   });
 
-  // Automatically fill email and name if user is logged in (from auth state / localStorage)
+  // Automatically fill email, name, and phone if user is logged in (from auth state / localStorage)
   useEffect(() => {
     if (isAuthenticated && user) {
       setValue('guestName', user.name || '');
       setValue('guestEmail', user.email || '');
+      if (user.phone) {
+        setValue('guestPhone', user.phone);
+      }
     }
   }, [isAuthenticated, user, setValue]);
 
@@ -150,6 +155,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
       const res = await createOrder({
         guestName: formData.guestName,
         guestEmail: formData.guestEmail,
+        guestPhone: formData.guestPhone,
         items: items.map((item) => ({
           productId: item.id,
           name: item.name,
@@ -459,6 +465,24 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                       }`}
                   />
                   {errors.guestEmail && <span className="text-[10px] text-red-500">{errors.guestEmail.message}</span>}
+                </div>
+
+                {/* Phone Number */}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5" /> Phone / WhatsApp Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+92 300 1234567"
+                    {...register('guestPhone', {
+                      required: 'Phone number is required for delivery updates',
+                    })}
+                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${
+                      errors.guestPhone ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
+                  />
+                  {errors.guestPhone && <span className="text-[10px] text-red-500">{errors.guestPhone.message}</span>}
                 </div>
 
                 {/* Street */}

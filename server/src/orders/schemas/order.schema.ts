@@ -59,6 +59,9 @@ export class Order {
   @Prop({ type: String, required: true, lowercase: true, trim: true })
   guestEmail: string;
 
+  @Prop({ type: String, default: '' })
+  guestPhone?: string;
+
   @Prop({ type: [OrderItemSchema], required: true })
   items: OrderItem[];
 

@@ -73,6 +73,10 @@ export class CreateOrderDto {
   @IsEmail()
   guestEmail: string;
 
+  @IsOptional()
+  @IsString()
+  guestPhone?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
