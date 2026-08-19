@@ -31,12 +31,12 @@ export class OrdersService {
 
     // Explicitly configure Port 587 & STARTTLS to avoid Railway SMTP port blocks
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: 'smtp-relay.brevo.com', // Brevo ka SMTP host
       port: 587,
-      secure: false, // false for port 587
+      secure: false, // port 587 ke liye false hi rahega
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.BREVO_USER, // Aapka Brevo account email / SMTP login
+        pass: process.env.BREVO_PASS, // Brevo dashboard se mili hui SMTP Master Password / Key
       },
       tls: {
         rejectUnauthorized: false,
@@ -45,6 +45,13 @@ export class OrdersService {
       greetingTimeout: 20000,
       socketTimeout: 20000,
     });
+
+    console.log('------------------------------------------------------');
+    console.log('🚀 [OrdersService] Transporter Initialized Successfully!');
+    console.log(`📡 SMTP Host       : smtp-relay.brevo.com (Port: 587)`);
+    console.log(`👤 Brevo User (ENV): ${process.env.BREVO_USER ? process.env.BREVO_USER : '⚠️ [NOT SET / UNDEFINED]'}`);
+    console.log(`🔑 Brevo Pass (ENV): ${process.env.BREVO_PASS ? '****** (Key configured)' : '⚠️ [NOT SET / UNDEFINED]'}`);
+    console.log('------------------------------------------------------');
   }
 
   // ── Create order (COD or Stripe Checkout) ──────────────────────────────
@@ -345,12 +352,18 @@ export class OrdersService {
     console.log(`📧 [Nodemailer] Recipient Email: ${order.guestEmail}`);
 
     try {
-      const emailUser = process.env.EMAIL_USER;
-      const emailPass = process.env.EMAIL_PASS;
-      const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${emailUser}>`;
+      const emailUser = process.env.BREVO_USER;
+      const emailPass = process.env.BREVO_PASS;
+
+      // Brevo Sender Email: Must be a verified sender in Brevo Dashboard (e.g. your Brevo login email)
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || 'sadiqshoaibbilal9140@gmail.com';
+      const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${senderEmail}>`;
+
+      console.log(`📤 [Nodemailer] From Header     : ${fromHeader}`);
+      console.log(`📥 [Nodemailer] To Recipient    : ${order.guestEmail}`);
 
       if (!emailUser || !emailPass) {
-        console.error('❌ [Nodemailer] FAILED: EMAIL_USER or EMAIL_PASS not configured in .env file!');
+        console.error('❌ [Nodemailer] FAILED: BREVO_USER or BREVO_PASS not configured in .env file!');
         console.log(`======================================================\n`);
         return;
       }
