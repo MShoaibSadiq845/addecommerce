@@ -9,7 +9,7 @@ import { useGetProductsQuery, useGetCategoriesQuery } from '@/store/services/pro
 import { useCreateOrderMutation } from '@/store/services/ordersApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
-import { LoadingProvider } from '@/context/LoadingContext';
+import { useLoading } from '@/context/LoadingContext';
 import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
@@ -309,14 +309,21 @@ function CategorySection({ category }: { category: string }) {
 
 /* ─── Main Home Content ─── */
 function HomeContent() {
-  const { data: newArrivalsData, isLoading: loadingNew } = useGetProductsQuery({ limit: 10, sort: 'newest' });
-  const { data: topSellingData, isLoading: loadingTop } = useGetProductsQuery({ limit: 10, sort: 'rating' });
-  const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery(undefined, {
+  const { data: newArrivalsData, isLoading: loadingNew, isFetching: fetchingNew } = useGetProductsQuery({ limit: 10, sort: 'newest' });
+  const { data: topSellingData, isLoading: loadingTop, isFetching: fetchingTop } = useGetProductsQuery({ limit: 10, sort: 'rating' });
+  const { data: categories = [], isLoading: loadingCategories, isFetching: fetchingCategories } = useGetCategoriesQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
-  const { data: fetchedReviews = [], isLoading: loadingReviews } = useGetAllReviewsQuery(undefined, {
+  const { data: fetchedReviews = [], isLoading: loadingReviews, isFetching: fetchingReviews } = useGetAllReviewsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
+  const { setLoading } = useLoading();
+
+  useEffect(() => {
+    const isPageLoading = loadingNew || loadingTop || loadingCategories || fetchingNew || fetchingTop || fetchingCategories;
+    setLoading(isPageLoading);
+    return () => setLoading(false);
+  }, [loadingNew, loadingTop, loadingCategories, fetchingNew, fetchingTop, fetchingCategories, setLoading]);
 
   const reviewsRef = useRef<HTMLDivElement>(null);
   const [liveReviews, setLiveReviews] = useState<any[]>([]);
@@ -581,10 +588,8 @@ function HomeContent() {
 
 export default function StorefrontHomePage() {
   return (
-    <LoadingProvider>
-      <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
-        <HomeContent />
-      </Suspense>
-    </LoadingProvider>
+    <Suspense fallback={<div className="w-full min-h-screen" />}>
+      <HomeContent />
+    </Suspense>
   );
 }
