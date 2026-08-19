@@ -230,7 +230,7 @@ export class OrdersService {
 
     console.log('📧 [OrdersService.create] Calling sendOrderConfirmationEmail for:', order.guestEmail);
 
-    await this.sendOrderConfirmationEmail(order);
+    this.sendOrderConfirmationEmail(order);
 
 
 
