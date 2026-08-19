@@ -32,8 +32,8 @@ export class OrdersService {
     // Explicitly configure Port 587 & STARTTLS to avoid Railway SMTP port blocks
     this.transporter = nodemailer.createTransport({
       host: 'smtp-relay.brevo.com', // Brevo ka SMTP host
-      port: 587,
-      secure: false, // port 587 ke liye false hi rahega
+      port: 465,
+      secure: true, // port 587 ke liye false hi rahega
       auth: {
         user: process.env.BREVO_USER, // Aapka Brevo account email / SMTP login
         pass: process.env.BREVO_PASS, // Brevo dashboard se mili hui SMTP Master Password / Key
