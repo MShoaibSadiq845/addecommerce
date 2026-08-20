@@ -45,10 +45,15 @@ export default function GlobalLoader({ message }: GlobalLoaderProps) {
           <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-amber-500 border-b-amber-500 animate-spin duration-700 [animation-direction:reverse]"></div>
         </div>
 
-        {/* Brand Text with Shimmer/Glow */}
-        <h1 className="text-2xl font-black tracking-widest text-black mb-2 select-none animate-pulse">
-          SHOP.CO
-        </h1>
+        {/* Brand Logo / Image */}
+        <div className="mb-4 animate-pulse flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/91.jpeg"
+            alt="FabDecor"
+            className="h-10 w-auto object-contain mix-blend-multiply"
+          />
+        </div>
 
         {/* Status Message */}
         <div className="flex items-center gap-1.5 justify-center">

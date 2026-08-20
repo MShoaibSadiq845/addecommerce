@@ -122,10 +122,14 @@ export function StorefrontHeader() {
         {/* Brand */}
         <Link
           href="/"
-          className="text-xl sm:text-2xl font-extrabold text-black shrink-0 tracking-tight"
-          style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
+          className="flex items-center shrink-0"
         >
-          SHOP.CO
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/91.jpeg"
+            alt="Logo"
+            className="h-8 sm:h-10 w-auto object-contain mix-blend-multiply"
+          />
         </Link>
 
         {/* Desktop nav */}

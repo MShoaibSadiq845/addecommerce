@@ -153,7 +153,7 @@ function AdminLoginInner() {
             className="text-2xl font-extrabold text-white tracking-tight"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
           >
-            SHOP.CO Admin
+            FabDecor Admin
           </h1>
           <p className="text-xs text-gray-400">
             Restricted access · Authorised personnel only

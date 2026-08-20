@@ -118,12 +118,14 @@ export function StorefrontFooter() {
 
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1 flex flex-col gap-4">
-            <h2
-              className="text-2xl font-extrabold"
-              style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
-            >
-              SHOP.CO
-            </h2>
+            <Link href="/" className="flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/91.jpeg"
+                alt="Logo"
+                className="h-9 sm:h-10 w-auto object-contain mix-blend-multiply"
+              />
+            </Link>
             <p className="text-sm text-gray-600 leading-relaxed max-w-[210px]">
               Premium clothing for every style — from casual everyday wear to formal elegance.
               Trusted by thousands of happy customers across Pakistan.

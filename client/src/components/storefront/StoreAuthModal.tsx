@@ -182,7 +182,7 @@ export function StoreAuthModal({
           <p className="text-gray-300 text-xs mt-1">
             {tab === 'login'
               ? 'Sign in to auto-fill delivery details and track your orders.'
-              : 'Join SHOP.CO for seamless checkout and exclusive loyalty points.'}
+              : 'Join FabDecor for seamless checkout and exclusive loyalty points.'}
           </p>
         </div>
 

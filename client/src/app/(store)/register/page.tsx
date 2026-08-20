@@ -70,7 +70,7 @@ function StoreRegisterPageInner() {
             CREATE ACCOUNT
           </h1>
           <p className="text-gray-300 text-xs mt-1">
-            Join SHOP.CO for seamless checkout and exclusive loyalty points.
+            Join FabDecor for seamless checkout and exclusive loyalty points.
           </p>
         </div>
 
