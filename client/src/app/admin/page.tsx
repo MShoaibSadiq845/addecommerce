@@ -16,14 +16,9 @@ import {
   CartesianGrid,
 } from 'recharts';
 
-import { useLoading } from '@/context/LoadingContext';
-
 export default function AdminDashboardPage() {
-  const { data: metrics, isLoading, isFetching } = useGetAdminMetricsQuery(undefined, {
-    pollingInterval: 10000,
-  });
+  const { data: metrics, isLoading } = useGetAdminMetricsQuery(undefined);
 
-  const { setLoading } = useLoading();
   const [mounted, setMounted] = React.useState(false);
   const [selectedYear, setSelectedYear] = React.useState<string>('All');
   const [selectedMonth, setSelectedMonth] = React.useState<string>('All');
@@ -31,11 +26,6 @@ export default function AdminDashboardPage() {
   React.useEffect(() => {
     setMounted(true);
   }, []);
-
-  React.useEffect(() => {
-    setLoading(isLoading || isFetching);
-    return () => setLoading(false);
-  }, [isLoading, isFetching, setLoading]);
 
   if (isLoading) return <DashboardWidgetSkeleton />;
 

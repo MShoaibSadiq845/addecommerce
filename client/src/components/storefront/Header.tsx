@@ -130,13 +130,16 @@ export function StorefrontHeader() {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700">
+          <Link href="/" className="hover:text-black transition-colors">
+            Home
+          </Link>
           <div className="relative">
             <button
               onMouseEnter={() => setShowShopMenu(true)}
               onMouseLeave={() => setShowShopMenu(false)}
               className="flex items-center gap-1 hover:text-black transition-colors py-1"
             >
-              Collections <ChevronDown className="w-3.5 h-3.5" />
+              Categories <ChevronDown className="w-3.5 h-3.5" />
             </button>
             {showShopMenu && (
               <div
@@ -325,6 +328,7 @@ export function StorefrontHeader() {
           </form>
           <nav className="flex flex-col gap-1">
             {[
+              { href: '/', label: 'Home' },
               { href: '/shop', label: 'All Products' },
               ...categories.map((c) => ({
                 href: `/shop?category=${encodeURIComponent(c)}`,

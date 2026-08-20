@@ -66,6 +66,7 @@ export const ordersApi = apiSlice.injectEndpoints({
     getAdminMetrics: builder.query({
       query: () => '/orders/metrics',
       providesTags: ['Order', 'Product'],
+      keepUnusedDataFor: 300,
     }),
   }),
 });
