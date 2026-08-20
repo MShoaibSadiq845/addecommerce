@@ -54,10 +54,14 @@ export class OrdersController {
     return this.ordersService.getAdminMetrics();
   }
 
-  // Admin: list all orders
+  // Admin: list all orders (supports status filter, excludeStatus & DB server-side search)
   @Get()
-  async getAllOrders(@Query('status') status?: OrderStatus) {
-    return this.ordersService.findAll(status);
+  async getAllOrders(
+    @Query('status') status?: OrderStatus,
+    @Query('search') search?: string,
+    @Query('excludeStatus') excludeStatus?: string,
+  ) {
+    return this.ordersService.findAll(status, search, excludeStatus);
   }
 
   // Public: single order by ID

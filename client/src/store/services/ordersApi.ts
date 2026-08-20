@@ -34,11 +34,21 @@ export const ordersApi = apiSlice.injectEndpoints({
       }),
       providesTags: ['Order'],
     }),
-    getAllOrders: builder.query({
-      query: (status?: string) => ({
-        url: '/orders',
-        params: status ? { status } : undefined,
-      }),
+    getAllOrders: builder.query<any[], { status?: string; search?: string; excludeStatus?: string } | string | undefined>({
+      query: (arg) => {
+        const params: Record<string, string> = {};
+        if (typeof arg === 'string') {
+          if (arg) params.status = arg;
+        } else if (arg && typeof arg === 'object') {
+          if (arg.status) params.status = arg.status;
+          if (arg.search) params.search = arg.search;
+          if (arg.excludeStatus) params.excludeStatus = arg.excludeStatus;
+        }
+        return {
+          url: '/orders',
+          params: Object.keys(params).length > 0 ? params : undefined,
+        };
+      },
       providesTags: ['Order'],
     }),
     getOrderById: builder.query({

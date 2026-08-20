@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { Eye, Loader2, CreditCard, Banknote } from 'lucide-react';
+import { Eye, Loader2, CreditCard, Banknote, Search, X, Database, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
@@ -42,12 +42,35 @@ function PaymentStatusBadge({ status }: { status?: string }) {
 
 export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { setLoading } = useLoading();
 
-  const { data: orders = [], isLoading, isFetching } = useGetAllOrdersQuery(selectedStatus || undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  // Debounce search input for server DB query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Exclude 'Delivered' and 'Canceled' orders from Active Orders view by default
+  const { data: rawOrders = [], isLoading, isFetching } = useGetAllOrdersQuery(
+    {
+      status: selectedStatus || undefined,
+      excludeStatus: selectedStatus ? undefined : 'Delivered,Canceled',
+      search: debouncedSearch,
+    },
+    { refetchOnMountOrArgChange: true }
+  );
+
+  // Filter out any Delivered or Canceled orders as safeguard when viewing all active orders
+  const orders = selectedStatus 
+    ? rawOrders 
+    : rawOrders.filter((o: any) => o.status !== 'Delivered' && o.status !== 'Canceled');
+
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -73,7 +96,9 @@ export default function AdminOrdersPage() {
     try {
       await updateOrderStatus({ id, status: newStatus }).unwrap();
       if (newStatus === 'Delivered') {
-        toast.success(`Status updated to Delivered! Payment automatically marked as Paid.`);
+        toast.success(`Status updated to Delivered! Moved to Delivered Orders page.`);
+      } else if (newStatus === 'Canceled') {
+        toast.success(`Status updated to Canceled! Moved to Canceled Orders page.`);
       } else {
         toast.success(`Status updated to ${newStatus}`);
       }
@@ -86,7 +111,7 @@ export default function AdminOrdersPage() {
 
   // Pagination (10 per page)
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const totalPages = Math.ceil(orders.length / itemsPerPage) || 1;
   const paginatedOrders = orders.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -96,23 +121,71 @@ export default function AdminOrdersPage() {
     <div className="flex flex-col gap-6 font-['Rubik']">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-          <p className="text-xs text-gray-400">All customer orders — tracked live with Stripe &amp; COD payment status</p>
+          <h1 className="text-2xl font-bold text-gray-900">Active Orders</h1>
+          <p className="text-xs text-gray-400">Manage active customer orders — delivered and canceled orders are automatically moved to their dedicated views</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-semibold">Filter:</span>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            href="/admin/orders/delivered"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-green-100 text-green-800 hover:bg-green-200 border border-green-300 shadow-sm transition-all flex items-center gap-1.5"
           >
-            <option value="">All Statuses</option>
-            {['Pending', 'Processing', 'Shipped', 'Delivered', 'Canceled'].map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            <CheckCircle2 className="w-4 h-4 text-green-700" />
+            Delivered Orders →
+          </Link>
+          <Link
+            href="/admin/orders/canceled"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-red-100 text-red-800 hover:bg-red-200 border border-red-300 shadow-sm transition-all flex items-center gap-1.5"
+          >
+            <XCircle className="w-4 h-4 text-red-700" />
+            Canceled Orders →
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-semibold">Filter:</span>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+            >
+              <option value="">All Active Orders</option>
+              {['Pending', 'Processing', 'Shipped'].map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* TOP SERVER-SIDE DATABASE SEARCH BAR */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span className="flex items-center gap-1.5 font-bold text-gray-700">
+            <Database className="w-4 h-4 text-black" /> Server Database Search (MongoDB)
+          </span>
+          {isFetching && (
+            <span className="flex items-center gap-1 text-[11px] text-gray-400">
+              <Loader2 className="w-3 h-3 animate-spin text-black" /> Searching DB...
+            </span>
+          )}
+        </div>
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Server search by Customer Name, Email, Phone, Order ID, City, or Product Item..."
+            className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-black placeholder-gray-400 outline-none focus:ring-2 focus:ring-black transition-all"
+          />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -120,7 +193,7 @@ export default function AdminOrdersPage() {
         <TableSkeleton rows={8} />
       ) : orders.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center text-gray-400 text-sm font-semibold">
-          No orders found.
+          {debouncedSearch ? `No active orders found matching "${debouncedSearch}".` : 'No active orders found.'}
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4 overflow-x-auto">

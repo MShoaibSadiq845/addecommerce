@@ -12,7 +12,7 @@ import {
 
 import { InjectModel } from '@nestjs/mongoose';
 
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { Order, OrderDocument, OrderStatus } from './schemas/order.schema';
 
@@ -464,24 +464,59 @@ export class OrdersService {
 
 
 
-  // ── Admin: all orders ─────────────────────────────────────────────────────
-
-  async findAll(status?: OrderStatus) {
-
+  async findAll(status?: OrderStatus, search?: string, excludeStatus?: string) {
     const filter: any = {};
 
-    if (status) filter.status = status;
+    if (status) {
+      filter.status = status;
+    } else if (excludeStatus) {
+      const excludedArray = excludeStatus.split(',').map((s) => s.trim());
+      if (excludedArray.length > 1) {
+        filter.status = { $nin: excludedArray };
+      } else {
+        filter.status = { $ne: excludedArray[0] };
+      }
+    }
+
+    if (search && search.trim() !== '') {
+      const cleanSearch = search.trim().replace(/^#/, '');
+      const searchRegex = new RegExp(
+        cleanSearch.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'),
+        'i',
+      );
+
+      const searchConditions: any[] = [
+        { guestName: searchRegex },
+        { guestEmail: searchRegex },
+        { guestPhone: searchRegex },
+        { paymentMethod: searchRegex },
+        { paymentStatus: searchRegex },
+        { 'shippingAddress.city': searchRegex },
+        { 'shippingAddress.street': searchRegex },
+        { 'items.name': searchRegex },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: '$_id' },
+              regex: cleanSearch,
+              options: 'i',
+            },
+          },
+        },
+      ];
+
+      if (Types.ObjectId.isValid(cleanSearch)) {
+        searchConditions.push({ _id: new Types.ObjectId(cleanSearch) });
+      }
+
+      filter.$or = searchConditions;
+    }
 
     return this.orderModel
-
       .find(filter)
-
       .sort({ createdAt: -1 })
-
       .populate('items.product')
-
       .exec();
-
   }
 
 

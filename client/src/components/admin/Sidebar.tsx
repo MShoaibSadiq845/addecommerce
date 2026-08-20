@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Bell, PlusCircle, Users, ArrowLeft, Mail, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, PackageCheck, XCircle, Bell, PlusCircle, Users, ArrowLeft, Mail, X } from 'lucide-react';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -14,13 +14,15 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { label: 'Dashboard',   href: '/admin',                icon: LayoutDashboard },
-    { label: 'Products',    href: '/admin/products',       icon: ShoppingBag },
-    { label: 'Add Product', href: '/admin/products/add',   icon: PlusCircle },
-    { label: 'Orders',      href: '/admin/orders',         icon: ShoppingCart },
-    { label: 'Users',       href: '/admin/users',          icon: Users },
-    { label: 'Notifications', href: '/admin/notifications', icon: Bell },
-    { label: 'Newsletter',  href: '/admin/newsletter',     icon: Mail },
+    { label: 'Dashboard',        href: '/admin',                  icon: LayoutDashboard },
+    { label: 'Products',         href: '/admin/products',         icon: ShoppingBag },
+    { label: 'Add Product',      href: '/admin/products/add',     icon: PlusCircle },
+    { label: 'All Orders',       href: '/admin/orders',           icon: ShoppingCart },
+    { label: 'Delivered Orders', href: '/admin/orders/delivered', icon: PackageCheck },
+    { label: 'Canceled Orders',  href: '/admin/orders/canceled',  icon: XCircle },
+    { label: 'Users',            href: '/admin/users',            icon: Users },
+    { label: 'Notifications',    href: '/admin/notifications',   icon: Bell },
+    { label: 'Newsletter',       href: '/admin/newsletter',       icon: Mail },
   ];
 
   return (
@@ -65,13 +67,15 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           <nav className="flex flex-col gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
+              const isExactOrChild =
                 item.href === '/admin'
                   ? pathname === '/admin'
+                  : item.href === '/admin/products'
+                  ? pathname === '/admin/products' || (pathname.startsWith('/admin/products/') && !pathname.startsWith('/admin/products/add'))
+                  : item.href === '/admin/orders'
+                  ? pathname === '/admin/orders'
                   : pathname === item.href || pathname.startsWith(item.href + '/');
-              const isExactOrChild = item.href === '/admin/products'
-                ? pathname === '/admin/products' || (pathname.startsWith('/admin/products/') && !pathname.startsWith('/admin/products/add'))
-                : isActive;
+
               return (
                 <Link
                   key={item.href}
