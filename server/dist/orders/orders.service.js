@@ -235,48 +235,86 @@ let OrdersService = class OrdersService {
             .sort({ createdAt: -1 })
             .exec();
     }
-    async findAll(status, search) {
+    async findAll(status, search, excludeStatus) {
         const filter = {};
-        if (status)
+        if (status) {
             filter.status = status;
-        if (search && search.trim() !== '') {
-            const cleanSearch = search.trim().replace(/^#/, '');
-            const searchRegex = new RegExp(cleanSearch.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
-            const searchConditions = [
-                { guestName: searchRegex },
-                { guestEmail: searchRegex },
-                { guestPhone: searchRegex },
-                { paymentMethod: searchRegex },
-                { paymentStatus: searchRegex },
-                { 'shippingAddress.city': searchRegex },
-                { 'shippingAddress.street': searchRegex },
-                { 'items.name': searchRegex },
-                {
-                    $expr: {
-                        $regexMatch: {
-                            input: { $toString: '$_id' },
-                            regex: cleanSearch,
-                            options: 'i',
-                        },
-                    },
-                },
-            ];
-            if (mongoose_2.Types.ObjectId.isValid(cleanSearch)) {
-                searchConditions.push({ _id: new mongoose_2.Types.ObjectId(cleanSearch) });
-            }
-            filter.$or = searchConditions;
         }
-        return this.orderModel
-            .find(filter)
-            .sort({ createdAt: -1 })
-            .populate('items.product')
-            .exec();
+        else if (excludeStatus) {
+            const excludedArray = excludeStatus.split(',').map((s) => s.trim());
+            if (excludedArray.length > 1) {
+                filter.status = { $nin: excludedArray };
+            }
+            else {
+                filter.status = { $ne: excludedArray[0] };
+            }
+        }
+        if (!search || search.trim() === '') {
+            return this.orderModel
+                .find(filter)
+                .sort({ createdAt: -1 })
+                .populate('items.product')
+                .exec();
+        }
+        const cleanSearch = search.trim().replace(/^#/, '');
+        const escapedClean = cleanSearch.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const searchRegex = new RegExp(escapedClean, 'i');
+        const pipeline = [];
+        if (Object.keys(filter).length > 0) {
+            pipeline.push({ $match: filter });
+        }
+        pipeline.push({
+            $addFields: {
+                _idStr: { $toString: '$_id' },
+            },
+        });
+        const orClauses = [
+            { _idStr: { $regex: escapedClean, $options: 'i' } },
+            { guestName: searchRegex },
+            { guestEmail: searchRegex },
+            { guestPhone: searchRegex },
+            { paymentMethod: searchRegex },
+            { paymentStatus: searchRegex },
+            { 'shippingAddress.city': searchRegex },
+            { 'shippingAddress.street': searchRegex },
+            { 'shippingAddress.province': searchRegex },
+            { 'shippingAddress.postalCode': searchRegex },
+            { 'items.name': searchRegex },
+        ];
+        if (/^[0-9a-fA-F]{24}$/.test(cleanSearch)) {
+            orClauses.push({ _id: new mongoose_2.Types.ObjectId(cleanSearch) });
+        }
+        pipeline.push({
+            $match: {
+                $or: orClauses,
+            },
+        });
+        pipeline.push({ $sort: { createdAt: -1 } });
+        const results = await this.orderModel.aggregate(pipeline).exec();
+        return this.orderModel.populate(results, { path: 'items.product' });
     }
     async findById(id) {
-        const order = await this.orderModel
-            .findById(id)
-            .populate('items.product')
-            .exec();
+        const cleanId = id.trim().replace(/^#/, '');
+        let order = null;
+        if (mongoose_2.Types.ObjectId.isValid(cleanId) && cleanId.length === 24) {
+            order = await this.orderModel
+                .findById(cleanId)
+                .populate('items.product')
+                .exec();
+        }
+        else {
+            const escaped = cleanId.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const results = await this.orderModel
+                .aggregate([
+                { $addFields: { _idStr: { $toString: '$_id' } } },
+                { $match: { _idStr: { $regex: escaped + '$', $options: 'i' } } },
+                { $limit: 1 },
+            ])
+                .exec();
+            if (results && results.length > 0) {
+                order = await this.orderModel.populate(results[0], { path: 'items.product' });
+            }
+        }
         if (!order)
             throw new common_1.NotFoundException('Order not found');
         return order;

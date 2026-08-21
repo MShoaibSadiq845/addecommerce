@@ -41,8 +41,8 @@ let OrdersController = class OrdersController {
     async getAdminMetrics() {
         return this.ordersService.getAdminMetrics();
     }
-    async getAllOrders(status, search) {
-        return this.ordersService.findAll(status, search);
+    async getAllOrders(status, search, excludeStatus) {
+        return this.ordersService.findAll(status, search, excludeStatus);
     }
     async getOrderById(id) {
         return this.ordersService.findById(id);
@@ -90,8 +90,9 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('status')),
     __param(1, (0, common_1.Query)('search')),
+    __param(2, (0, common_1.Query)('excludeStatus')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], OrdersController.prototype, "getAllOrders", null);
 __decorate([
