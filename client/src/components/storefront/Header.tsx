@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import { logout } from '@/store/slices/authSlice';
 import { useGetFilterOptionsQuery } from '@/store/services/productsApi';
-import { ShoppingCart, Search, ChevronDown, Menu, X, User, LogOut, Edit3, ShoppingBag, ShieldCheck, Award } from 'lucide-react';
+import { ShoppingCart, Search, ChevronDown, Menu, X, User, LogOut, Edit3, ShoppingBag, ShieldCheck, Award, Truck } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
 import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
@@ -28,6 +28,7 @@ export function StorefrontHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
@@ -108,6 +109,35 @@ export function StorefrontHeader() {
 
   return (
     <header className="w-full bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+      {/* ── Top Announcement Banner: Free Delivery All Over Pakistan ── */}
+      {showAnnouncement && (
+        <div className="w-full bg-black text-white py-2 px-4 text-xs font-['Satoshi'] tracking-wide">
+          <div className="max-w-[1440px] mx-auto flex items-center justify-between relative">
+            <div className="flex-1 text-center flex items-center justify-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 font-bold">
+                <Truck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Free Delivery All Over Pakistan</span>
+              </span>
+              <span className="hidden sm:inline text-white/40">•</span>
+              <span className="hidden sm:inline text-white/80 font-medium">Cash on Delivery Available</span>
+              <Link
+                href="/shop"
+                className="underline font-bold text-white hover:text-amber-400 transition-colors ml-1"
+              >
+                Shop Now
+              </Link>
+            </div>
+            <button
+              onClick={() => setShowAnnouncement(false)}
+              className="text-white/60 hover:text-white transition-colors p-1"
+              aria-label="Dismiss banner"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-3.5 flex items-center justify-between gap-4">
 
         {/* Mobile hamburger */}

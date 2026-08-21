@@ -10,7 +10,7 @@ import { useCreateOrderMutation } from '@/store/services/ordersApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
 import { useLoading } from '@/context/LoadingContext';
-import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2, Truck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
 
@@ -379,6 +379,12 @@ function HomeContent() {
       <section className="w-full bg-[#ffffff] overflow-hidden relative">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6">
           <div className="flex flex-col gap-6 max-w-xl z-10 pb-10 lg:pb-16 self-center">
+            {/* Free Delivery Tag Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold w-fit shadow-sm border border-gray-800">
+              <Truck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Free Delivery All Over Pakistan 🇵🇰</span>
+            </div>
+
             <h1
               className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
