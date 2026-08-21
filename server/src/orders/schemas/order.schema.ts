@@ -83,6 +83,12 @@ export class Order {
   @Prop({ type: String })
   stripePaymentIntentId?: string;
 
+  @Prop({ type: Date })
+  deliveredAt?: Date;
+
+  @Prop({ type: Date })
+  canceledAt?: Date;
+
   @Prop({
     type: {
       street: { type: String, required: true },

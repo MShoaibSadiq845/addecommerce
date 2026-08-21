@@ -44,6 +44,8 @@ export declare class OrdersController {
         paymentStatus: string;
         stripeSessionId?: string;
         stripePaymentIntentId?: string;
+        deliveredAt?: Date;
+        canceledAt?: Date;
         shippingAddress: {
             street: string;
             city: string;

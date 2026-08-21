@@ -448,21 +448,53 @@ export class OrdersService {
 
 
 
-  // ── Guest order lookup ────────────────────────────────────────────────────
-
+  // ── Guest order lookup (excludes Delivered & Canceled orders older than 24 hours) ────
   async findByGuestEmail(email: string) {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     return this.orderModel
-
-      .find({ guestEmail: email.toLowerCase() })
-
+      .find({
+        guestEmail: email.toLowerCase(),
+        $or: [
+          // Active orders (Pending, Processing, Shipped)
+          { status: { $nin: [OrderStatus.DELIVERED, OrderStatus.CANCELED] } },
+          // Delivered orders delivered within the last 24 hours
+          {
+            status: OrderStatus.DELIVERED,
+            deliveredAt: { $gte: twentyFourHoursAgo },
+          },
+          // Fallback for Delivered records without deliveredAt: check updatedAt within 24h
+          {
+            status: OrderStatus.DELIVERED,
+            deliveredAt: { $exists: false },
+            updatedAt: { $gte: twentyFourHoursAgo },
+          },
+          {
+            status: OrderStatus.DELIVERED,
+            deliveredAt: null,
+            updatedAt: { $gte: twentyFourHoursAgo },
+          },
+          // Canceled orders canceled within the last 24 hours
+          {
+            status: OrderStatus.CANCELED,
+            canceledAt: { $gte: twentyFourHoursAgo },
+          },
+          // Fallback for Canceled records without canceledAt: check updatedAt within 24h
+          {
+            status: OrderStatus.CANCELED,
+            canceledAt: { $exists: false },
+            updatedAt: { $gte: twentyFourHoursAgo },
+          },
+          {
+            status: OrderStatus.CANCELED,
+            canceledAt: null,
+            updatedAt: { $gte: twentyFourHoursAgo },
+          },
+        ],
+      })
       .sort({ createdAt: -1 })
-
       .exec();
-
   }
-
-
 
   async findAll(status?: OrderStatus, search?: string, excludeStatus?: string) {
     const filter: any = {};
@@ -563,50 +595,41 @@ export class OrdersService {
     return order;
   }
 
-
-
   // ── Admin: update order status + Auto-update COD paymentStatus to Paid ──
-
   async updateStatus(id: string, status: OrderStatus) {
-
     const order = await this.orderModel.findById(id);
-
     if (!order) throw new NotFoundException('Order not found');
-
-
 
     order.status = status;
 
-
-
-    if (status === OrderStatus.DELIVERED && order.paymentStatus !== 'Paid') {
-
-      order.paymentStatus = 'Paid';
-
+    if (status === OrderStatus.DELIVERED) {
+      if (order.paymentStatus !== 'Paid') {
+        order.paymentStatus = 'Paid';
+      }
+      if (!order.deliveredAt) {
+        order.deliveredAt = new Date();
+      }
+      order.canceledAt = undefined;
+    } else if (status === OrderStatus.CANCELED) {
+      if (!order.canceledAt) {
+        order.canceledAt = new Date();
+      }
+      order.deliveredAt = undefined;
+    } else {
+      order.deliveredAt = undefined;
+      order.canceledAt = undefined;
     }
-
-
 
     await order.save();
 
-
-
     await this.notificationsService.createAndBroadcast({
-
       title: '📦 Order Status Updated',
-
       message: `Order #${order._id.toString().slice(-6)} → ${status} (${order.paymentStatus})`,
-
       type: 'order',
-
       link: `/admin/orders`,
-
     });
 
-
-
     return order;
-
   }
 
 

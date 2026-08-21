@@ -230,8 +230,42 @@ let OrdersService = class OrdersService {
         };
     }
     async findByGuestEmail(email) {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         return this.orderModel
-            .find({ guestEmail: email.toLowerCase() })
+            .find({
+            guestEmail: email.toLowerCase(),
+            $or: [
+                { status: { $nin: [order_schema_1.OrderStatus.DELIVERED, order_schema_1.OrderStatus.CANCELED] } },
+                {
+                    status: order_schema_1.OrderStatus.DELIVERED,
+                    deliveredAt: { $gte: twentyFourHoursAgo },
+                },
+                {
+                    status: order_schema_1.OrderStatus.DELIVERED,
+                    deliveredAt: { $exists: false },
+                    updatedAt: { $gte: twentyFourHoursAgo },
+                },
+                {
+                    status: order_schema_1.OrderStatus.DELIVERED,
+                    deliveredAt: null,
+                    updatedAt: { $gte: twentyFourHoursAgo },
+                },
+                {
+                    status: order_schema_1.OrderStatus.CANCELED,
+                    canceledAt: { $gte: twentyFourHoursAgo },
+                },
+                {
+                    status: order_schema_1.OrderStatus.CANCELED,
+                    canceledAt: { $exists: false },
+                    updatedAt: { $gte: twentyFourHoursAgo },
+                },
+                {
+                    status: order_schema_1.OrderStatus.CANCELED,
+                    canceledAt: null,
+                    updatedAt: { $gte: twentyFourHoursAgo },
+                },
+            ],
+        })
             .sort({ createdAt: -1 })
             .exec();
     }
@@ -324,8 +358,24 @@ let OrdersService = class OrdersService {
         if (!order)
             throw new common_1.NotFoundException('Order not found');
         order.status = status;
-        if (status === order_schema_1.OrderStatus.DELIVERED && order.paymentStatus !== 'Paid') {
-            order.paymentStatus = 'Paid';
+        if (status === order_schema_1.OrderStatus.DELIVERED) {
+            if (order.paymentStatus !== 'Paid') {
+                order.paymentStatus = 'Paid';
+            }
+            if (!order.deliveredAt) {
+                order.deliveredAt = new Date();
+            }
+            order.canceledAt = undefined;
+        }
+        else if (status === order_schema_1.OrderStatus.CANCELED) {
+            if (!order.canceledAt) {
+                order.canceledAt = new Date();
+            }
+            order.deliveredAt = undefined;
+        }
+        else {
+            order.deliveredAt = undefined;
+            order.canceledAt = undefined;
         }
         await order.save();
         await this.notificationsService.createAndBroadcast({

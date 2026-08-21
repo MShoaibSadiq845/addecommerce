@@ -312,6 +312,28 @@ export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
 
   const isButtonLoading = isLoading || isFetching;
 
+  // Filter out delivered and canceled orders that are older than 24 hours
+  const visibleOrders = React.useMemo(() => {
+    if (!orders || !Array.isArray(orders)) return [];
+    const now = Date.now();
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+    return orders.filter((order: any) => {
+      if (order.status === 'Delivered') {
+        const deliveryDate = order.deliveredAt || order.updatedAt || order.createdAt;
+        if (!deliveryDate) return true;
+        const deliveryTime = new Date(deliveryDate).getTime();
+        return now - deliveryTime <= TWENTY_FOUR_HOURS;
+      }
+      if (order.status === 'Canceled') {
+        const cancelDate = order.canceledAt || order.updatedAt || order.createdAt;
+        if (!cancelDate) return true;
+        const cancelTime = new Date(cancelDate).getTime();
+        return now - cancelTime <= TWENTY_FOUR_HOURS;
+      }
+      return true;
+    });
+  }, [orders]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Email lookup form */}
@@ -363,16 +385,18 @@ export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
       {/* Results */}
       {submittedEmail && (
         <div className="flex flex-col gap-4">
-          <h2 className="font-bold text-sm text-gray-600 flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            Orders for{' '}
-            <span className="text-black font-mono">{submittedEmail}</span>
-            {!isLoading && (
-              <span className="ml-1 text-gray-400 font-normal">
-                ({orders.length})
-              </span>
-            )}
-          </h2>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="font-bold text-sm text-gray-600 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Orders for{' '}
+              <span className="text-black font-mono">{submittedEmail}</span>
+              {!isLoading && (
+                <span className="ml-1 text-gray-400 font-normal">
+                  ({visibleOrders.length})
+                </span>
+              )}
+            </h2>
+          </div>
 
           {isLoading ? (
             <div className="flex flex-col gap-4">
@@ -383,17 +407,17 @@ export function MyOrders({ initialEmail = '' }: MyOrdersProps) {
                 />
               ))}
             </div>
-          ) : orders.length === 0 ? (
+          ) : visibleOrders.length === 0 ? (
             <div className="bg-gray-50 rounded-2xl p-10 text-center border border-gray-200">
               <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="font-bold text-gray-600">No orders found.</p>
+              <p className="font-bold text-gray-600">No active orders found.</p>
               <p className="text-xs text-gray-400 mt-1">
-                Make sure you entered the same email used at checkout.
+                Make sure you entered the same email used at checkout. Delivered and canceled orders are automatically archived after 24 hours.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {orders.map((order: any) => (
+              {visibleOrders.map((order: any) => (
                 <OrderCard key={order._id} order={order} />
               ))}
             </div>

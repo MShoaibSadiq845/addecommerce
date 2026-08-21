@@ -1,0 +1,139 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrderSchema = exports.Order = exports.OrderItem = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
+const product_schema_1 = require("../../products/schemas/product.schema");
+var OrderStatus;
+(function (OrderStatus) {
+    OrderStatus["PENDING"] = "Pending";
+    OrderStatus["PROCESSING"] = "Processing";
+    OrderStatus["SHIPPED"] = "Shipped";
+    OrderStatus["DELIVERED"] = "Delivered";
+    OrderStatus["CANCELED"] = "Canceled";
+})(OrderStatus || (exports.OrderStatus = OrderStatus = {}));
+var PaymentMethod;
+(function (PaymentMethod) {
+    PaymentMethod["COD"] = "COD";
+    PaymentMethod["STRIPE"] = "Stripe";
+})(PaymentMethod || (exports.PaymentMethod = PaymentMethod = {}));
+var PaymentStatus;
+(function (PaymentStatus) {
+    PaymentStatus["UNPAID"] = "Unpaid";
+    PaymentStatus["PAID"] = "Paid";
+    PaymentStatus["FAILED"] = "Failed";
+    PaymentStatus["PENDING"] = "Pending";
+})(PaymentStatus || (exports.PaymentStatus = PaymentStatus = {}));
+let OrderItem = class OrderItem {
+};
+exports.OrderItem = OrderItem;
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Product', required: true }),
+    __metadata("design:type", product_schema_1.Product)
+], OrderItem.prototype, "product", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: true }),
+    __metadata("design:type", String)
+], OrderItem.prototype, "name", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
+    __metadata("design:type", Number)
+], OrderItem.prototype, "price", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, required: true }),
+    __metadata("design:type", Number)
+], OrderItem.prototype, "quantity", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], OrderItem.prototype, "color", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], OrderItem.prototype, "size", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], OrderItem.prototype, "image", void 0);
+exports.OrderItem = OrderItem = __decorate([
+    (0, mongoose_1.Schema)()
+], OrderItem);
+const OrderItemSchema = mongoose_1.SchemaFactory.createForClass(OrderItem);
+let Order = class Order {
+};
+exports.Order = Order;
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: true }),
+    __metadata("design:type", String)
+], Order.prototype, "guestName", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: true, lowercase: true, trim: true }),
+    __metadata("design:type", String)
+], Order.prototype, "guestEmail", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: '' }),
+    __metadata("design:type", String)
+], Order.prototype, "guestPhone", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [OrderItemSchema], required: true }),
+    __metadata("design:type", Array)
+], Order.prototype, "items", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Order.prototype, "totalAmount", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING }),
+    __metadata("design:type", String)
+], Order.prototype, "status", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: 'COD' }),
+    __metadata("design:type", String)
+], Order.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, default: 'Unpaid' }),
+    __metadata("design:type", String)
+], Order.prototype, "paymentStatus", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], Order.prototype, "stripeSessionId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], Order.prototype, "stripePaymentIntentId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Date }),
+    __metadata("design:type", Date)
+], Order.prototype, "deliveredAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Date }),
+    __metadata("design:type", Date)
+], Order.prototype, "canceledAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: {
+            street: { type: String, required: true },
+            city: { type: String, required: true },
+            province: { type: String, default: '' },
+            postalCode: { type: String, required: true },
+            country: { type: String, required: true },
+        },
+        required: true,
+    }),
+    __metadata("design:type", Object)
+], Order.prototype, "shippingAddress", void 0);
+exports.Order = Order = __decorate([
+    (0, mongoose_1.Schema)({ timestamps: true })
+], Order);
+exports.OrderSchema = mongoose_1.SchemaFactory.createForClass(Order);
+//# sourceMappingURL=order.schema.js.map
