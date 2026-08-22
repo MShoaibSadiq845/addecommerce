@@ -357,13 +357,6 @@ function HomeContent() {
     reviewsRef.current.scrollBy({ left: dir === 'left' ? -340 : 340, behavior: 'smooth' });
   };
 
-  const brands = [
-    { label: 'VERSACE', src: '/images/54.png' },
-    { label: 'ZARA', src: '/images/55.png' },
-    { label: 'GUCCI', src: '/images/56.png' },
-    { label: 'PRADA', src: '/images/57.png' },
-    { label: 'Calvin Klein', src: '/images/58.png' },
-  ];
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -428,18 +421,21 @@ function HomeContent() {
       </section>
 
       {/* ═══════════════════ BRANDS BAR ═══════════════════ */}
-      <section className="w-full bg-black py-7 px-4">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-around gap-6 lg:gap-0">
-          {brands.map(({ label, src }) => (
-            <div key={label} className="h-8 flex items-center">
-              <Image
-                src={src}
-                alt={label}
-                width={120}
-                height={32}
-                className="object-contain brightness-0 invert opacity-90"
-              />
-            </div>
+      <section className="w-full bg-black py-6 px-4 overflow-hidden">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-around gap-y-4 gap-x-6 sm:gap-x-8 lg:gap-x-0">
+          {[
+            'SIGNATURE COLLECTION',
+            'TIMELESS FABRICS',
+            'LUXE HOME',
+            'ELVORA',
+          ].map((name) => (
+            <span
+              key={name}
+              className="text-white font-extrabold tracking-[0.18em] text-sm sm:text-base lg:text-xl uppercase select-none whitespace-nowrap opacity-90 hover:opacity-100 transition-opacity"
+              style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
+            >
+              {name}
+            </span>
           ))}
         </div>
       </section>
