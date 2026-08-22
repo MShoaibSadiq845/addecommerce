@@ -7,8 +7,8 @@ import { ChevronRight, Truck, Clock, MapPin, Package, AlertCircle } from 'lucide
 export default function DeliveryDetailsPage() {
   const zones = [
 
-    { zone: 'Other Major Cities', time: '7–10 Business Days', cost: 'FREE' },
-    { zone: 'Remote Areas', time: '7–10 Business Days', cost: 'FREE' },
+    { zone: 'Other Major Cities', time: '3–5 Business Days', cost: 'FREE' },
+    { zone: 'Remote Areas', time: '3–5 Business Days', cost: 'FREE' },
 
   ];
 
@@ -29,7 +29,7 @@ export default function DeliveryDetailsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { icon: <Truck className="w-5 h-5" />, title: 'Fast Delivery', desc: 'Nationwide shipping' },
-          { icon: <Clock className="w-5 h-5" />, title: '7–10 Days', desc: 'Estimated delivery' },
+          { icon: <Clock className="w-5 h-5" />, title: '3–5 Days', desc: 'Estimated delivery' },
           { icon: <MapPin className="w-5 h-5" />, title: 'All Pakistan', desc: 'We deliver everywhere' },
           { icon: <Package className="w-5 h-5" />, title: 'Tracked Orders', desc: 'Track via email' },
         ].map(({ icon, title, desc }) => (

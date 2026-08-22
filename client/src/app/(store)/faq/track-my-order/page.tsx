@@ -71,8 +71,8 @@ export default function TrackMyOrderPage() {
         <h2 className="font-bold text-base text-black mb-3">Frequently Asked Questions</h2>
         <AccordionItem q="Where can I track my order?"
           a={<>Go to the <Link href="/orders" className="font-semibold underline text-black">My Orders</Link> page, enter the email used at checkout, and you'll see your order list with current status and a live progress bar.</>} />
-        <AccordionItem q="How long does delivery take?"
-          a="Karachi, Lahore & Islamabad: 2–3 business days. Other cities: 3–5 days. Remote areas: up to 7 days. See our Delivery Details page for full information." />
+        <AccordionItem q="How many days does it take to deliver an order?"
+          a={<>We provide fast and reliable delivery to <span className="font-semibold underline text-black">every city</span> within <span className="font-semibold underline text-black">3 to 5 business days</span>. See our Delivery Details page for full information.</>} />
         <AccordionItem q="My order shows 'Processing' for more than 2 days. What should I do?"
           a={<>If your order has been in Processing for over 48 hours, please contact us at <a href="mailto:fabdecor09@gmail.com" className="font-semibold underline text-black">fabdecor09@gmail.com</a> or call <a href="tel:+923291747459" className="font-semibold underline text-black">0329-1747459</a>.</>} />
         <AccordionItem q="I received a wrong or damaged item."
