@@ -8,7 +8,7 @@ import { useSubscribeNewsletterMutation } from '@/store/services/newsletterApi';
 
 const footerLinks = {
   company: [
-    { label: 'About Us', href: '/shop' },
+
     { label: 'New Arrivals', href: '/shop?newArrivals=true&sort=newest' },
     { label: 'On Sale', href: '/shop?isOnSale=true' },
     { label: 'All Products', href: '/shop' },

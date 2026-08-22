@@ -97,7 +97,7 @@ export default function ReturnsAndRefundsPage() {
             { step: '1', title: 'Contact Us Within 7 Days', desc: <>Email <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">sadiqshoaibbilal9140@gmail.com</a> with your Order ID, the item(s) to return, and reason with photos if applicable.</> },
             { step: '2', title: 'Get Approval', desc: 'Our team will review your request within 24 hours and send return instructions along with a return authorization number.' },
             { step: '3', title: 'Pack & Ship the Item', desc: 'Pack the item securely in its original packaging with all tags attached. Drop it off at the nearest courier.' },
-            { step: '4', title: 'Refund Processed', desc: 'Once we receive and inspect the returned item (2–3 business days), your refund will be initiated within 5–7 business days.' },
+            { step: '4', title: 'Refund Processed', desc: 'Once we receive and inspect the returned item (7–10 business days), your refund will be initiated within 5–7 business days.' },
           ].map(({ step, title, desc }) => (
             <li key={step} className="flex items-start gap-4">
               <span className="w-8 h-8 rounded-full bg-black text-white font-bold text-xs flex items-center justify-center shrink-0">{step}</span>
