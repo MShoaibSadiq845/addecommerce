@@ -502,12 +502,13 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                   {errors.city && <span className="text-[10px] text-red-500">{errors.city.message}</span>}
                 </div>
 
-                {/* Province / State */}
+                {/* Province / State with Validation */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Province / State</label>
                   <input type="text" placeholder="Sindh"
-                    {...register('province')}
-                    className="border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black" />
+                    {...register('province', { required: 'Province / State is required' })}
+                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.province ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
+                  {errors.province && <span className="text-[10px] text-red-500">{errors.province.message}</span>}
                 </div>
 
                 {/* Postal Code */}
@@ -550,23 +551,6 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                         <span className="text-[11px] text-gray-500">Pay when your order arrives</span>
                       </div>
                     </label>
-                    {/* Card option — Stripe */}
-                    {/* <label
-                      htmlFor="payment-card"
-                      className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <input
-                        id="payment-card"
-                        type="radio"
-                        value="Stripe"
-                        {...register('paymentMethod')}
-                        className="accent-black w-4 h-4"
-                      />
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-extrabold text-black">💳 Credit / Debit Card (Stripe)</span>
-                        <span className="text-[11px] text-gray-500">Pay securely via Stripe Checkout</span>
-                      </div>
-                    </label> */}
                   </div>
                 </div>
               </div>
