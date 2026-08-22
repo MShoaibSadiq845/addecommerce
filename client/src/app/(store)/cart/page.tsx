@@ -458,10 +458,10 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                       pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
                     })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${isAuthenticated
-                        ? 'bg-gray-100 text-gray-600 cursor-not-allowed border-gray-200 select-none'
-                        : errors.guestEmail
-                          ? 'border-red-500 bg-red-50'
-                          : 'border-gray-200'
+                      ? 'bg-gray-100 text-gray-600 cursor-not-allowed border-gray-200 select-none'
+                      : errors.guestEmail
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-200'
                       }`}
                   />
                   {errors.guestEmail && <span className="text-[10px] text-red-500">{errors.guestEmail.message}</span>}
@@ -478,9 +478,8 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                     {...register('guestPhone', {
                       required: 'Phone number is required for delivery updates',
                     })}
-                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${
-                      errors.guestPhone ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.guestPhone ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                      }`}
                   />
                   {errors.guestPhone && <span className="text-[10px] text-red-500">{errors.guestPhone.message}</span>}
                 </div>
@@ -563,10 +562,10 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                         {...register('paymentMethod')}
                         className="accent-black w-4 h-4"
                       />
-                      <div className="flex flex-col gap-0.5">
+                      {/* <div className="flex flex-col gap-0.5">
                         <span className="text-xs font-extrabold text-black">💳 Credit / Debit Card (Stripe)</span>
                         <span className="text-[11px] text-gray-500">Pay securely via Stripe Checkout</span>
-                      </div>
+                      </div> */}
                     </label>
                   </div>
                 </div>
