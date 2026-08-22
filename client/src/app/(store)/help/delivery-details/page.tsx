@@ -6,10 +6,10 @@ import { ChevronRight, Truck, Clock, MapPin, Package, AlertCircle } from 'lucide
 
 export default function DeliveryDetailsPage() {
   const zones = [
-    { zone: 'Karachi, Lahore, Islamabad', time: '7–10 Business Days', cost: 'FREE' },
+
     { zone: 'Other Major Cities', time: '7–10 Business Days', cost: 'FREE' },
     { zone: 'Remote Areas', time: '7–10 Business Days', cost: 'FREE' },
-    { zone: 'Free Shipping', time: 'Orders above Rs5,000', cost: 'FREE' },
+
   ];
 
   return (
@@ -91,7 +91,7 @@ export default function DeliveryDetailsPage() {
       {/* Note */}
       <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
         <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800">Delivery times may vary during sale events, public holidays, or extreme weather conditions. For queries contact: <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-bold underline">sadiqshoaibbilal9140@gmail.com</a></p>
+        <p className="text-sm text-amber-800">Delivery times may vary during sale events, public holidays, or extreme weather conditions. For queries contact: <a href="mailto:fabdecor09@gmail.com" className="font-bold underline">fabdecor09@gmail.com</a> or <a href="tel:+923291747459" className="font-bold underline">0329-1747459</a></p>
       </div>
     </div>
   );

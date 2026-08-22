@@ -74,7 +74,7 @@ export default function TrackMyOrderPage() {
         <AccordionItem q="How long does delivery take?"
           a="Karachi, Lahore & Islamabad: 2–3 business days. Other cities: 3–5 days. Remote areas: up to 7 days. See our Delivery Details page for full information." />
         <AccordionItem q="My order shows 'Processing' for more than 2 days. What should I do?"
-          a={<>If your order has been in Processing for over 48 hours, please contact us at <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">sadiqshoaibbilal9140@gmail.com</a> or call <a href="tel:+923281298871" className="font-semibold underline text-black">0328-1298871</a>.</>} />
+          a={<>If your order has been in Processing for over 48 hours, please contact us at <a href="mailto:fabdecor09@gmail.com" className="font-semibold underline text-black">fabdecor09@gmail.com</a> or call <a href="tel:+923291747459" className="font-semibold underline text-black">0329-1747459</a>.</>} />
         <AccordionItem q="I received a wrong or damaged item."
           a="We sincerely apologize. Please contact us within 48 hours of delivery with photos of the item and packaging. We will arrange a free replacement or full refund." />
         <AccordionItem q="Can I change my delivery address after placing an order?"

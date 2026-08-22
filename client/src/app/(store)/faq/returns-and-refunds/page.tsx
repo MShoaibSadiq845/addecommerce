@@ -94,7 +94,7 @@ export default function ReturnsAndRefundsPage() {
         <h2 className="font-bold text-base text-black">How to Initiate a Return</h2>
         <ol className="flex flex-col gap-4">
           {[
-            { step: '1', title: 'Contact Us Within 7 Days', desc: <>Email <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">sadiqshoaibbilal9140@gmail.com</a> with your Order ID, the item(s) to return, and reason with photos if applicable.</> },
+            { step: '1', title: 'Contact Us Within 7 Days', desc: <>Email <a href="mailto:fabdecor09@gmail.com" className="font-semibold underline text-black">fabdecor09@gmail.com</a> with your Order ID, the item(s) to return, and reason with photos if applicable.</> },
             { step: '2', title: 'Get Approval', desc: 'Our team will review your request within 24 hours and send return instructions along with a return authorization number.' },
             { step: '3', title: 'Pack & Ship the Item', desc: 'Pack the item securely in its original packaging with all tags attached. Drop it off at the nearest courier.' },
             { step: '4', title: 'Refund Processed', desc: 'Once we receive and inspect the returned item (7–10 business days), your refund will be initiated within 5–7 business days.' },
@@ -124,7 +124,7 @@ export default function ReturnsAndRefundsPage() {
         <AccordionItem q="What if my returned item is rejected?"
           a="If the item doesn't meet return eligibility criteria upon inspection, it will be shipped back to you at your expense and no refund will be issued. We'll notify you by email." />
         <AccordionItem q="I haven't received my refund yet."
-          a={<>If it's been more than 7 business days, first check your bank account. If nothing shows, contact us at <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">sadiqshoaibbilal9140@gmail.com</a> with your Order ID.</>} />
+          a={<>If it's been more than 7 business days, first check your bank account. If nothing shows, contact us at <a href="mailto:fabdecor09@gmail.com" className="font-semibold underline text-black">fabdecor09@gmail.com</a> with your Order ID.</>} />
       </div>
 
       {/* Alert */}
@@ -132,7 +132,6 @@ export default function ReturnsAndRefundsPage() {
         <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800">
           Need help with a return? Call us at{' '}
-          <a href="tel:+923281298871" className="font-semibold underline">0328-1298871</a> or{' '}
           <a href="tel:+923291747459" className="font-semibold underline">0329-1747459</a>{' '}
           Mon–Sat, 9am–6pm PKT.
         </p>

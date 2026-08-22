@@ -27,10 +27,9 @@ const footerLinks = {
     { label: 'Returns & Refunds', href: '/faq/returns-and-refunds' },
   ],
   contact: [
-    { label: '📞 0328-1298871', href: 'tel:+923281298871' },
     { label: '📞 0329-1747459', href: 'tel:+923291747459' },
-    { label: '📧 EmailUs:     sadiqshoaibbilal9140@gmail.com', href: 'mailto:sadiqshoaibbilal9140@gmail.com' },
-    { label: '📍 Pakistan', href: '#' },
+    { label: '📧 EmailUs:     fabdecor09@gmail.com', href: 'mailto:fabdecor09@gmail.com' },
+    { label: '📍 Punjab Pakistan', href: '#' },
   ],
 };
 
@@ -127,8 +126,7 @@ export function StorefrontFooter() {
               />
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed max-w-[210px]">
-              Premium clothing for every style — from casual everyday wear to formal elegance.
-              Trusted by thousands of happy customers across Pakistan.
+              Premium fabrics for every home — bringing comfort, quality, and timeless elegance to your space.  Trusted by thousands of happy customers across Pakistan.
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3 mt-1">
@@ -191,7 +189,7 @@ export function StorefrontFooter() {
 
           {/* Contact */}
           <div className="flex flex-col gap-3">
-            <h4 className="font-bold text-sm tracking-widest uppercase">CONTACT</h4>
+            <h4 className="font-bold text-sm tracking-widest uppercase">CONTACT US</h4>
             {footerLinks.contact.map(({ label, href }) => (
               <a
                 key={label}
@@ -207,7 +205,7 @@ export function StorefrontFooter() {
         {/* ─── Bottom bar ─── */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-500">
-            Shop.co © 2025, All Rights Reserved &mdash; Developed by{' '}
+            FabDecorCo © 2025, All Rights Reserved &mdash; Developed by{' '}
             <a
               href="https://github.com/MShoaibSadiq845"
               target="_blank"

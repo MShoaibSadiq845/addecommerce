@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
       </div>
 
       <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl p-5">
-        At SHOP.CO, your privacy matters to us. This policy explains what personal information we collect, how we use it, and how we protect it. By using our services, you agree to the collection and use of information in accordance with this policy.
+        At FabDecor, your privacy matters to us. This policy explains what personal information we collect, how we use it, and how we protect it. By using our services, you agree to the collection and use of information in accordance with this policy.
       </p>
 
       <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm flex flex-col gap-7">
@@ -70,7 +70,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section title="5. Cookies Policy">
-          We use essential, analytical, and marketing cookies. You may disable cookies in your browser settings, however this may affect some features of our website. By continuing to use SHOP.CO, you consent to our use of cookies.
+          We use essential, analytical, and marketing cookies. You may disable cookies in your browser settings, however this may affect some features of our website. By continuing to use FabDecor, you consent to our use of cookies.
         </Section>
 
         <Section title="6. Your Rights">
@@ -86,14 +86,12 @@ export default function PrivacyPolicyPage() {
           We retain your personal data for as long as your account is active or as required to provide services. After account closure, data is deleted within 90 days unless required by law.
         </Section>
 
-        <Section title="8. Children's Privacy">
-          SHOP.CO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.
-        </Section>
+
 
         <Section title="9. Contact Us">
           For any privacy-related queries or to exercise your rights, contact our Privacy Officer at{' '}
-          <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="underline font-semibold text-black">sadiqshoaibbilal9140@gmail.com</a>{' '}
-          or call <a href="tel:+923281298871" className="underline font-semibold text-black">0328-1298871</a>.
+          <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="underline font-semibold text-black">fabdecor09@gmail.com</a>{' '}
+          or call <a href="tel:+923281298871" className="underline font-semibold text-black">0329-1747459</a>.
         </Section>
       </div>
     </div>
