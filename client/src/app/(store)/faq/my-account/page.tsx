@@ -53,6 +53,8 @@ export default function MyAccountPage() {
       {/* FAQ accordion */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col gap-1">
         <h2 className="font-bold text-base text-black mb-3">Frequently Asked Questions</h2>
+        <AccordionItem q="How many days does it take to deliver an order?"
+          a={<>Orders are typically delivered within <span className="font-semibold underline text-black">5 to 10 business days</span>.</>} />
         <AccordionItem q="Do I need an account to place an order?"
           a="No. You can place an order as a guest by providing your email address at checkout. However, creating an account lets you track orders, earn loyalty points, and view order history." />
         <AccordionItem q="How do I create an account?"
