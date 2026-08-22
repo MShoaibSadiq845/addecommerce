@@ -38,8 +38,8 @@ export default function MyAccountPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { icon: <ShoppingBag className="w-5 h-5" />, label: 'My Orders', href: '/orders' },
-          { icon: <Award className="w-5 h-5" />, label: 'Loyalty Points', href: '/orders' },
-          { icon: <KeyRound className="w-5 h-5" />, label: 'Change Password', href: '/orders' },
+
+
           { icon: <Mail className="w-5 h-5" />, label: 'Contact Support', href: '/help/customer-support' },
         ].map(({ icon, label, href }) => (
           <Link key={label} href={href}
