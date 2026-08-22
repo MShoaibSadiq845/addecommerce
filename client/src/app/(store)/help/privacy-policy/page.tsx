@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
 
 
 
-        <Section title="9. Contact Us">
+        <Section title="8. Contact Us">
           For any privacy-related queries or to exercise your rights, contact our Privacy Officer at{' '}
           <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="underline font-semibold text-black">fabdecor09@gmail.com</a>{' '}
           or call <a href="tel:+923281298871" className="underline font-semibold text-black">0329-1747459</a>.
