@@ -57,12 +57,10 @@ export default function MyAccountPage() {
           a="No. You can place an order as a guest by providing your email address at checkout. However, creating an account lets you track orders, earn loyalty points, and view order history." />
         <AccordionItem q="How do I create an account?"
           a="Click the account icon in the top navigation, then select 'Register'. Fill in your name, email, and password. You'll receive a confirmation email immediately." />
-        <AccordionItem q="I forgot my password. What do I do?"
-          a={<>Visit the login page and click <strong>Forgot Password</strong>. Enter your registered email and we'll send a reset link within a few minutes. Check your spam folder if you don't receive it.</>} />
+
         <AccordionItem q="How do I update my email or phone number?"
           a="Log in to your account, go to Account Settings, and update your contact details. You may be asked to verify the new email address." />
-        <AccordionItem q="What are Loyalty Points?"
-          a="Loyalty Points are earned on every purchase. You accumulate points over time which can be used toward future purchases. Check your current points balance in your account dashboard." />
+
         <AccordionItem q="Can I have multiple accounts?"
           a="Each email address can only be linked to one account. Creating multiple accounts to abuse promotions or loyalty points may result in all accounts being suspended." />
         <AccordionItem q="How do I delete my account?"
