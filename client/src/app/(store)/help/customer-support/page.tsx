@@ -7,7 +7,7 @@ import { useSubmitContactMessageMutation } from '@/store/services/notificationsA
 import { toast } from 'react-hot-toast';
 
 export default function CustomerSupportPage() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', phone: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [submitContactMessage, { isLoading }] = useSubmitContactMessageMutation();
 
@@ -62,11 +62,11 @@ export default function CustomerSupportPage() {
           <div className="flex flex-col items-center gap-3 py-8 text-center">
             <CheckCircle2 className="w-12 h-12 text-green-500" />
             <p className="font-bold text-black text-lg">Message Sent!</p>
-            <p className="text-sm text-gray-500">We'll get back to you at <strong>{form.email}</strong> within 24 hours.</p>
+            <p className="text-sm text-gray-500">We'll get back to you at <strong>{form.phone}</strong> within 24 hours.</p>
             <button 
               onClick={() => {
                 setSubmitted(false);
-                setForm({ name: '', email: '', subject: '', message: '' });
+                setForm({ name: '', phone: '', subject: '', message: '' });
               }} 
               className="mt-2 px-6 py-2 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors"
             >
@@ -77,7 +77,7 @@ export default function CustomerSupportPage() {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { label: 'Your Name', key: 'name', type: 'text', placeholder: 'Shoaib Sadiq', col: 1 },
-              { label: 'Email Address', key: 'email', type: 'email', placeholder: 'you@example.com', col: 1 },
+              { label: 'Phone Number', key: 'phone', type: 'tel', placeholder: '0328-1298871', col: 1 },
               { label: 'Subject', key: 'subject', type: 'text', placeholder: 'Order issue, refund, etc.', col: 2 },
             ].map(({ label, key, type, placeholder, col }) => (
               <div key={key} className={`flex flex-col gap-1 ${col === 2 ? 'sm:col-span-2' : ''}`}>

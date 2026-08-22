@@ -26,7 +26,7 @@ export const notificationsApi = apiSlice.injectEndpoints({
     }),
     // Contact message endpoints
     submitContactMessage: builder.mutation({
-      query: (body: { name: string; email: string; subject: string; message: string }) => ({
+      query: (body: { name: string; phone?: string; email?: string; subject: string; message: string }) => ({
         url: '/notifications/contact',
         method: 'POST',
         body,

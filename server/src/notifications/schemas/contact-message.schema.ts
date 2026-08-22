@@ -8,8 +8,11 @@ export class ContactMessage {
   @Prop({ type: String, required: true })
   name: string;
 
-  @Prop({ type: String, required: true })
-  email: string;
+  @Prop({ type: String, required: false })
+  phone?: string;
+
+  @Prop({ type: String, required: false })
+  email?: string;
 
   @Prop({ type: String, required: true })
   subject: string;

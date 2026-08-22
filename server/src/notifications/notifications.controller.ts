@@ -32,7 +32,7 @@ export class NotificationsController {
   // Contact message endpoints
   @Post('contact')
   async createContactMessage(
-    @Body() body: { name: string; email: string; subject: string; message: string },
+    @Body() body: { name: string; phone?: string; email?: string; subject: string; message: string },
   ) {
     return this.notificationsService.createContactMessage(body);
   }

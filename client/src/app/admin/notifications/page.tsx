@@ -246,7 +246,7 @@ export default function AdminNotificationsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <h3 className="font-bold text-sm text-gray-900">{msg.name}</h3>
-                          <p className="text-xs text-gray-500">{msg.email}</p>
+                          <p className="text-xs text-gray-500">{msg.phone || msg.email}</p>
                         </div>
                         <span className="text-[10px] text-gray-400 font-['Open_Sans'] whitespace-nowrap">
                           {new Date(msg.createdAt).toLocaleString()}

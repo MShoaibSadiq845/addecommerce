@@ -63,7 +63,8 @@ export class NotificationsService {
   // Contact message methods
   async createContactMessage(data: {
     name: string;
-    email: string;
+    phone?: string;
+    email?: string;
     subject: string;
     message: string;
   }) {
