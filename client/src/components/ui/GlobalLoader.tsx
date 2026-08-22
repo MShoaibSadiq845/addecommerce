@@ -36,7 +36,7 @@ export default function GlobalLoader({ message }: GlobalLoaderProps) {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-md transition-opacity duration-300">
       <div className="flex flex-col items-center max-w-xs text-center p-6 rounded-2xl bg-white/40 shadow-xl border border-white/20">
-        
+
         {/* Modern Double-Ring SVG Spinner */}
         <div className="relative w-16 h-16 mb-6">
           {/* Outer Ring */}
@@ -49,7 +49,7 @@ export default function GlobalLoader({ message }: GlobalLoaderProps) {
         <div className="mb-4 animate-pulse flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/91.jpeg"
+            src="/images/94.webp"
             alt="FabDecor"
             className="h-10 w-auto object-contain mix-blend-multiply"
           />

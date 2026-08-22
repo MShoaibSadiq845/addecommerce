@@ -18,6 +18,8 @@ import { Order, OrderDocument, OrderStatus } from './schemas/order.schema';
 
 import { Product, ProductDocument } from '../products/schemas/product.schema';
 
+import { User, UserDocument } from '../users/schemas/user.schema';
+
 import { CreateOrderDto } from './dto/create-order.dto';
 
 import { NotificationsService } from '../notifications/notifications.service';
@@ -43,6 +45,8 @@ export class OrdersService {
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
 
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
 
     @Inject(NotificationsService)
 
@@ -174,6 +178,8 @@ export class OrdersService {
 
       guestEmail: dto.guestEmail.toLowerCase(),
 
+      guestPhone: dto.guestPhone || '',
+
       items: processedItems,
 
       totalAmount,
@@ -202,7 +208,31 @@ export class OrdersService {
 
 
 
-    console.log('✅ [OrdersService.create] Order successfully saved in database! Order ID:', order._id.toString());
+    // Sync phone number to user profile if registered and user phone is empty
+
+    if (dto.guestPhone && dto.guestEmail) {
+
+      try {
+
+        await this.userModel.updateOne(
+
+          { email: dto.guestEmail.toLowerCase(), phone: { $in: ['', null, undefined] } },
+
+          { $set: { phone: dto.guestPhone } },
+
+        );
+
+      } catch (e) {
+
+        // non-blocking
+
+      }
+
+    }
+
+
+
+    console.log('✅ [OrdersService.create] Order successfully saved in database! Order ID:', order._id.toString(), 'Phone:', dto.guestPhone);
 
 
 
@@ -592,7 +622,20 @@ export class OrdersService {
 
     if (!order) throw new NotFoundException('Order not found');
 
-    return order;
+    const plainOrder = order.toObject ? order.toObject() : order;
+    if (!plainOrder.guestPhone && plainOrder.guestEmail) {
+      try {
+        const user = await this.userModel.findOne({ email: plainOrder.guestEmail.toLowerCase() }).select('phone').lean();
+        if (user?.phone) {
+          plainOrder.guestPhone = user.phone;
+          await this.orderModel.updateOne({ _id: plainOrder._id }, { $set: { guestPhone: user.phone } }).exec();
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return plainOrder;
   }
 
   // ── Admin: update order status + Auto-update COD paymentStatus to Paid ──

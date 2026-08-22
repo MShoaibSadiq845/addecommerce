@@ -7,6 +7,14 @@ import { LoadingProvider } from "@/context/LoadingContext"; // 👈 1. Import Lo
 export const metadata: Metadata = {
   title: "FabDecor | E-Commerce Platform & Admin Dashboard",
   description: "Pixel-perfect e-commerce platform with dynamic RTK Query API layer, NestJS backend, MongoDB, and real-time Socket.IO sales alerts.",
+  icons: {
+    icon: [
+      { url: '/icon.png?v=3', type: 'image/png' },
+      { url: '/favicon.ico?v=3' },
+    ],
+    shortcut: '/icon.png?v=3',
+    apple: '/icon.png?v=3',
+  },
 };
 
 export default function RootLayout({

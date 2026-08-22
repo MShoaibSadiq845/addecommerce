@@ -121,7 +121,7 @@ export function StorefrontFooter() {
             <Link href="/" className="flex items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/91.jpeg"
+                src="/images/94.webp"
                 alt="Logo"
                 className="h-9 sm:h-10 w-auto object-contain mix-blend-multiply"
               />
