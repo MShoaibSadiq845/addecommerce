@@ -551,7 +551,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                       </div>
                     </label>
                     {/* Card option — Stripe */}
-                    <label
+                    {/* <label
                       htmlFor="payment-card"
                       className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                     >
@@ -562,11 +562,11 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                         {...register('paymentMethod')}
                         className="accent-black w-4 h-4"
                       />
-                      {/* <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5">
                         <span className="text-xs font-extrabold text-black">💳 Credit / Debit Card (Stripe)</span>
                         <span className="text-[11px] text-gray-500">Pay securely via Stripe Checkout</span>
-                      </div> */}
-                    </label>
+                      </div>
+                    </label> */}
                   </div>
                 </div>
               </div>

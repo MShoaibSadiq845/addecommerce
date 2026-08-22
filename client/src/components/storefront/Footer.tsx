@@ -28,7 +28,7 @@ const footerLinks = {
   ],
   contact: [
     { label: '📞 0329-1747459', href: 'tel:+923291747459' },
-    { label: '📧 EmailUs:     fabdecor09@gmail.com', href: 'mailto:fabdecor09@gmail.com' },
+    { label: '💬 EmailUs:     fabdecor09@gmail.com', href: 'mailto:fabdecor09@gmail.com' },
     { label: '📍 Punjab Pakistan', href: '#' },
   ],
 };
