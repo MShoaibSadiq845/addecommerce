@@ -64,7 +64,7 @@ export default function MyAccountPage() {
         <AccordionItem q="Can I have multiple accounts?"
           a="Each email address can only be linked to one account. Creating multiple accounts to abuse promotions or loyalty points may result in all accounts being suspended." />
         <AccordionItem q="How do I delete my account?"
-          a={<>To delete your account, email us at <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">sadiqshoaibbilal9140@gmail.com</a>. Your data will be permanently removed within 14 business days.</>} />
+          a={<>To delete your account, email us at <a href="mailto:sadiqshoaibbilal9140@gmail.com" className="font-semibold underline text-black">fabdecore09@gmail.com || 0329-1747459</a>. Your data will be permanently removed within 14 business days.</>} />
       </div>
     </div>
   );
