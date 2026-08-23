@@ -35,7 +35,7 @@ export class NotificationsService {
     return this.notificationModel.findByIdAndUpdate(
       id,
       { isRead: true },
-      { new: true },
+      { returnDocument: 'after' },
     );
   }
 
@@ -80,7 +80,7 @@ export class NotificationsService {
     return this.contactMessageModel.findByIdAndUpdate(
       id,
       { isRead: true },
-      { new: true },
+      { returnDocument: 'after' },
     );
   }
 }

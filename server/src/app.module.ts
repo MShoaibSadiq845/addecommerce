@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     CartsModule,
     ReviewsModule,
     NewsletterModule,
+    MailModule,
   ],
 })
 export class AppModule {}

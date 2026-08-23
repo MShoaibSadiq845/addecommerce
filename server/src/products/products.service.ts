@@ -194,7 +194,7 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto) {
     const product = await this.productModel
-      .findByIdAndUpdate(id, dto, { new: true })
+      .findByIdAndUpdate(id, dto, { returnDocument: 'after' })
       .exec();
     if (!product) throw new NotFoundException('Product not found');
     return product;
@@ -210,7 +210,7 @@ export class ProductsService {
     const updateData: any = { isOnSale };
     if (salePrice !== undefined) updateData.salePrice = salePrice;
     const product = await this.productModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(id, updateData, { returnDocument: 'after' })
       .exec();
     if (!product) throw new NotFoundException('Product not found');
     return product;

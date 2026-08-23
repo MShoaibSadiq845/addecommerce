@@ -1,15 +1,18 @@
 import { Model, Types } from 'mongoose';
 import { Order, OrderDocument, OrderStatus } from './schemas/order.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
+import { UserDocument } from '../users/schemas/user.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 export declare class OrdersService {
     private orderModel;
     private productModel;
+    private userModel;
     private readonly notificationsService;
+    private readonly mailService;
     private stripe;
-    private transporter;
-    constructor(orderModel: Model<OrderDocument>, productModel: Model<ProductDocument>, notificationsService: NotificationsService);
+    constructor(orderModel: Model<OrderDocument>, productModel: Model<ProductDocument>, userModel: Model<UserDocument>, notificationsService: NotificationsService, mailService: MailService);
     create(dto: CreateOrderDto): Promise<{
         _id: Types.ObjectId;
         $locals: Record<string, unknown>;
@@ -117,5 +120,5 @@ export declare class OrdersService {
             id: string;
         })[];
     }>;
-    sendOrderConfirmationEmail(order: any): Promise<void>;
+    sendOrderConfirmationEmail(order: any): Promise<any>;
 }

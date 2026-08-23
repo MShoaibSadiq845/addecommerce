@@ -13,7 +13,9 @@ const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
 const order_schema_1 = require("./schemas/order.schema");
 const product_schema_1 = require("../products/schemas/product.schema");
+const user_schema_1 = require("../users/schemas/user.schema");
 const notifications_module_1 = require("../notifications/notifications.module");
+const mail_module_1 = require("../mail/mail.module");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
@@ -23,8 +25,10 @@ exports.OrdersModule = OrdersModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: order_schema_1.Order.name, schema: order_schema_1.OrderSchema },
                 { name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema },
+                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
             ]),
             notifications_module_1.NotificationsModule,
+            mail_module_1.MailModule,
         ],
         controllers: [orders_controller_1.OrdersController],
         providers: [orders_service_1.OrdersService],

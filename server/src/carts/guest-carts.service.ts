@@ -28,7 +28,7 @@ export class GuestCartsService {
     const cart = await this.guestCartModel.findOneAndUpdate(
       { sessionId: dto.sessionId },
       { $setOnInsert: { sessionId: dto.sessionId, items: [] } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
 
     const existingIndex = cart.items.findIndex(
@@ -86,7 +86,7 @@ export class GuestCartsService {
     const cart = await this.guestCartModel.findOneAndUpdate(
       { sessionId },
       { items: [] },
-      { new: true, upsert: true },
+      { returnDocument: 'after', upsert: true },
     );
     return cart;
   }

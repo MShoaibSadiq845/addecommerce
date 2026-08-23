@@ -23,35 +23,21 @@ import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 import { NotificationsService } from '../notifications/notifications.service';
-
+import { MailService } from '../mail/mail.service';
 import Stripe from 'stripe';
 
-import * as nodemailer from 'nodemailer';
-
-
-
 @Injectable()
-
 export class OrdersService {
-
   private stripe: Stripe;
 
-  private transporter: nodemailer.Transporter;
-
-
-
   constructor(
-
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
-
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-
     @Inject(NotificationsService)
-
     private readonly notificationsService: NotificationsService,
-
+    @Inject(MailService)
+    private readonly mailService: MailService,
   ) {
 
     const stripeKey =
@@ -63,31 +49,7 @@ export class OrdersService {
     this.stripe = new Stripe(stripeKey, {
 
       apiVersion: '2025-02-24.acacia' as any,
-
     });
-
-
-
-    // Standard SMTP Transporter Configuration
-
-    this.transporter = nodemailer.createTransport({
-
-      host: process.env.EMAIL_HOST,
-
-      port: Number(process.env.EMAIL_PORT) || 587,
-
-      secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports like 587
-
-      auth: {
-
-        user: process.env.EMAIL_USER,
-
-        pass: process.env.EMAIL_PASS,
-
-      },
-
-    });
-
   }
 
 
@@ -262,11 +224,13 @@ export class OrdersService {
 
 
 
-    // Send confirmation email to user (safely wrapped in try-catch)
-
-    console.log('📧 [OrdersService.create] Calling sendOrderConfirmationEmail for:', order.guestEmail);
-
-    this.sendOrderConfirmationEmail(order);
+    // Send confirmation email to user via Resend MailService
+    console.log('📧 [OrdersService.create] Calling MailService.sendOrderConfirmationEmail for:', order.guestEmail);
+    try {
+      await this.mailService.sendOrderConfirmationEmail(order.guestEmail, order);
+    } catch (emailErr: any) {
+      console.error('⚠️ [OrdersService.create] Error sending order confirmation email via Resend:', emailErr?.message || emailErr);
+    }
 
 
 
@@ -793,412 +757,9 @@ export class OrdersService {
 
 
 
-  // ── Send order confirmation email via SMTP Nodemailer ──────────────────────
-
+  // ── Send order confirmation email via Resend MailService ───────────────────
   async sendOrderConfirmationEmail(order: any) {
-
-    const orderShortId = order._id ? order._id.toString().slice(-6).toUpperCase() : 'N/A';
-
-    console.log(`\n======================================================`);
-
-    console.log(`📧 [Nodemailer] Starting confirmation email process for Order #${orderShortId}`);
-
-    console.log(`📧 [Nodemailer] Recipient Email: ${order.guestEmail}`);
-
-
-
-    try {
-
-      const emailHost = process.env.EMAIL_HOST;
-
-      const emailPort = Number(process.env.EMAIL_PORT) || 587;
-
-      const emailSecure = process.env.EMAIL_SECURE === 'true';
-
-      const emailUser = process.env.EMAIL_USER;
-
-      const emailPass = process.env.EMAIL_PASS;
-
-      const fromHeader = process.env.EMAIL_FROM || `"FABDECOR" <${emailUser}>`;
-
-
-
-      console.log(`📧 [Nodemailer] Checking SMTP Config:`, {
-
-        EMAIL_HOST: emailHost,
-
-        EMAIL_PORT: emailPort,
-
-        EMAIL_SECURE: emailSecure,
-
-        EMAIL_USER: emailUser,
-
-        EMAIL_PASS_CONFIGURED: !!emailPass,
-
-        EMAIL_FROM: fromHeader,
-
-      });
-
-
-
-      if (!emailHost || !emailUser || !emailPass) {
-
-        console.error('❌ [Nodemailer] FAILED: EMAIL_HOST, EMAIL_USER or EMAIL_PASS not configured in .env file!');
-
-        console.log(`======================================================\n`);
-
-        return;
-
-      }
-
-
-
-      const transporter = nodemailer.createTransport({
-
-        host: emailHost,
-
-        port: emailPort,
-
-        secure: emailSecure,
-
-        auth: {
-
-          user: emailUser,
-
-          pass: emailPass,
-
-        },
-
-      });
-
-
-
-      // Build HTML for ordered items
-
-      const itemsHtml = (order.items || [])
-
-        .map(
-
-          (item: any) => `
-
-          <tr style="border-bottom: 1px solid #e5e7eb;">
-
-            <td style="padding: 12px 10px; font-size: 14px; color: #1f2937;">
-
-              <strong style="color: #111827;">${item.name}</strong>
-
-              ${item.color || item.size
-
-              ? `<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${[
-
-                item.color ? `Color: ${item.color}` : '',
-
-                item.size ? `Size: ${item.size}` : '',
-
-              ]
-
-                .filter(Boolean)
-
-                .join(' | ')}</div>`
-
-              : ''
-
-            }
-
-            </td>
-
-            <td style="padding: 12px 10px; font-size: 14px; color: #374151; text-align: center;">${item.quantity}</td>
-
-            <td style="padding: 12px 10px; font-size: 14px; color: #374151; text-align: right;">Rs ${Number(item.price).toLocaleString()}</td>
-
-            <td style="padding: 12px 10px; font-size: 14px; color: #111827; font-weight: 600; text-align: right;">Rs ${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
-
-          </tr>
-
-        `,
-
-        )
-
-        .join('');
-
-
-
-      const itemsText = (order.items || [])
-
-        .map(
-
-          (item: any) =>
-
-            `- ${item.name}${item.color || item.size ? ` (${[item.color, item.size].filter(Boolean).join(', ')})` : ''} x ${item.quantity} = Rs ${(Number(item.price) * Number(item.quantity)).toLocaleString()}`,
-
-        )
-
-        .join('\n');
-
-
-
-      const addressStr = order.shippingAddress
-
-        ? `${order.shippingAddress.street || ''}, ${order.shippingAddress.city || ''}${order.shippingAddress.province ? ', ' + order.shippingAddress.province : ''} ${order.shippingAddress.postalCode || ''}, ${order.shippingAddress.country || ''}`
-
-        : 'N/A';
-
-
-
-      const mailOptions = {
-
-        from: fromHeader,
-
-        to: order.guestEmail,
-
-        subject: 'Order Confirmation - FABDECOR',
-
-        text: `Thank you ${order.guestName}!\n\nYour order has been placed successfully.\n\nOrder ID: #${orderShortId}\nPayment Method: ${order.paymentMethod}\nPayment Status: ${order.paymentStatus}\nShipping Address: ${addressStr}\n\nOrder Summary:\n${itemsText}\n\nTotal Amount: Rs ${Number(order.totalAmount).toLocaleString()}\n\nThank you for choosing FABDECOR!`,
-
-        html: `
-
-          <!DOCTYPE html>
-
-          <html>
-
-          <head>
-
-            <meta charset="utf-8">
-
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-            <title>Order Confirmation - FABDECOR</title>
-
-          </head>
-
-          <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6; padding: 30px 10px;">
-
-              <tr>
-
-                <td align="center">
-
-                  <table role="presentation" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-
-                    
-
-                    <!-- Header -->
-
-                    <tr>
-
-                      <td style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); padding: 32px 24px; text-align: center;">
-
-                        <h1 style="margin: 0; color: #ffffff; font-size: 26px; letter-spacing: 3px; font-weight: 800; text-transform: uppercase;">FABDECOR</h1>
-
-                        <p style="margin: 6px 0 0 0; color: #9ca3af; font-size: 14px; letter-spacing: 1px;">Luxury Furniture & Home Decor</p>
-
-                      </td>
-
-                    </tr>
-
-
-
-                    <!-- Body -->
-
-                    <tr>
-
-                      <td style="padding: 32px 28px;">
-
-                        <h2 style="margin: 0 0 12px 0; color: #111827; font-size: 22px; font-weight: 700;">
-
-                          Thank you ${order.guestName}!
-
-                        </h2>
-
-                        <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-
-                          Your order has been placed successfully. We are getting your items ready and will notify you once they ship!
-
-                        </p>
-
-
-
-                        <!-- Order Info Card -->
-
-                        <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px; margin-bottom: 28px;">
-
-                          <table width="100%" cellspacing="0" cellpadding="0" style="font-size: 14px;">
-
-                            <tr>
-
-                              <td style="padding: 4px 0; color: #6b7280; width: 40%;">Order ID:</td>
-
-                              <td style="padding: 4px 0; color: #111827; font-weight: 600;">#${orderShortId}</td>
-
-                            </tr>
-
-                            <tr>
-
-                              <td style="padding: 4px 0; color: #6b7280;">Payment Method:</td>
-
-                              <td style="padding: 4px 0; color: #111827; font-weight: 600;">${order.paymentMethod}</td>
-
-                            </tr>
-
-                            <tr>
-
-                              <td style="padding: 4px 0; color: #6b7280;">Payment Status:</td>
-
-                              <td style="padding: 4px 0; color: #111827; font-weight: 600;">${order.paymentStatus}</td>
-
-                            </tr>
-
-                            <tr>
-
-                              <td style="padding: 4px 0; color: #6b7280; vertical-align: top;">Shipping Address:</td>
-
-                              <td style="padding: 4px 0; color: #111827; font-weight: 500;">${addressStr}</td>
-
-                            </tr>
-
-                          </table>
-
-                        </div>
-
-
-
-                        <!-- Items Table -->
-
-                        <h3 style="margin: 0 0 12px 0; color: #111827; font-size: 17px; font-weight: 700; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px;">
-
-                          Order Summary
-
-                        </h3>
-
-                        <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin-bottom: 20px;">
-
-                          <thead>
-
-                            <tr style="background-color: #f9fafb;">
-
-                              <th style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Item</th>
-
-                              <th style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Qty</th>
-
-                              <th style="padding: 10px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Price</th>
-
-                              <th style="padding: 10px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Total</th>
-
-                            </tr>
-
-                          </thead>
-
-                          <tbody>
-
-                            ${itemsHtml}
-
-                          </tbody>
-
-                          <tfoot>
-
-                            <tr>
-
-                              <td colspan="3" style="padding: 16px 10px 8px 10px; text-align: right; font-size: 16px; font-weight: 700; color: #111827;">Total Amount:</td>
-
-                              <td style="padding: 16px 10px 8px 10px; text-align: right; font-size: 18px; font-weight: 800; color: #059669;">Rs ${Number(order.totalAmount).toLocaleString()}</td>
-
-                            </tr>
-
-                          </tfoot>
-
-                        </table>
-
-
-
-                        <!-- Notice / Support -->
-
-                        <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 14px; border-radius: 4px; margin-top: 24px;">
-
-                          <p style="margin: 0; color: #065f46; font-size: 13px; line-height: 1.5;">
-
-                            If you have questions about your order, please reply directly to this email. We are here to help!
-
-                          </p>
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-
-
-
-                    <!-- Footer -->
-
-                    <tr>
-
-                      <td style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
-
-                        <p style="margin: 0 0 6px 0; color: #6b7280; font-size: 13px;">&copy; ${new Date().getFullYear()} FABDECOR. All rights reserved.</p>
-
-                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">This is an automated order confirmation email.</p>
-
-                      </td>
-
-                    </tr>
-
-
-
-                  </table>
-
-                </td>
-
-              </tr>
-
-            </table>
-
-          </body>
-
-          </html>
-
-        `,
-
-      };
-
-
-
-      console.log(`📧 [Nodemailer] Sending mail via SMTP transporter...`);
-
-      const info = await transporter.sendMail(mailOptions);
-
-      console.log(`✅ [Nodemailer] SUCCESS! Order confirmation email sent to: ${order.guestEmail}`);
-
-      console.log(`✅ [Nodemailer] Response info:`, {
-
-        messageId: info.messageId,
-
-        accepted: info.accepted,
-
-        rejected: info.rejected,
-
-        response: info.response,
-
-      });
-
-      console.log(`======================================================\n`);
-
-    } catch (emailError: any) {
-
-      console.error(`❌ [Nodemailer] FAILED to send email to ${order.guestEmail}`);
-
-      console.error(`❌ Error Message:`, emailError?.message || emailError);
-
-      console.error(`❌ Error Code:`, emailError?.code);
-
-      console.error(`❌ Error Response:`, emailError?.response);
-
-      console.error(`❌ Full Error Stack:`, emailError?.stack || emailError);
-
-      console.log(`======================================================\n`);
-
-    }
-
+    if (!order?.guestEmail) return;
+    return this.mailService.sendOrderConfirmationEmail(order.guestEmail, order);
   }
-
 }

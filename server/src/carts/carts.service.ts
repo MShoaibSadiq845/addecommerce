@@ -20,7 +20,7 @@ export class CartsService {
     const cart = await this.cartModel.findOneAndUpdate(
       { user: userId },
       { $setOnInsert: { user: new Types.ObjectId(userId) } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
 
     const paymentMethod = dto.paymentMethod || 'currency';
@@ -94,7 +94,7 @@ export class CartsService {
     const cart = await this.cartModel.findOneAndUpdate(
       { user: userId },
       { items: [] },
-      { new: true, upsert: true },
+      { returnDocument: 'after', upsert: true },
     ).exec();
     return cart;
   }

@@ -34,7 +34,7 @@ export class UsersService {
 
   async addLoyaltyPoints(id: string, points: number) {
     const user = await this.userModel
-      .findByIdAndUpdate(id, { $inc: { loyaltyPoints: points } }, { new: true })
+      .findByIdAndUpdate(id, { $inc: { loyaltyPoints: points } }, { returnDocument: 'after' })
       .select('-password');
     return user;
   }
@@ -44,7 +44,7 @@ export class UsersService {
     updateData: { name?: string; phone?: string; address?: string; avatar?: string },
   ) {
     const user = await this.userModel
-      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
       .select('-password')
       .exec();
     if (!user) throw new NotFoundException('User not found');
