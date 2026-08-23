@@ -186,9 +186,8 @@ export class MailService {
     `;
 
     try {
-      this.logger.log(`Sending order confirmation email to ${userEmail} via Resend...`);
-
-      const fromAddress = this.configService?.get<string>('RESEND_FROM_EMAIL') || 'Fab Decor Co <support@fabdecorco.com>';
+      let fromAddress = this.configService?.get<string>('RESEND_FROM_EMAIL') || process.env.RESEND_FROM_EMAIL || 'Fab Decor Co <support@fabdecorco.com>';
+      fromAddress = fromAddress.replace(/^['"]|['"]$/g, '').trim();
 
       const { data, error } = await this.resend.emails.send({
         from: fromAddress,
