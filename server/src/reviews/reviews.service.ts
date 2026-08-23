@@ -9,7 +9,7 @@ export class ReviewsService {
   constructor(
     @InjectModel(Review.name)
     private reviewModel: Model<ReviewDocument>,
-    @Inject(NotificationsGateway) // 👈 Explicitly Inject NotificationsGateway
+    @Inject(NotificationsGateway)
     private readonly gateway: NotificationsGateway,
   ) {}
 
@@ -19,6 +19,7 @@ export class ReviewsService {
     rating: number;
     productId?: string;
     productName?: string;
+    image?: string;
   }) {
     const review = await this.reviewModel.create(data);
     this.gateway.broadcastReview(review);

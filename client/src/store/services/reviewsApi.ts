@@ -2,6 +2,13 @@ import { apiSlice } from './api';
 
 export const reviewsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    uploadReviewImage: builder.mutation<{ url: string }, FormData>({
+      query: (formData) => ({
+        url: '/reviews/upload',
+        method: 'POST',
+        body: formData,
+      }),
+    }),
     submitReview: builder.mutation({
       query: (body: {
         name: string;
@@ -9,6 +16,7 @@ export const reviewsApi = apiSlice.injectEndpoints({
         rating: number;
         productId?: string;
         productName?: string;
+        image?: string;
       }) => ({
         url: '/reviews',
         method: 'POST',
@@ -28,6 +36,7 @@ export const reviewsApi = apiSlice.injectEndpoints({
 });
 
 export const {
+  useUploadReviewImageMutation,
   useSubmitReviewMutation,
   useGetReviewsByProductQuery,
   useGetAllReviewsQuery,

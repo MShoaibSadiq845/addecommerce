@@ -19,6 +19,9 @@ export class Review {
 
   @Prop({ type: String, required: false })
   productName?: string;
+
+  @Prop({ type: String, required: false })
+  image?: string;
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);

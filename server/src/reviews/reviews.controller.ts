@@ -1,12 +1,36 @@
-import { Controller, Post, Get, Body, Query, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  Inject,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ReviewsService } from './reviews.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('reviews')
 export class ReviewsController {
   constructor(
-    @Inject(ReviewsService) // 👈 Explicitly Inject ReviewsService
+    @Inject(ReviewsService)
     private readonly reviewsService: ReviewsService,
+    @Inject(CloudinaryService)
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadReviewImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+    const result = await this.cloudinaryService.uploadFile(file);
+    return { url: result.secure_url };
+  }
 
   @Post()
   async createReview(
@@ -17,6 +41,7 @@ export class ReviewsController {
       rating: number;
       productId?: string;
       productName?: string;
+      image?: string;
     },
   ) {
     return this.reviewsService.createReview(body);

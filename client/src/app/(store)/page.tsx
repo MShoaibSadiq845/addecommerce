@@ -10,9 +10,10 @@ import { useCreateOrderMutation } from '@/store/services/ordersApi';
 import { useGetAllReviewsQuery } from '@/store/services/reviewsApi';
 import { addToCart } from '@/store/slices/cartSlice';
 import { useLoading } from '@/context/LoadingContext';
-import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2, Truck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2, Truck, PenLine, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
+import ReviewModal from '@/components/storefront/ReviewModal';
 
 import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
 import { useAddToCartBackendMutation } from '@/store/services/cartApi';
@@ -327,6 +328,8 @@ function HomeContent() {
 
   const reviewsRef = useRef<HTMLDivElement>(null);
   const [liveReviews, setLiveReviews] = useState<any[]>([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (fetchedReviews.length > 0) {
@@ -354,7 +357,7 @@ function HomeContent() {
 
   const scrollReviews = (dir: 'left' | 'right') => {
     if (!reviewsRef.current) return;
-    reviewsRef.current.scrollBy({ left: dir === 'left' ? -340 : 340, behavior: 'smooth' });
+    reviewsRef.current.scrollBy({ left: dir === 'left' ? -360 : 360, behavior: 'smooth' });
   };
 
 
@@ -519,24 +522,35 @@ function HomeContent() {
 
       {/* ═══════════════════ HAPPY CUSTOMERS ═══════════════════ */}
       <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col gap-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
             OUR HAPPY CUSTOMERS
           </h2>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             <button
-              onClick={() => scrollReviews('left')}
-              className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all"
+              onClick={() => setIsReviewModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <PenLine className="w-3.5 h-3.5" />
+              Write a Review
             </button>
-            <button
-              onClick={() => scrollReviews('right')}
-              className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => scrollReviews('left')}
+                aria-label="Previous Reviews"
+                className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollReviews('right')}
+                aria-label="Next Reviews"
+                className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -551,8 +565,14 @@ function HomeContent() {
             ))}
           </div>
         ) : liveReviews.length === 0 ? (
-          <div className="rounded-[20px] border border-dashed border-gray-200 p-12 text-center text-gray-400 text-sm">
-            No reviews yet — be the first to share your experience!
+          <div className="rounded-[20px] border border-dashed border-gray-200 p-12 text-center text-gray-400 text-sm flex flex-col items-center gap-3">
+            <p>No reviews yet — be the first to share your experience!</p>
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="px-5 py-2.5 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors"
+            >
+              Write a Review
+            </button>
           </div>
         ) : (
           <div
@@ -563,24 +583,85 @@ function HomeContent() {
             {liveReviews.map((r: any, idx: number) => (
               <div
                 key={r._id ?? idx}
-                className="min-w-[300px] sm:min-w-[360px] bg-white border border-gray-200 rounded-[20px] p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
+                className="min-w-[300px] sm:min-w-[360px] max-w-[380px] bg-white border border-gray-200 rounded-[20px] p-6 flex flex-col justify-between gap-4 hover:shadow-md transition-shadow shrink-0"
               >
-                <Stars rating={r.rating} />
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-black">{r.name}</span>
-                  <span className="text-green-500 text-base">✓</span>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <Stars rating={r.rating} />
+                    <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                      {r.rating}.0
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-black">{r.name}</span>
+                    <span className="text-green-500 text-base" title="Verified Customer">✓</span>
+                  </div>
+
+                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{r.comment}</p>
+
+                  {/* Review Image Thumbnail */}
+                  {r.image && (
+                    <div
+                      onClick={() => setEnlargedImage(r.image)}
+                      className="relative w-full h-36 rounded-xl overflow-hidden cursor-pointer group border border-gray-100 bg-gray-50 mt-1"
+                    >
+                      <img
+                        src={r.image}
+                        alt={`Review image by ${r.name}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="bg-white/90 text-black text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                          Click to enlarge
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{r.comment}</p>
-                {r.productName && (
-                  <p className="text-xs text-gray-400 italic">on {r.productName}</p>
-                )}
-                <p className="text-xs text-gray-400">
-                  {r.createdAt
-                    ? new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-                    : r.date ?? ''}
-                </p>
+
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                  {r.productName ? (
+                    <span className="truncate max-w-[180px] italic">on {r.productName}</span>
+                  ) : (
+                    <span>Verified Purchase</span>
+                  )}
+                  <span>
+                    {r.createdAt
+                      ? new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                      : r.date ?? ''}
+                  </span>
+                </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Review Modal */}
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+        />
+
+        {/* Image Lightbox Preview Modal */}
+        {enlargedImage && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setEnlargedImage(null)}
+          >
+            <div className="relative max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl">
+              <button
+                onClick={() => setEnlargedImage(null)}
+                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img
+                src={enlargedImage}
+                alt="Enlarged review photo"
+                className="max-w-full max-h-[85vh] object-contain rounded-2xl"
+              />
+            </div>
           </div>
         )}
       </section>

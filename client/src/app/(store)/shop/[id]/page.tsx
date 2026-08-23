@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ import { useAddToCartBackendMutation } from '@/store/services/cartApi';
 import { getSessionId } from '@/lib/sessionId';
 import { ProductDetailSkeleton } from '@/components/ui/skeletons/ProductDetailSkeleton';
 import ReviewModal from '@/components/storefront/ReviewModal';
-import { ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw, Zap, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw, Zap, Loader2, X } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 import { toast } from 'react-hot-toast';
 
@@ -77,6 +77,14 @@ export default function ProductDetailPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
   const [activeActionButton, setActiveActionButton] = useState<'cart' | 'buy'>('buy');
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+
+  const productReviewsRef = useRef<HTMLDivElement>(null);
+
+  const scrollProductReviews = (dir: 'left' | 'right') => {
+    if (!productReviewsRef.current) return;
+    productReviewsRef.current.scrollBy({ left: dir === 'left' ? -360 : 360, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     setLoading(isLoading || isAddingToCart || buyingNow);
@@ -378,66 +386,149 @@ export default function ProductDetailPage() {
           {activeTab === 'reviews' && (
             <div className="py-8 flex flex-col gap-6">
               {/* Header row */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="text-xl font-bold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+                    All Reviews ({reviews.length})
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {reviewsLoading
                       ? 'Loading reviews…'
                       : reviews.length === 0
                       ? 'No reviews yet. Be the first!'
-                      : `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`}
+                      : `Showing customer feedback for ${product.name}`}
                   </p>
                 </div>
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors"
-                >
-                  <PenLine className="w-3.5 h-3.5" />
-                  Write a Review
-                </button>
+
+                <div className="flex items-center gap-3 self-end sm:self-auto">
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
+                  >
+                    <PenLine className="w-3.5 h-3.5" />
+                    Write a Review
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => scrollProductReviews('left')}
+                      aria-label="Previous Reviews"
+                      className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => scrollProductReviews('right')}
+                      aria-label="Next Reviews"
+                      className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Reviews list */}
+              {/* Reviews list slider */}
               {reviewsLoading ? (
-                <div className="flex flex-col gap-4 animate-pulse">
+                <div className="flex gap-5 overflow-hidden">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-3">
-                      <div className="h-3 bg-gray-200 rounded w-1/4" />
-                      <div className="h-3 bg-gray-100 rounded w-full" />
-                      <div className="h-3 bg-gray-100 rounded w-3/4" />
+                    <div key={i} className="min-w-[300px] sm:min-w-[360px] bg-gray-100 rounded-[20px] p-6 animate-pulse flex flex-col gap-4">
+                      <div className="h-4 bg-gray-200 rounded w-1/3" />
+                      <div className="h-3 bg-gray-200 rounded w-full" />
+                      <div className="h-3 bg-gray-200 rounded w-4/5" />
                     </div>
                   ))}
                 </div>
               ) : reviews.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-gray-400 text-sm">
-                  No reviews yet — share your thoughts!
+                <div className="rounded-[20px] border border-dashed border-gray-200 p-12 text-center text-gray-400 text-sm flex flex-col items-center gap-3">
+                  <p>No reviews yet — share your thoughts!</p>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="px-5 py-2.5 bg-black text-white rounded-full text-xs font-bold hover:bg-gray-800 transition-colors"
+                  >
+                    Write a Review
+                  </button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div
+                  ref={productReviewsRef}
+                  className="flex gap-5 overflow-x-auto pb-4 scroll-smooth"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                   {reviews.map((r: any) => (
-                    <div key={r._id} className="rounded-2xl border border-gray-100 p-5 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${i < r.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'}`}
-                          />
-                        ))}
+                    <div
+                      key={r._id}
+                      className="min-w-[300px] sm:min-w-[360px] max-w-[380px] bg-white border border-gray-200 rounded-[20px] p-6 flex flex-col justify-between gap-4 hover:shadow-md transition-shadow shrink-0"
+                    >
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <Stars rating={r.rating} />
+                          <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                            {r.rating}.0
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-black">{r.name}</span>
+                          <span className="text-green-500 text-base" title="Verified Customer">✓</span>
+                        </div>
+
+                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{r.comment}</p>
+
+                        {/* Review Image Thumbnail */}
+                        {r.image && (
+                          <div
+                            onClick={() => setEnlargedImage(r.image)}
+                            className="relative w-full h-36 rounded-xl overflow-hidden cursor-pointer group border border-gray-100 bg-gray-50 mt-1"
+                          >
+                            <img
+                              src={r.image}
+                              alt={`Review photo by ${r.name}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="bg-white/90 text-black text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                                Click to enlarge
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-black">{r.name}</span>
-                        <span className="text-green-500 text-sm">✓</span>
+
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                        <span>Verified Purchase</span>
+                        <span>
+                          {new Date(r.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                          })}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">{r.comment}</p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(r.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric', month: 'long', day: 'numeric',
-                        })}
-                      </p>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Lightbox for enlarged review photo */}
+          {enlargedImage && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+              onClick={() => setEnlargedImage(null)}
+            >
+              <div className="relative max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl">
+                <button
+                  onClick={() => setEnlargedImage(null)}
+                  className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <img
+                  src={enlargedImage}
+                  alt="Enlarged review photo"
+                  className="max-w-full max-h-[85vh] object-contain rounded-2xl"
+                />
+              </div>
             </div>
           )}
 
