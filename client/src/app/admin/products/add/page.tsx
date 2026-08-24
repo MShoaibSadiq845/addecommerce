@@ -17,6 +17,7 @@ type ProductFormInputs = {
   rating: string;
   category: string;
   brand: string;
+  stock: string;
   sku: string;
   imagesInput: string[];
   colorsInput: string;

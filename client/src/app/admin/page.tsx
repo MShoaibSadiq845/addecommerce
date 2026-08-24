@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useGetAdminMetricsQuery } from '@/store/services/ordersApi';
 import { DashboardWidgetSkeleton } from '@/components/ui/skeletons/TableSkeleton';
+import { useLoading } from '@/context/LoadingContext';
 import { ShoppingCart, PackageCheck, Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -18,10 +19,16 @@ import {
 
 export default function AdminDashboardPage() {
   const { data: metrics, isLoading } = useGetAdminMetricsQuery(undefined);
+  const { setLoading } = useLoading();
 
   const [mounted, setMounted] = React.useState(false);
   const [selectedYear, setSelectedYear] = React.useState<string>('All');
   const [selectedMonth, setSelectedMonth] = React.useState<string>('All');
+
+  useEffect(() => {
+    setLoading(isLoading);
+    return () => setLoading(false);
+  }, [isLoading, setLoading]);
 
   React.useEffect(() => {
     setMounted(true);
