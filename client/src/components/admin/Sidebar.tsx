@@ -14,15 +14,15 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { label: 'Dashboard',        href: '/admin',                  icon: LayoutDashboard },
-    { label: 'Products',         href: '/admin/products',         icon: ShoppingBag },
-    { label: 'Add Product',      href: '/admin/products/add',     icon: PlusCircle },
-    { label: 'All Orders',       href: '/admin/orders',           icon: ShoppingCart },
+    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { label: 'Products', href: '/admin/products', icon: ShoppingBag },
+    { label: 'Add Product', href: '/admin/products/add', icon: PlusCircle },
+    { label: 'All Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Delivered Orders', href: '/admin/orders/delivered', icon: PackageCheck },
-    { label: 'Canceled Orders',  href: '/admin/orders/canceled',  icon: XCircle },
-    { label: 'Users',            href: '/admin/users',            icon: Users },
-    { label: 'Notifications',    href: '/admin/notifications',   icon: Bell },
-    { label: 'Newsletter',       href: '/admin/newsletter',       icon: Mail },
+    { label: 'Canceled Orders', href: '/admin/orders/canceled', icon: XCircle },
+    { label: 'Users', href: '/admin/users', icon: Users },
+    { label: 'Notifications', href: '/admin/notifications', icon: Bell },
+    { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   ];
 
   return (
@@ -47,10 +47,10 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-bold text-xl font-['Integral_CF']">
-                A
+                FD
               </div>
               <div>
-                <h1 className="font-bold text-lg leading-tight text-gray-900">Arik Admin</h1>
+                <h1 className="font-bold text-lg leading-tight text-gray-900">FabDecor AdminDashboard</h1>
                 <p className="text-xs text-gray-400 font-['Open_Sans']">Store Management</p>
               </div>
             </div>
@@ -71,21 +71,20 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 item.href === '/admin'
                   ? pathname === '/admin'
                   : item.href === '/admin/products'
-                  ? pathname === '/admin/products' || (pathname.startsWith('/admin/products/') && !pathname.startsWith('/admin/products/add'))
-                  : item.href === '/admin/orders'
-                  ? pathname === '/admin/orders'
-                  : pathname === item.href || pathname.startsWith(item.href + '/');
+                    ? pathname === '/admin/products' || (pathname.startsWith('/admin/products/') && !pathname.startsWith('/admin/products/add'))
+                    : item.href === '/admin/orders'
+                      ? pathname === '/admin/orders'
+                      : pathname === item.href || pathname.startsWith(item.href + '/');
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    isExactOrChild
-                      ? 'bg-black text-white shadow-md'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-black'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isExactOrChild
+                    ? 'bg-black text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-black'
+                    }`}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
                   {item.label}

@@ -17,9 +17,8 @@ type ProductFormInputs = {
   rating: string;
   category: string;
   brand: string;
-  stock: string;
   sku: string;
-  imageInput: string;
+  imagesInput: string[];
   colorsInput: string;
   sizesInput: string;
 };
@@ -56,13 +55,13 @@ export default function AdminAddProductPage() {
       brand: 'SHOP.CO',
       stock: '50',
       sku: generateSKU(),
-      imageInput: '',
+      imagesInput: [],
       colorsInput: '',
       sizesInput: '',
     },
   });
 
-  const watchImageInput = watch('imageInput');
+  const watchImagesInput = watch('imagesInput') || [];
 
   // Global loading handle karne ke liye useEffect
   useEffect(() => {
@@ -78,25 +77,30 @@ export default function AdminAddProductPage() {
   }, [isLoading, isUploading, setLoading]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     setIsUploading(true);
+    const uploadedUrls: string[] = [];
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products/upload`,
-        { method: 'POST', body: formData },
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || `Upload failed (${res.status})`);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products/upload`,
+          { method: 'POST', body: formData },
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err?.message || `Upload failed (${res.status})`);
+        }
+        const data = await res.json();
+        uploadedUrls.push(data.url);
       }
-      const data = await res.json();
-      setValue('imageInput', data.url, { shouldValidate: true });
-      toast.success('Image uploaded!');
+      const currentImages = watch('imagesInput') || [];
+      setValue('imagesInput', [...currentImages, ...uploadedUrls], { shouldValidate: true });
+      toast.success('Images uploaded!');
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to upload image');
+      toast.error(err?.message || 'Failed to upload images');
     } finally {
       setIsUploading(false);
     }
@@ -116,7 +120,7 @@ export default function AdminAddProductPage() {
         sizes: parseTags(data.sizesInput),
         stock: Number(data.stock),
         sku: data.sku,
-        images: [data.imageInput || '/images/7.png'],
+        images: data.imagesInput.length > 0 ? data.imagesInput : ['/images/7.png'],
         tags: [
           ...parseTags(data.colorsInput),
           ...parseTags(data.sizesInput),
@@ -136,7 +140,7 @@ export default function AdminAddProductPage() {
         brand: 'SHOP.CO',
         stock: '50',
         sku: generateSKU(),
-        imageInput: '',
+        imagesInput: [],
         colorsInput: '',
         sizesInput: '',
       });
@@ -308,26 +312,33 @@ export default function AdminAddProductPage() {
 
           {/* Product Image */}
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Product Image</label>
-            <input type="hidden" {...register('imageInput', { required: 'Product image is required' })} />
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="w-24 h-28 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 relative">
-                {watchImageInput ? (
-                  <Image src={watchImageInput} alt="Preview" fill className="object-cover" />
-                ) : (
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Product Images</label>
+            <input type="hidden" {...register('imagesInput', { required: 'At least one product image is required' })} />
+            <div className="flex flex-col md:flex-row gap-4 items-center flex-wrap">
+              {watchImagesInput.length > 0 ? (
+                watchImagesInput.map((url, idx) => (
+                  <div key={idx} className="w-24 h-28 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 relative group">
+                    <Image src={url} alt="Preview" fill className="object-cover" />
+                    <button type="button" onClick={() => setValue('imagesInput', watchImagesInput.filter((_, i) => i !== idx))} className="absolute top-1 right-1 bg-white/80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="w-3 h-3 text-red-500" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="w-24 h-28 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center shrink-0">
                   <ImageIcon className="w-8 h-8 text-gray-400" />
-                )}
-              </div>
-              <label className={`flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition-all text-center gap-2 ${errors.imageInput ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-black bg-gray-50 hover:bg-gray-100'}`}>
+                </div>
+              )}
+              <label className={`flex-1 min-w-[200px] flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition-all text-center gap-2 ${errors.imagesInput ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-black bg-gray-50 hover:bg-gray-100'}`}>
                 {isUploading ? (
                   <><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /><span className="text-xs font-bold text-gray-600">Uploading…</span></>
                 ) : (
-                  <><UploadCloud className="w-6 h-6 text-gray-400" /><span className="text-xs font-bold text-gray-700">Click to upload product image</span><span className="text-[10px] text-gray-400">PNG, JPG, WEBP up to 5MB</span></>
+                  <><UploadCloud className="w-6 h-6 text-gray-400" /><span className="text-xs font-bold text-gray-700">Click to upload images</span><span className="text-[10px] text-gray-400">Select multiple PNG, JPG, WEBP</span></>
                 )}
-                <input type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} className="hidden" />
+                <input type="file" multiple accept="image/*" onChange={handleFileChange} disabled={isUploading} className="hidden" />
               </label>
             </div>
-            {errors.imageInput && <span className="text-[10px] text-red-500 font-semibold">{errors.imageInput.message}</span>}
+            {errors.imagesInput && <span className="text-[10px] text-red-500 font-semibold">{errors.imagesInput.message}</span>}
           </div>
         </div>
 
