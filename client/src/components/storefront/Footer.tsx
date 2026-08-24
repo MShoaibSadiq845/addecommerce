@@ -34,25 +34,21 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  {
-    img: '/images/20.png',
-    alt: 'Twitter / X',
-    href: 'https://x.com/home',
-  },
+
   {
     img: '/images/22.png',
     alt: 'Facebook',
-    href: 'https://www.facebook.com/',
+    href: 'https://www.facebook.com/profile.php?id=61593629676246',
   },
   {
-    img: '/images/21.png',
-    alt: 'Instagram',
-    href: 'https://www.instagram.com/',
+    img: '/images/98.jpg',
+    alt: 'WhatsApp',
+    href: 'https://wa.me/923291747459',
   },
   {
     img: '/images/23.png',
     alt: 'GitHub',
-    href: 'https://github.com/MShoaibSadiq845',
+    href: 'https://www.instagram.com/fabdecor09/',
   },
 ];
 
