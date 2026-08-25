@@ -98,8 +98,8 @@ export class MailService {
                 <!-- Branding Header -->
                 <tr>
                   <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 36px 28px; text-align: center;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: 800; text-transform: uppercase;">FAB DECOR CO</h1>
-                    <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">Luxury Furniture & Modern Living</p>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: 800; text-transform: uppercase;">FAB DECOR</h1>
+                    <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">Elevate your modern living space with our luxurious collection of premium bedsheets, stylish sofa covers, and designer curtains.</p>
                   </td>
                 </tr>
 
@@ -172,7 +172,7 @@ export class MailService {
                 <!-- Footer -->
                 <tr>
                   <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
-                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 13px;">&copy; ${new Date().getFullYear()} Fab Decor Co. All rights reserved.</p>
+                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 13px;">&copy; ${new Date().getFullYear()} Fab Decor. All rights reserved.</p>
                     <p style="margin: 0; color: #94a3b8; font-size: 12px;">This email was sent automatically to confirm your order.</p>
                   </td>
                 </tr>
@@ -186,13 +186,13 @@ export class MailService {
     `;
 
     try {
-      let fromAddress = this.configService?.get<string>('RESEND_FROM_EMAIL') || process.env.RESEND_FROM_EMAIL || 'Fab Decor Co <support@fabdecorco.com>';
+      let fromAddress = this.configService?.get<string>('RESEND_FROM_EMAIL') || process.env.RESEND_FROM_EMAIL || 'Fab Decor <support@fabdecorco.com>';
       fromAddress = fromAddress.replace(/^['"]|['"]$/g, '').trim();
 
       const { data, error } = await this.resend.emails.send({
         from: fromAddress,
         to: [userEmail],
-        subject: `Order Confirmation #${orderShortId} - Fab Decor Co`,
+        subject: `Order Confirmation #${orderShortId} - Fab Decor`,
         text: `Thank you ${guestName}!\n\nYour order #${orderShortId} has been confirmed.\nPayment Method: ${paymentMethod}\nShipping Address: ${addressStr}\nTotal: Rs ${totalAmount}\n\nSummary:\n${itemsText}`,
         html: htmlContent,
       });

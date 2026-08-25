@@ -1,15 +1,15 @@
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
+  return function (target, key) { decorator(target, key, paramIndex); }
 };
 var MailService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -18,40 +18,40 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const resend_1 = require("resend");
 let MailService = MailService_1 = class MailService {
-    constructor(configService) {
-        this.configService = configService;
-        this.logger = new common_1.Logger(MailService_1.name);
-        const apiKey = this.configService?.get('RESEND_API_KEY') || process.env.RESEND_API_KEY;
-        if (!apiKey) {
-            this.logger.warn('RESEND_API_KEY is not defined in environment variables.');
-        }
-        this.resend = new resend_1.Resend(apiKey);
+  constructor(configService) {
+    this.configService = configService;
+    this.logger = new common_1.Logger(MailService_1.name);
+    const apiKey = this.configService?.get('RESEND_API_KEY') || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      this.logger.warn('RESEND_API_KEY is not defined in environment variables.');
     }
-    async sendOrderConfirmationEmail(userEmail, orderDetails) {
-        if (!userEmail) {
-            throw new common_1.InternalServerErrorException('Recipient email address is required');
-        }
-        const orderIdStr = orderDetails._id ? orderDetails._id.toString() : '';
-        const orderShortId = orderIdStr ? orderIdStr.slice(-6).toUpperCase() : 'N/A';
-        const guestName = orderDetails.guestName || 'Valued Customer';
-        const paymentMethod = orderDetails.paymentMethod || 'COD';
-        const paymentStatus = orderDetails.paymentStatus || 'Unpaid';
-        const totalAmount = Number(orderDetails.totalAmount || 0).toLocaleString();
-        let addressStr = 'N/A';
-        if (orderDetails.shippingAddress) {
-            const { street, city, province, postalCode, country } = orderDetails.shippingAddress;
-            addressStr = [street, city, province, postalCode, country].filter(Boolean).join(', ');
-        }
-        const items = orderDetails.items || [];
-        const itemsHtml = items
-            .map((item) => {
-            const itemPrice = Number(item.price || 0);
-            const itemQty = Number(item.quantity || 1);
-            const itemTotal = (itemPrice * itemQty).toLocaleString();
-            const details = [item.color ? `Color: ${item.color}` : '', item.size ? `Size: ${item.size}` : '']
-                .filter(Boolean)
-                .join(' | ');
-            return `
+    this.resend = new resend_1.Resend(apiKey);
+  }
+  async sendOrderConfirmationEmail(userEmail, orderDetails) {
+    if (!userEmail) {
+      throw new common_1.InternalServerErrorException('Recipient email address is required');
+    }
+    const orderIdStr = orderDetails._id ? orderDetails._id.toString() : '';
+    const orderShortId = orderIdStr ? orderIdStr.slice(-6).toUpperCase() : 'N/A';
+    const guestName = orderDetails.guestName || 'Valued Customer';
+    const paymentMethod = orderDetails.paymentMethod || 'COD';
+    const paymentStatus = orderDetails.paymentStatus || 'Unpaid';
+    const totalAmount = Number(orderDetails.totalAmount || 0).toLocaleString();
+    let addressStr = 'N/A';
+    if (orderDetails.shippingAddress) {
+      const { street, city, province, postalCode, country } = orderDetails.shippingAddress;
+      addressStr = [street, city, province, postalCode, country].filter(Boolean).join(', ');
+    }
+    const items = orderDetails.items || [];
+    const itemsHtml = items
+      .map((item) => {
+        const itemPrice = Number(item.price || 0);
+        const itemQty = Number(item.quantity || 1);
+        const itemTotal = (itemPrice * itemQty).toLocaleString();
+        const details = [item.color ? `Color: ${item.color}` : '', item.size ? `Size: ${item.size}` : '']
+          .filter(Boolean)
+          .join(' | ');
+        return `
           <tr style="border-bottom: 1px solid #e5e7eb;">
             <td style="padding: 14px 12px; font-size: 14px; color: #1f2937;">
               <strong style="color: #111827; font-size: 15px;">${item.name || 'Product'}</strong>
@@ -68,12 +68,12 @@ let MailService = MailService_1 = class MailService {
             </td>
           </tr>
         `;
-        })
-            .join('');
-        const itemsText = items
-            .map((item) => `- ${item.name}${item.color || item.size ? ` (${[item.color, item.size].filter(Boolean).join(', ')})` : ''} x ${item.quantity} = Rs ${(Number(item.price) * Number(item.quantity)).toLocaleString()}`)
-            .join('\n');
-        const htmlContent = `
+      })
+      .join('');
+    const itemsText = items
+      .map((item) => `- ${item.name}${item.color || item.size ? ` (${[item.color, item.size].filter(Boolean).join(', ')})` : ''} x ${item.quantity} = Rs ${(Number(item.price) * Number(item.quantity)).toLocaleString()}`)
+      .join('\n');
+    const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -90,8 +90,8 @@ let MailService = MailService_1 = class MailService {
                 <!-- Branding Header -->
                 <tr>
                   <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 36px 28px; text-align: center;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: 800; text-transform: uppercase;">FAB DECOR CO</h1>
-                    <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">Luxury Furniture & Modern Living</p>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; letter-spacing: 4px; font-weight: 800; text-transform: uppercase;">FAB DECOR</h1>
+                    <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">Elevate your modern living space with our luxurious collection of premium bedsheets, stylish sofa covers, and designer curtains.</p>
                   </td>
                 </tr>
 
@@ -164,7 +164,7 @@ let MailService = MailService_1 = class MailService {
                 <!-- Footer -->
                 <tr>
                   <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
-                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 13px;">&copy; ${new Date().getFullYear()} Fab Decor Co. All rights reserved.</p>
+                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 13px;">&copy; ${new Date().getFullYear()} Fab Decor. All rights reserved.</p>
                     <p style="margin: 0; color: #94a3b8; font-size: 12px;">This email was sent automatically to confirm your order.</p>
                   </td>
                 </tr>
@@ -176,36 +176,36 @@ let MailService = MailService_1 = class MailService {
       </body>
       </html>
     `;
-        try {
-            let fromAddress = this.configService?.get('RESEND_FROM_EMAIL') || process.env.RESEND_FROM_EMAIL || 'Fab Decor Co <support@fabdecorco.com>';
-            fromAddress = fromAddress.replace(/^['"]|['"]$/g, '').trim();
-            const { data, error } = await this.resend.emails.send({
-                from: fromAddress,
-                to: [userEmail],
-                subject: `Order Confirmation #${orderShortId} - Fab Decor Co`,
-                text: `Thank you ${guestName}!\n\nYour order #${orderShortId} has been confirmed.\nPayment Method: ${paymentMethod}\nShipping Address: ${addressStr}\nTotal: Rs ${totalAmount}\n\nSummary:\n${itemsText}`,
-                html: htmlContent,
-            });
-            if (error) {
-                this.logger.error(`Resend API returned error for ${userEmail}: ${JSON.stringify(error)}`);
-                throw new common_1.InternalServerErrorException(`Failed to send order confirmation email: ${error.message || JSON.stringify(error)}`);
-            }
-            this.logger.log(`Successfully sent order confirmation email to ${userEmail}. Email ID: ${data?.id}`);
-            return data;
-        }
-        catch (err) {
-            this.logger.error(`Error in sendOrderConfirmationEmail for ${userEmail}:`, err?.stack || err);
-            if (err instanceof common_1.InternalServerErrorException) {
-                throw err;
-            }
-            throw new common_1.InternalServerErrorException(err?.message || 'Internal server error while sending order confirmation email via Resend');
-        }
+    try {
+      let fromAddress = this.configService?.get('RESEND_FROM_EMAIL') || process.env.RESEND_FROM_EMAIL || 'Fab Decor <support@fabdecorco.com>';
+      fromAddress = fromAddress.replace(/^['"]|['"]$/g, '').trim();
+      const { data, error } = await this.resend.emails.send({
+        from: fromAddress,
+        to: [userEmail],
+        subject: `Order Confirmation #${orderShortId} - Fab Decor`,
+        text: `Thank you ${guestName}!\n\nYour order #${orderShortId} has been confirmed.\nPayment Method: ${paymentMethod}\nShipping Address: ${addressStr}\nTotal: Rs ${totalAmount}\n\nSummary:\n${itemsText}`,
+        html: htmlContent,
+      });
+      if (error) {
+        this.logger.error(`Resend API returned error for ${userEmail}: ${JSON.stringify(error)}`);
+        throw new common_1.InternalServerErrorException(`Failed to send order confirmation email: ${error.message || JSON.stringify(error)}`);
+      }
+      this.logger.log(`Successfully sent order confirmation email to ${userEmail}. Email ID: ${data?.id}`);
+      return data;
     }
+    catch (err) {
+      this.logger.error(`Error in sendOrderConfirmationEmail for ${userEmail}:`, err?.stack || err);
+      if (err instanceof common_1.InternalServerErrorException) {
+        throw err;
+      }
+      throw new common_1.InternalServerErrorException(err?.message || 'Internal server error while sending order confirmation email via Resend');
+    }
+  }
 };
 exports.MailService = MailService;
 exports.MailService = MailService = MailService_1 = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)(config_1.ConfigService)),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+  (0, common_1.Injectable)(),
+  __param(0, (0, common_1.Inject)(config_1.ConfigService)),
+  __metadata("design:paramtypes", [config_1.ConfigService])
 ], MailService);
 //# sourceMappingURL=mail.service.js.map
