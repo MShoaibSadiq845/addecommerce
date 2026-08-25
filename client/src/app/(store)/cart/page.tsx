@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/fb-pixel';
 
 type DeliveryForm = {
   guestName: string;
@@ -143,6 +144,14 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
 
       toast.success(res?.message || 'Cart verified! Proceeding to checkout.');
       setShowCheckout(true);
+
+      // 🔥 Meta Pixel — InitiateCheckout (fires after cart is validated)
+      trackInitiateCheckout({
+        name: items.map((i) => i.name).join(', '),
+        contentId: items[0]?.id ?? '',
+        value: subtotal,
+        currency: 'PKR',
+      });
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to validate cart. Please try again.';
       toast.error(msg);
@@ -185,6 +194,16 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
         window.location.href = res.stripeUrl;
         return;
       }
+
+      // 🔥 Meta Pixel — Purchase (fires only after API confirms order success)
+      trackPurchase({
+        totalValue: subtotal,
+        currency: 'PKR',
+        contentName: items.map((i) => i.name).join(', '),
+        orderId: res._id ?? '',
+        contentIds: items.map((i) => i.id),
+        numItems: items.reduce((acc, i) => acc + i.quantity, 0),
+      });
 
       setOrderSuccess(res);
       dispatch(clearCart());

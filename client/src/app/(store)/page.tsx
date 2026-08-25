@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, ShoppingCart, Star, Zap, Loader2, Truck, Pen
 import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import ReviewModal from '@/components/storefront/ReviewModal';
+import { trackAddToCart, trackInitiateCheckout } from '@/lib/fb-pixel';
 
 import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
 import { useAddToCartBackendMutation } from '@/store/services/cartApi';
@@ -60,6 +61,14 @@ function ProductCard({ product }: { product: any }) {
       size: product.sizes?.[0] || '', color: product.colors?.[0] || '',
     }));
     toast.success(`${product.name} added!`, { duration: 1500 });
+
+    // 🔥 Meta Pixel — AddToCart
+    trackAddToCart({
+      name: product.name,
+      contentId: product._id,
+      value: price,
+      currency: 'PKR',
+    });
   };
 
   /* Buy Now — Server DB Save & Redirect to /checkout */
@@ -90,6 +99,14 @@ function ProductCard({ product }: { product: any }) {
         size: product.sizes?.[0] || '',
         color: product.colors?.[0] || '',
       }));
+
+      // 🔥 Meta Pixel — InitiateCheckout
+      trackInitiateCheckout({
+        name: product.name,
+        contentId: product._id,
+        value: price,
+        currency: 'PKR',
+      });
 
       // 2. Trigger Server-side DB Save
       const sessionId = getSessionId();

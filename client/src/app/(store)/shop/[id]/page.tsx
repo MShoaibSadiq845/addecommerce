@@ -17,6 +17,7 @@ import ReviewModal from '@/components/storefront/ReviewModal';
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw, Zap, Loader2, X } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 import { toast } from 'react-hot-toast';
+import { trackViewContent, trackAddToCart, trackInitiateCheckout } from '@/lib/fb-pixel';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -91,6 +92,18 @@ export default function ProductDetailPage() {
     return () => setLoading(false);
   }, [isLoading, isAddingToCart, buyingNow, setLoading]);
 
+  // 🔥 Meta Pixel — ViewContent fires once product data is loaded
+  useEffect(() => {
+    if (!product) return;
+    trackViewContent({
+      name: product.name,
+      contentId: product._id,
+      value: product.isOnSale ? product.salePrice : product.price,
+      currency: 'PKR',
+      category: product.category ?? '',
+    });
+  }, [product]);
+
   // 2. Early return AFTER all hooks
   if (isLoading) return <ProductDetailSkeleton />;
   if (error || !product) {
@@ -129,6 +142,14 @@ export default function ProductDetailPage() {
       color: chosenColor,
     }));
     toast.success(`${product.name} added to cart!`, { duration: 1500 });
+
+    // 🔥 Meta Pixel — AddToCart
+    trackAddToCart({
+      name: product.name,
+      contentId: product._id,
+      value: effectivePrice * quantity,
+      currency: 'PKR',
+    });
 
     // 2. Persist to DB in the background
     const sessionId = getSessionId();
@@ -180,6 +201,14 @@ export default function ProductDetailPage() {
         size: chosenSize,
         color: chosenColor,
       }));
+
+      // 🔥 Meta Pixel — InitiateCheckout
+      trackInitiateCheckout({
+        name: product.name,
+        contentId: product._id,
+        value: effectivePrice * quantity,
+        currency: 'PKR',
+      });
 
       // 2. Execute Server-side DB Save & await confirmation
       const sessionId = getSessionId();
