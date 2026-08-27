@@ -490,7 +490,7 @@ function HomeContent() {
         .map((cat) => <CategorySection key={cat} category={cat} />)}
 
       {/* ═══════════════════ BROWSE BY DRESS STYLE ═══════════════════ */}
-      <section className="w-full px-4 sm:px-6 lg:px-20 py-10">
+      {/* <section className="w-full px-4 sm:px-6 lg:px-20 py-10">
         <div className="w-full max-w-[1440px] mx-auto bg-[#f2f0f1] rounded-[40px] p-6 sm:p-8 lg:p-14 flex flex-col items-center gap-10">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center tracking-tight"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
@@ -535,7 +535,7 @@ function HomeContent() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ═══════════════════ HAPPY CUSTOMERS ═══════════════════ */}
       <section className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-16 flex flex-col gap-8">
