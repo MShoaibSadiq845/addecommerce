@@ -56,6 +56,12 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
     }
   }, [defaultShowCheckout, searchParams]);
 
+  useEffect(() => {
+    if (orderSuccess) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [orderSuccess]);
+
   const {
     register,
     handleSubmit,

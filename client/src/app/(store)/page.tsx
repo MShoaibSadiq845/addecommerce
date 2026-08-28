@@ -406,8 +406,7 @@ function HomeContent() {
               FIND FABRICS THAT MATCHES YOUR STYLE
             </h1>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-md">
-              Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
-            </p>
+              Explore our diverse range of beautifully crafted home textiles, designed to add comfort, elegance, and timeless style to every space.            </p>
             <Link
               href="/shop"
               className="w-fit px-10 py-3.5 sm:px-14 sm:py-4 bg-black text-white rounded-full font-medium text-sm sm:text-base hover:bg-gray-900 transition-colors shadow-md"
