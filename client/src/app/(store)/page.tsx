@@ -389,9 +389,10 @@ function HomeContent() {
       `}</style>
 
       {/* ═══════════════════ HERO ═══════════════════ */}
-      <section className="w-full bg-[#ffffff] overflow-hidden relative">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 pt-10 pb-0 flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6">
-          <div className="flex flex-col gap-6 max-w-xl z-10 pb-10 lg:pb-16 self-center">
+      <section className="w-full bg-[#ffffff] overflow-hidden py-6 md:py-10 lg:py-14">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
+          {/* Left Text & Stats Content */}
+          <div className="flex flex-col gap-6 w-full md:w-1/2 lg:w-[48%] xl:w-[45%] shrink-0">
             {/* Free Delivery Tag Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold w-fit shadow-sm border border-gray-800">
               <Truck className="w-3.5 h-3.5 text-amber-400" />
@@ -399,7 +400,7 @@ function HomeContent() {
             </div>
 
             <h1
-              className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-black leading-[1.05] tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[56px] font-extrabold text-black leading-[1.1] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
             >
               FIND FABRICS THAT MATCHES YOUR STYLE
@@ -409,34 +410,37 @@ function HomeContent() {
             </p>
             <Link
               href="/shop"
-              className="w-fit px-14 py-4 bg-black text-white rounded-full font-medium text-base hover:bg-gray-900 transition-colors"
+              className="w-fit px-10 py-3.5 sm:px-14 sm:py-4 bg-black text-white rounded-full font-medium text-sm sm:text-base hover:bg-gray-900 transition-colors shadow-md"
             >
               Shop Now
             </Link>
 
-            <div className="flex flex-wrap gap-0 pt-6 border-t border-black/10 divide-x divide-black/10">
+            <div className="flex flex-wrap gap-y-4 gap-x-2 pt-6 border-t border-black/10 divide-x divide-black/10">
               {[
                 { value: '200+', label: 'International Brands' },
                 { value: '2,000+', label: 'High-Quality Products' },
                 { value: '30,000+', label: 'Happy Customers' },
-              ].map(({ value, label }) => (
-                <div key={label} className="flex flex-col gap-1 pr-8 last:pr-0 pl-8 first:pl-0">
-                  <span className="text-2xl lg:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+              ].map(({ value, label }, index) => (
+                <div key={label} className={`flex flex-col gap-1 ${index === 0 ? 'pr-4 sm:pr-6 pl-0' : 'px-4 sm:px-6'}`}>
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
                     {value}
                   </span>
-                  <span className="text-xs text-gray-500">{label}</span>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">{label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <Image
-            src="/images/90.jpeg"
-            alt="Fashion Models"
-            fill
-            className="hidden md:block object-bottom"
-            priority
-          />
+          {/* Right Image (Visible on Tablet md, Laptop lg, PC xl) */}
+          <div className="hidden md:block relative w-full md:w-1/2 lg:w-[50%] xl:w-[52%] h-[360px] md:h-[420px] lg:h-[500px] xl:h-[560px] rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+            <Image
+              src="/images/90.jpeg"
+              alt="Fabric Collection"
+              fill
+              className="object-cover object-right"
+              priority
+            />
+          </div>
         </div>
       </section>
 
