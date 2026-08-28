@@ -434,7 +434,7 @@ function HomeContent() {
             src="/images/90.jpeg"
             alt="Fashion Models"
             fill
-            className="object-bottom"
+            className="hidden md:block object-bottom"
             priority
           />
         </div>
