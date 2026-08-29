@@ -433,7 +433,7 @@ function HomeContent() {
           {/* Right Image (Visible on Tablet md, Laptop lg, PC xl) */}
           <div className="hidden md:block relative w-full md:w-1/2 lg:w-[50%] xl:w-[52%] h-[360px] md:h-[420px] lg:h-[500px] xl:h-[560px] rounded-2xl overflow-hidden shadow-sm border border-gray-100">
             <Image
-              src="/images/90.jpeg"
+              src="/images/89.jpeg"
               alt="Fabric Collection"
               fill
               className="object-cover object-right"
