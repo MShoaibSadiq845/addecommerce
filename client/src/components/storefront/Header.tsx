@@ -12,6 +12,7 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
 import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
 import { ProfileEditModal } from '@/components/storefront/ProfileEditModal';
+import { PakistanFlag } from '@/components/ui/PakistanFlag';
 
 export function StorefrontHeader() {
   const router = useRouter();
@@ -117,6 +118,7 @@ export function StorefrontHeader() {
               <span className="inline-flex items-center gap-1.5 font-bold">
                 <Truck className="w-3.5 h-3.5 text-amber-400" />
                 <span>Free Delivery All Over Pakistan</span>
+                <PakistanFlag className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0" />
               </span>
               <span className="hidden sm:inline text-white/40">•</span>
               <span className="hidden sm:inline text-white/80 font-medium">Cash on Delivery Available</span>

@@ -15,6 +15,7 @@ import { toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import ReviewModal from '@/components/storefront/ReviewModal';
 import { trackAddToCart, trackInitiateCheckout } from '@/lib/fb-pixel';
+import { PakistanFlag } from '@/components/ui/PakistanFlag';
 
 import { useAddToGuestCartMutation } from '@/store/services/guestCartApi';
 import { useAddToCartBackendMutation } from '@/store/services/cartApi';
@@ -396,7 +397,10 @@ function HomeContent() {
             {/* Free Delivery Tag Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold w-fit shadow-sm border border-gray-800">
               <Truck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Free Delivery All Over Pakistan 🇵🇰</span>
+              <span className="inline-flex items-center gap-1.5">
+                Free Delivery All Over Pakistan
+                <PakistanFlag className="w-4 h-3 rounded-[2px] overflow-hidden shrink-0" />
+              </span>
             </div>
 
             <h1
