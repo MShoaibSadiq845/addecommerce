@@ -203,7 +203,7 @@ export function StorefrontFooter() {
           <p className="text-xs text-gray-500">
             FabDecorCo © 2025, All Rights Reserved &mdash; Developed by{' '}
             <a
-              href="https://github.com/MShoaibSadiq845"
+              href="https://www.linkedin.com/in/muhammad-shoaib-sadiq-a99a893a0/"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold hover:text-black transition-colors underline"
