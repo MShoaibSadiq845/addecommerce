@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Star, Loader2, CheckCircle2, UploadCloud, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { X, Star, Loader2, CheckCircle2, UploadCloud, Plus, Trash2 } from 'lucide-react';
 import { useSubmitReviewMutation, useUploadReviewImageMutation } from '@/store/services/reviewsApi';
 import { toast } from 'react-hot-toast';
-import Image from 'next/image';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -25,9 +24,9 @@ export default function ReviewModal({
   const [hovered, setHovered] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
-  // Image Upload state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // Image Upload state (Up to 5 images)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,8 +42,10 @@ export default function ReviewModal({
       setRating(0);
       setHovered(0);
       setSubmitted(false);
-      setSelectedFile(null);
-      setImagePreview(null);
+      // Clean up object URLs
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+      setSelectedFiles([]);
+      setImagePreviews([]);
       setIsUploadingImage(false);
     }
   }, [isOpen]);
@@ -61,27 +62,51 @@ export default function ReviewModal({
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (selectedFiles.length >= 5) {
+      toast.error('You can upload a maximum of 5 images.');
+      return;
+    }
+
+    const validFiles: File[] = [];
+    for (const file of files) {
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file (PNG, JPG, WEBP).');
-        return;
+        toast.error(`"${file.name}" is not a valid image (PNG, JPG, WEBP).`);
+        continue;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size must be less than 5MB.');
-        return;
+        toast.error(`"${file.name}" exceeds max 5MB limit.`);
+        continue;
       }
-      setSelectedFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      validFiles.push(file);
     }
-  };
 
-  const handleRemoveImage = () => {
-    setSelectedFile(null);
-    setImagePreview(null);
+    if (validFiles.length === 0) return;
+
+    if (selectedFiles.length + validFiles.length > 5) {
+      toast.error('Maximum 5 images allowed per review.');
+    }
+
+    const allowedCount = 5 - selectedFiles.length;
+    const filesToAdd = validFiles.slice(0, allowedCount);
+    const previewsToAdd = filesToAdd.map((file) => URL.createObjectURL(file));
+
+    setSelectedFiles((prev) => [...prev, ...filesToAdd]);
+    setImagePreviews((prev) => [...prev, ...previewsToAdd]);
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    if (imagePreviews[index]) {
+      URL.revokeObjectURL(imagePreviews[index]);
+    }
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,16 +117,19 @@ export default function ReviewModal({
     }
 
     try {
-      let imageUrl: string | undefined = undefined;
+      const uploadedUrls: string[] = [];
 
-      // Upload image to Cloudinary via NestJS backend if a file is selected
-      if (selectedFile) {
+      // Upload selected images to Cloudinary via backend
+      if (selectedFiles.length > 0) {
         setIsUploadingImage(true);
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        const uploadRes = await uploadReviewImage(formData).unwrap();
-        imageUrl = uploadRes.url;
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const formData = new FormData();
+          formData.append('file', selectedFiles[i]);
+          const uploadRes = await uploadReviewImage(formData).unwrap();
+          if (uploadRes?.url) {
+            uploadedUrls.push(uploadRes.url);
+          }
+        }
         setIsUploadingImage(false);
       }
 
@@ -111,7 +139,8 @@ export default function ReviewModal({
         rating,
         productId,
         productName,
-        image: imageUrl,
+        images: uploadedUrls,
+        image: uploadedUrls[0] || undefined,
       }).unwrap();
 
       setSubmitted(true);
@@ -231,45 +260,69 @@ export default function ReviewModal({
               />
             </div>
 
-            {/* Product / Review Image Upload (Cloudinary) */}
+            {/* Product / Review Image Upload (Cloudinary - Up to 5 Images) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center justify-between">
-                <span>Upload Product Image (Optional)</span>
-                <span className="text-[10px] text-gray-400 font-normal">Max 5MB</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Upload Photos (1 to 5 Optional)
+                </label>
+                <span className="text-[10px] font-bold text-gray-500">
+                  {selectedFiles.length} / 5 Selected
+                </span>
+              </div>
 
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
                 className="hidden"
                 id="review-image-upload"
               />
 
-              {imagePreview ? (
-                <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-gray-200 group bg-gray-50">
-                  <img
-                    src={imagePreview}
-                    alt="Review upload preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1.5 bg-white text-black rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      Change
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {imagePreviews.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  <div className="grid grid-cols-5 gap-2">
+                    {imagePreviews.map((previewUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 group"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`Review photo ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-red-600/90 text-white rounded-full opacity-90 hover:opacity-100 hover:scale-110 transition-all shadow-sm"
+                          title="Remove image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-[9px] font-bold rounded">
+                          #{idx + 1}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Add More Tile if less than 5 */}
+                    {selectedFiles.length < 5 && (
+                      <label
+                        htmlFor="review-image-upload"
+                        className="aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-black bg-gray-50 hover:bg-gray-100 cursor-pointer flex flex-col items-center justify-center transition-all text-gray-500 hover:text-black"
+                        title="Add another image"
+                      >
+                        <Plus className="w-5 h-5 mb-0.5" />
+                        <span className="text-[9px] font-bold">Add</span>
+                      </label>
+                    )}
                   </div>
+                  <p className="text-[11px] text-gray-400">
+                    You can select up to 5 photos (PNG, JPG, WEBP).
+                  </p>
                 </div>
               ) : (
                 <label
@@ -280,8 +333,10 @@ export default function ReviewModal({
                     <UploadCloud className="w-5 h-5" />
                   </div>
                   <div className="text-center">
-                    <p className="text-xs font-semibold text-gray-700">Click to upload photo</p>
-                    <p className="text-[11px] text-gray-400">PNG, JPG or WEBP</p>
+                    <p className="text-xs font-semibold text-gray-700">
+                      Click to upload photos (1 to 5)
+                    </p>
+                    <p className="text-[11px] text-gray-400">PNG, JPG or WEBP (Max 5MB each)</p>
                   </div>
                 </label>
               )}
@@ -296,7 +351,9 @@ export default function ReviewModal({
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {isUploadingImage ? 'Uploading Image…' : 'Submitting…'}
+                  {isUploadingImage
+                    ? `Uploading Photos (${selectedFiles.length})…`
+                    : 'Submitting Review…'}
                 </>
               ) : (
                 'Submit Review'

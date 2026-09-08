@@ -504,24 +504,52 @@ export default function ProductDetailPage() {
 
                         <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">{r.comment}</p>
 
-                        {/* Review Image Thumbnail */}
-                        {r.image && (
-                          <div
-                            onClick={() => setEnlargedImage(r.image)}
-                            className="relative w-full h-36 rounded-xl overflow-hidden cursor-pointer group border border-gray-100 bg-gray-50 mt-1"
-                          >
-                            <img
-                              src={r.image}
-                              alt={`Review photo by ${r.name}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="bg-white/90 text-black text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                                Click to enlarge
-                              </span>
+                        {/* Review Image Thumbnails (Supports 1 to 5 images) */}
+                        {(() => {
+                          const allImages: string[] = r.images && r.images.length > 0 ? r.images : r.image ? [r.image] : [];
+                          if (allImages.length === 0) return null;
+
+                          if (allImages.length === 1) {
+                            return (
+                              <div
+                                onClick={() => setEnlargedImage(allImages[0])}
+                                className="relative w-full h-36 rounded-xl overflow-hidden cursor-pointer group border border-gray-100 bg-gray-50 mt-1"
+                              >
+                                <img
+                                  src={allImages[0]}
+                                  alt={`Review photo by ${r.name}`}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <span className="bg-white/90 text-black text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                                    Click to enlarge
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {allImages.map((imgUrl, imgIdx) => (
+                                <div
+                                  key={imgIdx}
+                                  onClick={() => setEnlargedImage(imgUrl)}
+                                  className="relative w-16 h-16 rounded-xl overflow-hidden cursor-pointer group border border-gray-200 bg-gray-50 shrink-0"
+                                >
+                                  <img
+                                    src={imgUrl}
+                                    alt={`Review photo ${imgIdx + 1} by ${r.name}`}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white text-[10px] font-bold">🔍</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
 
                       <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">

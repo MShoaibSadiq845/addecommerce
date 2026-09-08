@@ -22,6 +22,9 @@ export class Review {
 
   @Prop({ type: String, required: false })
   image?: string;
+
+  @Prop({ type: [String], required: false, default: [] })
+  images?: string[];
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);

@@ -17,6 +17,7 @@ export const reviewsApi = apiSlice.injectEndpoints({
         productId?: string;
         productName?: string;
         image?: string;
+        images?: string[];
       }) => ({
         url: '/reviews',
         method: 'POST',

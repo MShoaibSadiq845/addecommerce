@@ -42,6 +42,7 @@ export class ReviewsController {
       productId?: string;
       productName?: string;
       image?: string;
+      images?: string[];
     },
   ) {
     return this.reviewsService.createReview(body);
