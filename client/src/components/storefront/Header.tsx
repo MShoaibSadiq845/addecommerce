@@ -35,6 +35,7 @@ export function StorefrontHeader() {
   const isFirstRender = useRef(true);
   const isUrlSync = useRef(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const categoriesMenuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -43,11 +44,14 @@ export function StorefrontHeader() {
   const { data: filterOptions, isLoading: loadingCategories } = useGetFilterOptionsQuery(undefined);
   const categories: string[] = filterOptions?.categories || [];
 
-  // Close user dropdown when clicking outside
+  // Close user and categories dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setShowUserMenu(false);
+      }
+      if (categoriesMenuRef.current && !categoriesMenuRef.current.contains(e.target as Node)) {
+        setShowShopMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -169,19 +173,26 @@ export function StorefrontHeader() {
           <Link href="/" className="hover:text-black transition-colors">
             Home
           </Link>
-          <div className="relative">
+          <div
+            className="relative"
+            ref={categoriesMenuRef}
+            onMouseLeave={() => setShowShopMenu(false)}
+          >
             <button
+              onClick={() => setShowShopMenu((prev) => !prev)}
               onMouseEnter={() => setShowShopMenu(true)}
-              onMouseLeave={() => setShowShopMenu(false)}
-              className="flex items-center gap-1 hover:text-black transition-colors py-1"
+              className="flex items-center gap-1.5 hover:text-black transition-colors py-1 cursor-pointer select-none"
             >
-              Categories <ChevronDown className="w-3.5 h-3.5" />
+              Categories{' '}
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  showShopMenu ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
             </button>
             {showShopMenu && (
               <div
-                onMouseEnter={() => setShowShopMenu(true)}
-                onMouseLeave={() => setShowShopMenu(false)}
-                className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50"
+                className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
               >
                 {loadingCategories ? (
                   Array.from({ length: 3 }).map((_, i) => (
