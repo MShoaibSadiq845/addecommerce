@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { X, Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 
 import { useLoginMutation, useRegisterMutation } from '@/store/services/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
+import { RootState } from '@/store/store';
 import { SocialLoginButtons } from '@/components/storefront/SocialLoginButtons';
 
 interface StoreAuthModalProps {
@@ -37,6 +38,7 @@ export function StoreAuthModal({
   onSuccess,
 }: StoreAuthModalProps) {
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [tab, setTab] = useState<'login' | 'register'>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -63,11 +65,15 @@ export function StoreAuthModal({
 
   useEffect(() => {
     if (isOpen) {
+      if (isAuthenticated) {
+        onClose();
+        return;
+      }
       setTab(initialTab);
       resetLogin();
       resetReg();
     }
-  }, [isOpen, initialTab, resetLogin, resetReg]);
+  }, [isOpen, isAuthenticated, initialTab, resetLogin, resetReg, onClose]);
 
   // Handle escape key
   useEffect(() => {
@@ -80,7 +86,7 @@ export function StoreAuthModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || isAuthenticated) return null;
 
   const persistAuth = (data: { token: string; user: any }) => {
     dispatch(

@@ -4,15 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
  * Edge middleware — runs on every request BEFORE the page renders.
  *
  * Protection rules:
- *  /admin/login  → always accessible (the auth page itself)
- *  /admin/*      → requires a token cookie AND an admin role claim
- *                  Redirects to /admin/login on failure.
+ *  /login, /register → if authenticated, redirect to / (or /admin for admins)
+ *  /admin/login      → if authenticated, redirect to /admin (or / for regular users)
+ *  /admin/*          → requires a token cookie AND an admin role claim
+ *                      Redirects to /admin/login on failure.
  *
  * The JWT is stored in a cookie called `admin_token` (set by the login page
- * after a successful API call).  We do a lightweight decode of the payload
- * here — NO cryptographic verification, because the Edge Runtime cannot run
- * the Node.js `jsonwebtoken` library.  Full verification still happens on
- * every protected API call via the NestJS AuthGuard('jwt').
+ * after a successful API call).
  *
  * The role is stored in the cookie `admin_role` so we don't have to decode
  * the JWT on every request.
@@ -21,31 +19,42 @@ import { NextRequest, NextResponse } from 'next/server';
 const ADMIN_LOGIN = '/admin/login';
 const ADMIN_ROOT = '/admin';
 const VALID_ROLES = ['Admin', 'Super Admin'];
+const STORE_AUTH_ROUTES = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get('admin_token')?.value;
+  const role = request.cookies.get('admin_role')?.value;
+  const isAuthenticated = Boolean(token);
+  const isAdmin = Boolean(token && role && VALID_ROLES.includes(role));
 
-  // Only act on /admin routes
-  if (!pathname.startsWith(ADMIN_ROOT)) {
-    return NextResponse.next();
-  }
-
-  // Always allow access to the login page itself
-  if (pathname === ADMIN_LOGIN || pathname.startsWith(`${ADMIN_LOGIN}/`)) {
-    // If already authenticated redirect straight to dashboard
-    const role = request.cookies.get('admin_role')?.value;
-    const token = request.cookies.get('admin_token')?.value;
-    if (token && role && VALID_ROLES.includes(role)) {
-      return NextResponse.redirect(new URL(ADMIN_ROOT, request.url));
+  // If user is already logged in, redirect them away from storefront auth pages (/login, /register)
+  if (STORE_AUTH_ROUTES.includes(pathname)) {
+    if (isAuthenticated) {
+      const redirectUrl = isAdmin ? ADMIN_ROOT : '/';
+      return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
     return NextResponse.next();
   }
 
-  // All other /admin/* paths require valid credentials
-  const token = request.cookies.get('admin_token')?.value;
-  const role = request.cookies.get('admin_role')?.value;
+  // Only act on /admin routes beyond this point
+  if (!pathname.startsWith(ADMIN_ROOT)) {
+    return NextResponse.next();
+  }
 
-  if (!token || !role || !VALID_ROLES.includes(role)) {
+  // Always allow access or redirect on the admin login page
+  if (pathname === ADMIN_LOGIN || pathname.startsWith(`${ADMIN_LOGIN}/`)) {
+    if (isAdmin) {
+      return NextResponse.redirect(new URL(ADMIN_ROOT, request.url));
+    }
+    if (isAuthenticated && !isAdmin) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // All other /admin/* paths require valid admin credentials
+  if (!isAdmin) {
     const loginUrl = new URL(ADMIN_LOGIN, request.url);
     // Pass the original destination so the login page can redirect back
     loginUrl.searchParams.set('next', pathname);
@@ -56,6 +65,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on every /admin path, but skip static assets and Next.js internals
-  matcher: ['/admin/:path*'],
+  // Run on storefront auth routes and /admin routes, skipping static files & API routes
+  matcher: ['/admin/:path*', '/login', '/register'],
 };

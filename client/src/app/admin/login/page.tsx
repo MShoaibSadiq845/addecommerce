@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, ShieldCheck, Loader2, Lock, Mail, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 
 import { useLoginMutation, useRegisterMutation } from '@/store/services/authApi';
 import { setCredentials } from '@/store/slices/authSlice';
+import { RootState } from '@/store/store';
 import { SocialLoginButtons } from '@/components/storefront/SocialLoginButtons';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,9 +30,22 @@ type RegisterForm = {
 // ─── Inner page (needs useSearchParams — wrapped in Suspense below) ───────────
 
 function AdminLoginInner() {
+  const router = useRouter();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get('next') || '/admin';
+
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.role === 'Admin' || user?.role === 'Super Admin') {
+        router.replace(nextPath || '/admin');
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [isAuthenticated, user, router, nextPath]);
 
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +72,17 @@ function AdminLoginInner() {
   } = useForm<RegisterForm>();
 
   const watchPassword = watch('password', '');
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center font-['Satoshi']">
+        <div className="flex flex-col items-center gap-3 text-white">
+          <Loader2 className="w-8 h-8 animate-spin text-white" />
+          <p className="text-sm text-gray-400 font-medium">Already signed in. Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   // ── Persist auth after a successful API response ────────────────────────
   function persistAuth(data: { token: string; user: any }) {

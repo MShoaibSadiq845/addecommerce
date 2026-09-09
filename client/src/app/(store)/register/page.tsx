@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Mail, Lock, User, Loader2, UserPlus, Sparkles, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import { useRegisterMutation } from '@/store/services/authApi';
+import { RootState } from '@/store/store';
 import { SocialLoginButtons } from '@/components/storefront/SocialLoginButtons';
 
 type RegisterForm = {
@@ -19,6 +21,18 @@ type RegisterForm = {
 
 function StoreRegisterPageInner() {
   const router = useRouter();
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.role === 'Admin' || user?.role === 'Super Admin') {
+        router.replace('/admin');
+      } else {
+        router.replace('/');
+      }
+    }
+  }, [isAuthenticated, user, router]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -32,6 +46,17 @@ function StoreRegisterPageInner() {
   } = useForm<RegisterForm>();
 
   const watchPassword = watch('password', '');
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center font-['Satoshi']">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-black" />
+          <p className="text-sm text-gray-500 font-medium">Already signed in. Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   const onSubmit = async (values: RegisterForm) => {
     try {
