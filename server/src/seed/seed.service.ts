@@ -25,17 +25,9 @@ export class SeedService implements OnModuleInit {
 
   async seedAll() {
     try {
-      const productCount = await this.productModel.countDocuments();
-      if (productCount === 0) {
-        this.logger.log('Seeding initial database data…');
-        await this.seedUsers();
-        await this.seedProducts();
-        await this.seedOrders();
-        await this.seedNotifications();
-        this.logger.log('Database seeding completed successfully!');
-      } else {
-        this.logger.log('Database already populated. Skipping seed.');
-      }
+      // Only seed admin users for dashboard login, no dummy products/orders
+      await this.seedUsers();
+      this.logger.log('Admin user check completed. Default products seeding is disabled.');
     } catch (err) {
       this.logger.error('Error during database seeding:', err);
     }
