@@ -337,11 +337,10 @@ export default function ProductDetailPage() {
                 <button
                   disabled={isOutOfStock || isAddingToCart || buyingNow}
                   onClick={handleAddToCart}
-                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
-                    activeActionButton === 'cart'
+                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${activeActionButton === 'cart'
                       ? 'bg-black text-white hover:bg-gray-800 shadow-md'
                       : 'bg-white text-black border-2 border-black hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {isAddingToCart ? (
                     <>
@@ -357,11 +356,10 @@ export default function ProductDetailPage() {
                 <button
                   disabled={isOutOfStock || isAddingToCart || buyingNow}
                   onClick={handleBuyNow}
-                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
-                    activeActionButton === 'buy'
+                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${activeActionButton === 'buy'
                       ? 'bg-black text-white hover:bg-gray-800 shadow-md'
                       : 'bg-white text-black border-2 border-black hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {buyingNow ? (
                     <>
@@ -424,8 +422,8 @@ export default function ProductDetailPage() {
                     {reviewsLoading
                       ? 'Loading reviews…'
                       : reviews.length === 0
-                      ? 'No reviews yet. Be the first!'
-                      : `Showing customer feedback for ${product.name}`}
+                        ? 'No reviews yet. Be the first!'
+                        : `Showing customer feedback for ${product.name}`}
                   </p>
                 </div>
 

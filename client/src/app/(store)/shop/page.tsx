@@ -403,8 +403,8 @@ function ShopContent() {
                     key={cat}
                     onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
                     className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${pendingCategory === cat
-                        ? 'text-black font-bold bg-gray-100'
-                        : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                      ? 'text-black font-bold bg-gray-100'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
                       }`}
                   >
                     <span className="capitalize">{cat}</span>
@@ -431,7 +431,7 @@ function ShopContent() {
                 className="w-full h-1.5 rounded-full accent-black cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #000 ${((effectiveMaxPrice - dynamicPriceRange.min) /
-                      Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
+                    Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
                     100
                     }%, #e5e7eb ${((effectiveMaxPrice - dynamicPriceRange.min) /
                       Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
@@ -522,8 +522,8 @@ function ShopContent() {
                       key={s}
                       onClick={() => toggleSize(s)}
                       className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${pendingSizes.includes(s)
-                          ? 'bg-black text-white border-black shadow-sm'
-                          : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
+                        ? 'bg-black text-white border-black shadow-sm'
+                        : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
                         }`}
                     >
                       {label}
