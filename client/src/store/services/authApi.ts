@@ -39,6 +39,14 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+    updateUserRole: builder.mutation<any, { id: string; role: string }>({
+      query: ({ id, role }) => ({
+        url: `/users/${id}/role`,
+        method: 'PATCH',
+        body: { role },
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
 });
 
@@ -50,4 +58,5 @@ export const {
   useGetLoyaltyPointsQuery,
   useGetAllUsersQuery,
   useUpdateProfileMutation,
+  useUpdateUserRoleMutation,
 } = authApi;

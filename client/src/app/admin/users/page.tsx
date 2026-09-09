@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useGetAllUsersQuery } from '@/store/services/authApi';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { useGetAllUsersQuery, useUpdateUserRoleMutation } from '@/store/services/authApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { Users, Award, Shield, ShieldCheck, User, Search } from 'lucide-react';
+import { Users, Award, Shield, ShieldCheck, User, Search, ChevronDown, Check, Loader2 } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
+import { toast } from 'react-hot-toast';
 
 type UserRole = 'User' | 'Admin' | 'Super Admin';
 
@@ -35,28 +38,93 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
+const ROLES: UserRole[] = ['User', 'Admin', 'Super Admin'];
+
+function RoleDropdown({
+  userId,
+  currentRole,
+  onChanged,
+}: {
+  userId: string;
+  currentRole: string;
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [updateUserRole, { isLoading }] = useUpdateUserRoleMutation();
+
+  const handleSelect = async (role: UserRole) => {
+    if (role === currentRole) { setOpen(false); return; }
+    try {
+      await updateUserRole({ id: userId, role }).unwrap();
+      toast.success(`Role changed to ${role}`);
+      onChanged();
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to update role');
+    } finally {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative inline-block">
+      <button
+        onClick={() => setOpen(!open)}
+        disabled={isLoading}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border border-dashed border-gray-300 hover:border-black bg-white text-gray-600 hover:text-black transition-all disabled:opacity-60"
+      >
+        {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ChevronDown className="w-3 h-3" />}
+        Change
+      </button>
+
+      {open && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-36 py-1">
+            {ROLES.map((role) => (
+              <button
+                key={role}
+                onClick={() => handleSelect(role)}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
+                  role === currentRole ? 'font-bold text-black bg-gray-50' : 'text-gray-700'
+                }`}
+              >
+                <span className="w-4 flex items-center justify-center">
+                  {role === currentRole ? <Check className="w-3 h-3 text-green-500" /> : ROLE_ICONS[role]}
+                </span>
+                {role}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function AdminUsersPage() {
   const { setLoading } = useLoading();
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  const isSuperAdmin = currentUser?.role === 'Super Admin';
 
-  // Local UI state (raw, unthrottled)
+  // Local UI state
   const [searchInput, setSearchInput] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Debounced search — only fires API after 350 ms of inactivity
+  // Debounced search — only fires API after 350ms of inactivity
   const [debouncedSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // Reset pagination whenever server-side filters change
+  // Reset pagination whenever filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, roleFilter]);
 
-  // Server-side fetching — params sent as query strings to the API
-  const { data: users = [], isLoading, isFetching } = useGetAllUsersQuery(
+  const { data: users = [], isLoading, isFetching, refetch } = useGetAllUsersQuery(
     { search: debouncedSearch || undefined, role: roleFilter || undefined },
     { refetchOnMountOrArgChange: true },
   );
@@ -70,7 +138,7 @@ export default function AdminUsersPage() {
   const adminCount = users.filter((u: any) => u.role === 'Admin' || u.role === 'Super Admin').length;
   const totalPoints = users.reduce((sum: number, u: any) => sum + (u.loyaltyPoints || 0), 0);
 
-  // Client-side pagination only (data is already filtered server-side)
+  // Client-side pagination (data already filtered server-side)
   const itemsPerPage = 10;
   const totalPages = Math.ceil(users.length / itemsPerPage);
   const paginatedUsers = users.slice(
@@ -88,9 +156,16 @@ export default function AdminUsersPage() {
             All registered accounts — filtered &amp; fetched live from the database
           </p>
         </div>
-        <div className="text-xs bg-white border border-gray-200 px-4 py-2 rounded-xl text-gray-600 font-semibold w-fit">
-          <Users className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
-          {totalUsers} registered user{totalUsers !== 1 ? 's' : ''}
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold">
+              <ShieldCheck className="w-3.5 h-3.5" /> Super Admin — Role Management Enabled
+            </span>
+          )}
+          <div className="text-xs bg-white border border-gray-200 px-4 py-2 rounded-xl text-gray-600 font-semibold w-fit">
+            <Users className="w-3.5 h-3.5 inline mr-1.5 text-blue-500" />
+            {totalUsers} registered user{totalUsers !== 1 ? 's' : ''}
+          </div>
         </div>
       </div>
 
@@ -172,6 +247,7 @@ export default function AdminUsersPage() {
                 <th className="pb-3">Name</th>
                 <th className="pb-3">Email</th>
                 <th className="pb-3">Role</th>
+                {isSuperAdmin && <th className="pb-3">Change Role</th>}
                 <th className="pb-3">Loyalty Points</th>
                 <th className="pb-3">Joined</th>
               </tr>
@@ -194,6 +270,20 @@ export default function AdminUsersPage() {
                     <td className="py-4">
                       <RoleBadge role={user.role} />
                     </td>
+                    {isSuperAdmin && (
+                      <td className="py-4">
+                        {/* Cannot change own role */}
+                        {user._id === currentUser?.id || user._id === (currentUser as any)?._id ? (
+                          <span className="text-[10px] text-gray-400 italic">You</span>
+                        ) : (
+                          <RoleDropdown
+                            userId={user._id}
+                            currentRole={user.role}
+                            onChanged={refetch}
+                          />
+                        )}
+                      </td>
+                    )}
                     <td className="py-4">
                       <span className="flex items-center gap-1 text-amber-600 font-bold">
                         <Award className="w-3.5 h-3.5" />

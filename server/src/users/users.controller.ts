@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Param, Query, Inject } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Body, UseGuards, Param, Query, Inject } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
@@ -40,5 +40,15 @@ export class UsersController {
   @Get(':id')
   async getUserById(@Param('id') id: string) {
     return this.usersService.findById(id);
+  }
+
+  @Patch(':id/role')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body('role') role: string,
+  ) {
+    return this.usersService.updateRole(id, role);
   }
 }

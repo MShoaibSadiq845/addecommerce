@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserRole } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -45,6 +45,19 @@ export class UsersService {
   ) {
     const user = await this.userModel
       .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
+      .select('-password')
+      .exec();
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async updateRole(id: string, role: string) {
+    const validRoles = Object.values(UserRole) as string[];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException(`Invalid role: ${role}. Valid roles are: ${validRoles.join(', ')}`);
+    }
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { $set: { role } }, { returnDocument: 'after' })
       .select('-password')
       .exec();
     if (!user) throw new NotFoundException('User not found');
