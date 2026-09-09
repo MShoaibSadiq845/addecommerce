@@ -192,7 +192,7 @@ export function ProfileEditModal({ isOpen, onClose }: ProfileEditModalProps) {
           {/* Address */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Delivery Address
+              <MapPin className="w-3.5 h-3.5" /> Address
             </label>
             <textarea
               rows={3}
