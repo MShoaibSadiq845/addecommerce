@@ -69,7 +69,7 @@ function StoreLoginPageInner() {
       Cookies.set('admin_token', data.token, cookieOpts);
       Cookies.set('admin_role', data.user.role || 'User', cookieOpts);
 
-      toast.success(`Welcome back, ${data.user.name || 'shopper'}!`);
+      toast.success(`Welcome, ${data.user.name || 'shopper'}!`);
       router.push(redirectParam);
     } catch (err: any) {
       const message =
@@ -83,7 +83,7 @@ function StoreLoginPageInner() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 font-['Satoshi']">
       <div className="w-full max-w-[440px] bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-        
+
         {/* Header */}
         <div className="bg-black text-white px-8 pt-8 pb-7 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 text-white mb-3">
@@ -93,7 +93,7 @@ function StoreLoginPageInner() {
             className="text-2xl font-extrabold tracking-tight"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
           >
-            WELCOME BACK
+            WELCOME
           </h1>
           <p className="text-gray-300 text-xs mt-1">
             Sign in to access your orders, saved items, and loyalty points.
@@ -103,7 +103,7 @@ function StoreLoginPageInner() {
         {/* Form */}
         <div className="p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            
+
             {/* Email */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
@@ -120,9 +120,8 @@ function StoreLoginPageInner() {
                     message: 'Invalid email address',
                   },
                 })}
-                className={`w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${
-                  errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`w-full border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                  }`}
               />
               {errors.email && (
                 <span className="text-[11px] text-red-500 font-medium">{errors.email.message}</span>
@@ -142,9 +141,8 @@ function StoreLoginPageInner() {
                   {...register('password', {
                     required: 'Password is required',
                   })}
-                  className={`w-full border rounded-xl p-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-black ${
-                    errors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`w-full border rounded-xl p-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-black ${errors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                 />
                 <button
                   type="button"

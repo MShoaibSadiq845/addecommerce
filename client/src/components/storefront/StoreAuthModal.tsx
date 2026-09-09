@@ -115,7 +115,7 @@ export function StoreAuthModal({
       }).unwrap();
 
       persistAuth(data);
-      toast.success(`Welcome back, ${data.user.name || 'shopper'}!`);
+      toast.success(`Welcome, ${data.user.name || 'shopper'}!`);
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -177,7 +177,7 @@ export function StoreAuthModal({
             className="text-lg sm:text-xl font-extrabold tracking-tight text-white"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
           >
-            {tab === 'login' ? 'WELCOME BACK' : 'CREATE ACCOUNT'}
+            {tab === 'login' ? 'WELCOME' : 'CREATE ACCOUNT'}
           </h2>
           <p className="text-gray-300 text-[11px] mt-0.5">
             {tab === 'login'

@@ -94,7 +94,7 @@ function AdminLoginInner() {
       }).unwrap();
 
       persistAuth(data);
-      toast.success(`Welcome back, ${data.user.name}!`);
+      toast.success(`Welcome, ${data.user.name}!`);
 
       const role: string = data.user?.role ?? '';
       if (role === 'Admin' || role === 'Super Admin') {
