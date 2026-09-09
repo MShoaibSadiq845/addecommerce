@@ -138,8 +138,8 @@ function ProductCard({ product }: { product: any }) {
               -{discount}%
             </span>
           )}
-          {/* Hover action buttons */}
-          <div className="absolute inset-x-0 bottom-0 pb-4 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Hover action buttons (Laptop/PC only on hover) */}
+          <div className="absolute inset-x-0 bottom-0 pb-4 hidden lg:flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={handleQuickAdd}
               className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full shadow-lg hover:bg-black hover:text-white transition-colors"
