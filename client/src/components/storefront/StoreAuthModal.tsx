@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { X, Eye, EyeOff, Mail, Lock, User, Loader2, Sparkles, LogIn, UserPlus } from 'lucide-react';
+import { X, Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';
 
@@ -173,9 +173,6 @@ export function StoreAuthModal({
 
         {/* Header Banner */}
         <div className="bg-black text-white px-6 py-4 text-center shrink-0 relative border-b border-gray-800">
-          <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-white/10 text-white mb-1 shadow-inner">
-            {tab === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-          </div>
           <h2
             className="text-lg sm:text-xl font-extrabold tracking-tight text-white"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
@@ -194,22 +191,20 @@ export function StoreAuthModal({
           <button
             type="button"
             onClick={() => setTab('login')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              tab === 'login'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-gray-500 hover:text-black'
-            }`}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'login'
+              ? 'bg-white text-black shadow-sm'
+              : 'text-gray-500 hover:text-black'
+              }`}
           >
             Log In
           </button>
           <button
             type="button"
             onClick={() => setTab('register')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              tab === 'register'
-                ? 'bg-white text-black shadow-sm'
-                : 'text-gray-500 hover:text-black'
-            }`}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'register'
+              ? 'bg-white text-black shadow-sm'
+              : 'text-gray-500 hover:text-black'
+              }`}
           >
             Register
           </button>
@@ -235,9 +230,8 @@ export function StoreAuthModal({
                       message: 'Invalid email address',
                     },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
-                    loginErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${loginErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                 />
                 {loginErrors.email && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -258,9 +252,8 @@ export function StoreAuthModal({
                     {...regLogin('password', {
                       required: 'Password is required',
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
-                      loginErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${loginErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                      }`}
                   />
                   <button
                     type="button"
@@ -287,9 +280,7 @@ export function StoreAuthModal({
                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> Signing In…
                   </>
                 ) : (
-                  <>
-                    <LogIn className="w-3.5 h-3.5" /> Sign In
-                  </>
+                  'Sign In'
                 )}
               </button>
             </form>
@@ -308,9 +299,8 @@ export function StoreAuthModal({
                     required: 'Full name is required',
                     minLength: { value: 2, message: 'Name must be at least 2 characters' },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
-                    regErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                 />
                 {regErrors.name && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -334,9 +324,8 @@ export function StoreAuthModal({
                       message: 'Invalid email address',
                     },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
-                    regErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                 />
                 {regErrors.email && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -358,9 +347,8 @@ export function StoreAuthModal({
                       required: 'Password is required',
                       minLength: { value: 6, message: 'Must be at least 6 characters' },
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
-                      regErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                      }`}
                   />
                   <button
                     type="button"
@@ -390,9 +378,8 @@ export function StoreAuthModal({
                       required: 'Please confirm password',
                       validate: (v) => v === watchPassword || 'Passwords do not match',
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
-                      regErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                      }`}
                   />
                   <button
                     type="button"
@@ -419,9 +406,7 @@ export function StoreAuthModal({
                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating Account…
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" /> Create Account
-                  </>
+                  'Create Account'
                 )}
               </button>
             </form>
