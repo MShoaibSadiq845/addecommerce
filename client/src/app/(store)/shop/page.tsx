@@ -209,14 +209,12 @@ function ShopContent() {
 
   const [pendingCategory, setPendingCategory] = useState('');
   const [pendingIsOnSale, setPendingIsOnSale] = useState(false);
-  const [pendingMaxPrice, setPendingMaxPrice] = useState<number | null>(null);
   const [pendingColors, setPendingColors] = useState<string[]>([]);
   const [pendingSizes, setPendingSizes] = useState<string[]>([]);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [categoryOpen, setCategoryOpen] = useState(true);
-  const [priceOpen, setPriceOpen] = useState(true);
   const [colorsOpen, setColorsOpen] = useState(true);
   const [sizesOpen, setSizesOpen] = useState(true);
   const [offersOpen, setOffersOpen] = useState(true);
@@ -225,7 +223,6 @@ function ShopContent() {
   const activeIsOnSale = searchParams.get('isOnSale') === 'true';
   const activeNewArrivals = searchParams.get('newArrivals') === 'true';
   const activeSearch = searchParams.get('search') || '';
-  const activeMaxPrice = Number(searchParams.get('maxPrice') || '50000');
   const activeColors = useMemo(
     () => (searchParams.get('color') ? searchParams.get('color')!.split(',').filter(Boolean) : []),
     [searchParams]
@@ -262,36 +259,13 @@ function ShopContent() {
     return Array.from(sizes);
   }, [allProducts]);
 
-  const dynamicPriceRange = useMemo(() => {
-    if (allProducts.length === 0) return { min: 0, max: 50000 };
-    const prices = allProducts
-      .map((p: any) => (p.isOnSale ? p.salePrice : p.price))
-      .filter((p: any) => p > 0);
-    return {
-      min: Math.floor(Math.min(...prices)),
-      max: Math.ceil(Math.max(...prices)),
-    };
-  }, [allProducts]);
-
   React.useEffect(() => {
     setPendingCategory(activeCategory);
     setPendingIsOnSale(activeIsOnSale);
     setPendingColors(activeColors);
     setPendingSizes(activeSizes);
-    if (searchParams.get('maxPrice')) {
-      setPendingMaxPrice(activeMaxPrice);
-    }
-  }, [activeCategory, activeIsOnSale, activeColors, activeSizes, activeMaxPrice, searchParams]);
+  }, [activeCategory, activeIsOnSale, activeColors, activeSizes]);
 
-  React.useEffect(() => {
-    if (dynamicPriceRange.max > 0 && pendingMaxPrice === null) {
-      setPendingMaxPrice(
-        searchParams.get('maxPrice') ? activeMaxPrice : dynamicPriceRange.max
-      );
-    }
-  }, [dynamicPriceRange.max, pendingMaxPrice, searchParams, activeMaxPrice]);
-
-  const effectiveMaxPrice = pendingMaxPrice ?? dynamicPriceRange.max;
   const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
     limit: activeNewArrivals ? 100 : 9,
@@ -300,7 +274,6 @@ function ShopContent() {
     ...(activeCategory && { category: activeCategory }),
     ...(activeIsOnSale && { isOnSale: true }),
     ...(activeNewArrivals && { newArrivals: true }),
-    ...(activeMaxPrice < dynamicPriceRange.max && { maxPrice: activeMaxPrice }),
     ...(activeColors.length && { color: activeColors.join(',') }),
     ...(activeSizes.length && { size: activeSizes.join(',') }),
   });
@@ -328,7 +301,6 @@ function ShopContent() {
     update({
       category: pendingCategory || undefined,
       isOnSale: pendingIsOnSale ? 'true' : undefined,
-      maxPrice: effectiveMaxPrice < dynamicPriceRange.max ? String(effectiveMaxPrice) : undefined,
       color: pendingColors.length ? pendingColors.join(',') : undefined,
       size: pendingSizes.length ? pendingSizes.join(',') : undefined,
       page: '1',
@@ -339,7 +311,6 @@ function ShopContent() {
   const clearAll = () => {
     setPendingCategory('');
     setPendingIsOnSale(false);
-    setPendingMaxPrice(dynamicPriceRange.max);
     setPendingColors([]);
     setPendingSizes([]);
     router.replace('/shop');
@@ -367,7 +338,7 @@ function ShopContent() {
   };
 
   const hasActiveFilters = Boolean(
-    activeCategory || activeIsOnSale || activeColors.length > 0 || activeSizes.length > 0 || activeMaxPrice < dynamicPriceRange.max
+    activeCategory || activeIsOnSale || activeColors.length > 0 || activeSizes.length > 0
   );
 
   return (
@@ -414,33 +385,6 @@ function ShopContent() {
               </div>
             </FilterSection>
           )}
-
-          <FilterSection title="Price" open={priceOpen} onToggle={() => setPriceOpen(!priceOpen)}>
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between text-xs text-gray-600 font-semibold">
-                <span>₨{dynamicPriceRange.min.toLocaleString()}</span>
-                <span className="text-black font-bold">₨{effectiveMaxPrice.toLocaleString()}</span>
-              </div>
-              <input
-                type="range"
-                min={dynamicPriceRange.min}
-                max={dynamicPriceRange.max}
-                step={Math.max(1, Math.floor((dynamicPriceRange.max - dynamicPriceRange.min) / 100))}
-                value={effectiveMaxPrice}
-                onChange={(e) => setPendingMaxPrice(Number(e.target.value))}
-                className="w-full h-1.5 rounded-full accent-black cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #000 ${((effectiveMaxPrice - dynamicPriceRange.min) /
-                    Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
-                    100
-                    }%, #e5e7eb ${((effectiveMaxPrice - dynamicPriceRange.min) /
-                      Math.max(1, dynamicPriceRange.max - dynamicPriceRange.min)) *
-                    100
-                    }%)`,
-                }}
-              />
-            </div>
-          </FilterSection>
 
           {dynamicColors.length > 0 && (
             <FilterSection title="Colors" open={colorsOpen} onToggle={() => setColorsOpen(!colorsOpen)}>
@@ -609,14 +553,6 @@ function ShopContent() {
                 </span>
               )}
 
-              {activeMaxPrice < dynamicPriceRange.max && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full">
-                  Max: ₨{activeMaxPrice.toLocaleString()}
-                  <button onClick={() => update({ maxPrice: undefined, page: '1' })} className="hover:text-red-500">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )}
               {activeColors.map((c) => (
                 <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
                   Color: {c}
