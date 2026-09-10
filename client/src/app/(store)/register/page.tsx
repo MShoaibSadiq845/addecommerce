@@ -80,7 +80,21 @@ function StoreRegisterPageInner() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 font-['Satoshi']">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12 font-['Satoshi']">
+      {/* Brand Logo Header - Large and prominent */}
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center justify-center transition-transform hover:scale-105"
+        title="Return to Home"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/94.webp"
+          alt="FabDecor"
+          className="h-12 sm:h-14 w-auto object-contain mix-blend-multiply"
+        />
+      </Link>
+
       <div className="w-full max-w-[440px] bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
         
         {/* Header */}

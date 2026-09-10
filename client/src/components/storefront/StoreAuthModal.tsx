@@ -163,7 +163,7 @@ export function StoreAuthModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
-      {/* Modal Card - Compact height so no scroll is needed */}
+      {/* Modal Card - Compact original size */}
       <div
         className="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden font-['Satoshi'] flex flex-col my-auto"
         onClick={(e) => e.stopPropagation()}
@@ -177,8 +177,17 @@ export function StoreAuthModal({
           <X className="w-3.5 h-3.5" />
         </button>
 
-        {/* Header Banner */}
-        <div className="bg-black text-white px-6 py-4 text-center shrink-0 relative border-b border-gray-800">
+        {/* Header Banner with Prominent Large FabDecor Logo */}
+        <div className="bg-black text-white px-6 pt-5 pb-4 text-center shrink-0 relative border-b border-gray-800 flex flex-col items-center">
+          {/* Large FabDecor Logo Badge */}
+          <div className="bg-white px-5 py-2 rounded-2xl mb-2.5 inline-flex items-center justify-center shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/94.webp"
+              alt="FabDecor"
+              className="h-8 sm:h-9 w-auto object-contain mix-blend-multiply"
+            />
+          </div>
           <h2
             className="text-lg sm:text-xl font-extrabold tracking-tight text-white"
             style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
@@ -197,26 +206,28 @@ export function StoreAuthModal({
           <button
             type="button"
             onClick={() => setTab('login')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'login'
-              ? 'bg-white text-black shadow-sm'
-              : 'text-gray-500 hover:text-black'
-              }`}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              tab === 'login'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-gray-500 hover:text-black'
+            }`}
           >
             Log In
           </button>
           <button
             type="button"
             onClick={() => setTab('register')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'register'
-              ? 'bg-white text-black shadow-sm'
-              : 'text-gray-500 hover:text-black'
-              }`}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              tab === 'register'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-gray-500 hover:text-black'
+            }`}
           >
             Register
           </button>
         </div>
 
-        {/* Form Body - Compact padding & field heights */}
+        {/* Form Body - Original Compact padding & field heights */}
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           {tab === 'login' ? (
             /* ─── LOGIN FORM ─── */
@@ -229,6 +240,7 @@ export function StoreAuthModal({
                 <input
                   type="email"
                   placeholder="you@example.com"
+                  autoComplete="email"
                   {...regLogin('email', {
                     required: 'Email is required',
                     pattern: {
@@ -236,8 +248,9 @@ export function StoreAuthModal({
                       message: 'Invalid email address',
                     },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${loginErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
+                    loginErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                  }`}
                 />
                 {loginErrors.email && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -255,11 +268,13 @@ export function StoreAuthModal({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     {...regLogin('password', {
                       required: 'Password is required',
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${loginErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                      }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
+                      loginErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                   />
                   <button
                     type="button"
@@ -301,12 +316,14 @@ export function StoreAuthModal({
                 <input
                   type="text"
                   placeholder="Muhammad Ali"
+                  autoComplete="name"
                   {...regReg('name', {
                     required: 'Full name is required',
                     minLength: { value: 2, message: 'Name must be at least 2 characters' },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
+                    regErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                  }`}
                 />
                 {regErrors.name && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -323,6 +340,7 @@ export function StoreAuthModal({
                 <input
                   type="email"
                   placeholder="you@example.com"
+                  autoComplete="email"
                   {...regReg('email', {
                     required: 'Email is required',
                     pattern: {
@@ -330,8 +348,9 @@ export function StoreAuthModal({
                       message: 'Invalid email address',
                     },
                   })}
-                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                    }`}
+                  className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-black ${
+                    regErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                  }`}
                 />
                 {regErrors.email && (
                   <span className="text-[10px] text-red-500 font-medium">
@@ -349,12 +368,14 @@ export function StoreAuthModal({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Min 6 characters"
+                    autoComplete="new-password"
                     {...regReg('password', {
                       required: 'Password is required',
                       minLength: { value: 6, message: 'Must be at least 6 characters' },
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                      }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
+                      regErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                   />
                   <button
                     type="button"
@@ -374,18 +395,20 @@ export function StoreAuthModal({
               {/* Confirm Password */}
               <div className="flex flex-col gap-0.5">
                 <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Lock className="w-3 h-3" /> Confirm Password
+                  <Lock className="w-3.5 h-3.5" /> Confirm Password
                 </label>
                 <div className="relative">
                   <input
                     type={showConfirm ? 'text' : 'password'}
                     placeholder="Re-enter password"
+                    autoComplete="new-password"
                     {...regReg('confirmPassword', {
                       required: 'Please confirm password',
                       validate: (v) => v === watchPassword || 'Passwords do not match',
                     })}
-                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${regErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                      }`}
+                    className={`w-full border border-gray-200 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:ring-2 focus:ring-black ${
+                      regErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                    }`}
                   />
                   <button
                     type="button"
