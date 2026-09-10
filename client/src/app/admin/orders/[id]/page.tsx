@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useGetOrderByIdQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
-import { ArrowLeft, User, MapPin, Package, Loader2, CreditCard, Banknote } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Package, Loader2, CreditCard, Banknote, X, ZoomIn } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -44,6 +44,7 @@ export default function AdminOrderDetailPage() {
   const { data: order, isLoading } = useGetOrderByIdQuery(id as string);
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
   const [updating, setUpdating] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   const handleStatusChange = async (newStatus: string) => {
     setUpdating(true);
@@ -151,23 +152,34 @@ export default function AdminOrderDetailPage() {
           <Package className="w-5 h-5 text-gray-700" /> Items ({order.items?.length || 0})
         </h3>
         <div className="flex flex-col divide-y divide-gray-100">
-          {order.items?.map((item: any, idx: number) => (
-            <div key={idx} className="py-4 flex items-center gap-4">
-              <div className="relative w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                <Image src={item.image || '/images/7.png'} alt={item.name} fill className="object-cover" />
+          {order.items?.map((item: any, idx: number) => {
+            const itemImg = item.image || '/images/7.png';
+            return (
+              <div key={idx} className="py-4 flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setEnlargedImage(itemImg)}
+                  className="relative w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0 group border border-gray-200 hover:border-black transition-all cursor-zoom-in text-left focus:outline-none"
+                  title="Click to zoom image"
+                >
+                  <Image src={itemImg} alt={item.name} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                  </div>
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-gray-900 truncate">{item.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {item.color && `Color: ${item.color}`}{item.color && item.size && ' · '}{item.size && `Size: ${item.size}`}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+                  <p className="font-bold text-sm text-black">₨{(item.price * item.quantity).toLocaleString()}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-gray-900 truncate">{item.name}</p>
-                <p className="text-xs text-gray-400">
-                  {item.color && `Color: ${item.color}`}{item.color && item.size && ' · '}{item.size && `Size: ${item.size}`}
-                </p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
-                <p className="font-bold text-sm text-black">₨{(item.price * item.quantity).toLocaleString()}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Total */}
@@ -178,6 +190,32 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox / Zoom Modal */}
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={enlargedImage}
+              alt="Enlarged product view"
+              className="max-w-full max-h-[82vh] object-contain rounded-xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

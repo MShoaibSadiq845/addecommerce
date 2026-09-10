@@ -125,6 +125,7 @@ export default function ProductDetailPage() {
   const colors: string[] = product.colors || [];
   const sizes: string[] = product.sizes || [];
   const isOutOfStock = product.stock <= 0;
+  const chosenImage = images[selectedImage] || images[0];
 
   const handleAddToCart = async () => {
     setActiveActionButton('cart');
@@ -136,7 +137,7 @@ export default function ProductDetailPage() {
       id: product._id,
       name: product.name,
       price: effectivePrice,
-      image: images[0],
+      image: chosenImage,
       quantity,
       size: chosenSize,
       color: chosenColor,
@@ -160,7 +161,7 @@ export default function ProductDetailPage() {
       quantity,
       size: chosenSize,
       color: chosenColor,
-      image: images[0],
+      image: chosenImage,
     };
 
     try {
@@ -188,7 +189,7 @@ export default function ProductDetailPage() {
         quantity,
         size: chosenSize,
         color: chosenColor,
-        image: images[0],
+        image: chosenImage,
       };
 
       // 1. Update local Redux state
@@ -196,7 +197,7 @@ export default function ProductDetailPage() {
         id: product._id,
         name: product.name,
         price: effectivePrice,
-        image: images[0],
+        image: chosenImage,
         quantity,
         size: chosenSize,
         color: chosenColor,

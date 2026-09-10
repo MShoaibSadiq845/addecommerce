@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
+  X,
+  ZoomIn,
 } from 'lucide-react';
 import { useGetOrdersByEmailQuery } from '@/store/services/ordersApi';
 
@@ -156,6 +158,7 @@ function PaymentStatusBadge({ status }: { status?: string }) {
 
 function OrderCard({ order }: { order: any }) {
   const [expanded, setExpanded] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -227,9 +230,17 @@ function OrderCard({ order }: { order: any }) {
             {order.items?.map((item: any, idx: number) => (
               <div key={idx} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                 {item.image && (
-                  <div className="relative w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEnlargedImage(item.image)}
+                    className="relative w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0 group border border-gray-200 hover:border-black transition-all cursor-zoom-in text-left focus:outline-none"
+                    title="Click to zoom image"
+                  >
+                    <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                    </div>
+                  </button>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-gray-900 truncate">
@@ -258,6 +269,32 @@ function OrderCard({ order }: { order: any }) {
               {order.shippingAddress?.province && `${order.shippingAddress.province}, `}
               {order.shippingAddress?.country}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox / Zoom Modal */}
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={enlargedImage}
+              alt="Enlarged product view"
+              className="max-w-full max-h-[82vh] object-contain rounded-xl"
+            />
           </div>
         </div>
       )}
