@@ -172,7 +172,10 @@ export default function ProductDetailPage() {
   const colors: string[] = product.colors || [];
   const sizes: string[] = product.sizes || [];
   const isOutOfStock = product.stock <= 0;
-  const chosenImage = images[selectedImage] || images[0];
+  // The image used in cart/order payloads.
+  // For sofa products: always locked to images[0] regardless of which thumbnail is viewed.
+  // For all other categories: follows the currently selected thumbnail.
+  const chosenImage = isSofa ? images[0] : (images[selectedImage] || images[0]);
 
   const chosenVariant = isSofa ? selectedSeat : selectedSize || (sizes[0] ?? '');
   const chosenColor = selectedColor || (colors[0] ?? '');
@@ -302,13 +305,17 @@ export default function ProductDetailPage() {
           <div className="flex flex-col-reverse sm:flex-row gap-4">
             <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible">
               {images.map((img: string, i: number) => (
-                <button key={i} onClick={() => setSelectedImage(i)}
-                  className={`shrink-0 relative w-[80px] h-[90px] sm:w-[90px] sm:h-[100px] bg-gray-50 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i ? 'border-black' : 'border-gray-200 opacity-70 hover:opacity-100'}`}>
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(i)}
+                  className={`shrink-0 relative w-[80px] h-[90px] sm:w-[90px] sm:h-[100px] bg-gray-50 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i ? 'border-black' : 'border-gray-200 opacity-70 hover:opacity-100'}`}
+                >
                   <Image src={img} alt="" fill className="object-cover" />
                 </button>
               ))}
             </div>
             <div className="flex-1 relative aspect-square sm:aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
+              {/* Display image changes freely with thumbnail selection for all products */}
               <Image src={images[selectedImage] || images[0]} alt={product.name} fill className="object-cover" priority />
               {product.isOnSale && (
                 <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
