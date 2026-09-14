@@ -59,6 +59,19 @@ let UsersService = class UsersService {
             throw new common_1.NotFoundException('User not found');
         return user;
     }
+    async updateRole(id, role) {
+        const validRoles = Object.values(user_schema_1.UserRole);
+        if (!validRoles.includes(role)) {
+            throw new common_1.BadRequestException(`Invalid role: ${role}. Valid roles are: ${validRoles.join(', ')}`);
+        }
+        const user = await this.userModel
+            .findByIdAndUpdate(id, { $set: { role } }, { returnDocument: 'after' })
+            .select('-password')
+            .exec();
+        if (!user)
+            throw new common_1.NotFoundException('User not found');
+        return user;
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

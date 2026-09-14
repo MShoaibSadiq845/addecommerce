@@ -44,6 +44,9 @@ export class Product {
   @Prop({ type: [String], default: [] })
   tags: string[];
 
+  @Prop({ type: Object, default: {} })
+  seatPricing: Record<string, number>;
+
   @Prop({ type: Number, default: 4.5 })
   rating: number;
 
@@ -55,3 +58,4 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+

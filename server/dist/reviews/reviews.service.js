@@ -24,7 +24,17 @@ let ReviewsService = class ReviewsService {
         this.gateway = gateway;
     }
     async createReview(data) {
-        const review = await this.reviewModel.create(data);
+        const images = data.images && data.images.length > 0
+            ? data.images
+            : data.image
+                ? [data.image]
+                : [];
+        const mainImage = data.image || (images.length > 0 ? images[0] : undefined);
+        const review = await this.reviewModel.create({
+            ...data,
+            image: mainImage,
+            images,
+        });
         this.gateway.broadcastReview(review);
         return review;
     }

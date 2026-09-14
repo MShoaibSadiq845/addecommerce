@@ -12,6 +12,7 @@ export declare class ReviewsService {
         productId?: string;
         productName?: string;
         image?: string;
+        images?: string[];
     }): Promise<import("mongoose").Document<unknown, {}, ReviewDocument, {}, import("mongoose").DefaultSchemaOptions> & Review & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {

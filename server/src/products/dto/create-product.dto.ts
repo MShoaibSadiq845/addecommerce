@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -65,6 +66,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsArray()
   tags?: string[];
+
+  @IsOptional()
+  @IsObject()
+  seatPricing?: Record<string, number>;
 
   @IsOptional()
   @IsNumber()

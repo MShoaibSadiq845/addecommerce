@@ -7,6 +7,7 @@ export declare class Review {
     productId?: string;
     productName?: string;
     image?: string;
+    images?: string[];
 }
 export declare const ReviewSchema: import("mongoose").Schema<Review, import("mongoose").Model<Review, any, any, any, any, any, Review>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Review, Document<unknown, {}, Review, {
     id: string;
@@ -63,6 +64,15 @@ export declare const ReviewSchema: import("mongoose").Schema<Review, import("mon
         id: string;
     }>>;
     image?: import("mongoose").SchemaDefinitionProperty<string, Review, Document<unknown, {}, Review, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    images?: import("mongoose").SchemaDefinitionProperty<string[], Review, Document<unknown, {}, Review, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
         _id: import("mongoose").Types.ObjectId;

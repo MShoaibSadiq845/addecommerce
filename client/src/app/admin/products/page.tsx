@@ -10,10 +10,11 @@ import {
   useToggleSaleMutation,
 } from '@/store/services/productsApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search } from 'lucide-react';
+import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search, Armchair, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
+import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -55,6 +56,7 @@ function AdminProductsContent() {
   const totalPages = data?.pages || 1;
 
   const [saleModalProduct, setSaleModalProduct] = useState<any>(null);
+  const [seatModalProduct, setSeatModalProduct] = useState<any>(null);
   const [salePriceInput, setSalePriceInput] = useState('');
   const [salePriceError, setSalePriceError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -96,7 +98,7 @@ function AdminProductsContent() {
       const val = Number(salePriceInput);
       if (isNaN(val) || val <= 0 || val >= saleModalProduct.price) {
         setSalePriceError(
-          `Discounted price must be between $0.01 and $${saleModalProduct.price - 1}`,
+          `Discounted price must be between ₨1 and ₨${saleModalProduct.price - 1}`,
         );
         return;
       }
@@ -125,7 +127,7 @@ function AdminProductsContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">All Products</h1>
           <p className="text-xs text-gray-400 font-['Open_Sans']">
-            Manage inventory, trigger sales &amp; set loyalty items
+            Manage inventory, dynamic sofa seat pricing &amp; flash sales
           </p>
         </div>
         <Link
@@ -185,7 +187,7 @@ function AdminProductsContent() {
                   <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
                     <th className="pb-3">Product</th>
                     <th className="pb-3">Category</th>
-                    <th className="pb-3">Price</th>
+                    <th className="pb-3">Price / Seating</th>
                     <th className="pb-3">Purchase Type</th>
                     <th className="pb-3">Stock</th>
                     <th className="pb-3">Rating</th>
@@ -197,6 +199,8 @@ function AdminProductsContent() {
                   {products.map((product: any) => {
                     const isThisDeleting = deletingId === product._id;
                     const isThisToggling = togglingId === product._id;
+                    const isSofa = isSofaProduct(product.name, product.category, product.tags, product.seatPricing);
+                    const seatPricingCount = product.seatPricing ? Object.keys(product.seatPricing).length : 0;
 
                     return (
                       <tr
@@ -214,23 +218,48 @@ function AdminProductsContent() {
                               className="object-cover"
                             />
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col gap-0.5">
                             <span className="font-bold text-gray-900 text-sm">{product.name}</span>
-                            <span className="text-[10px] text-gray-400 font-mono">
-                              SKU: {product.sku}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-gray-400 font-mono">
+                                SKU: {product.sku}
+                              </span>
+                              {isSofa && (
+                                <span className="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                  <Armchair className="w-2.5 h-2.5" /> Sofa
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
 
                         <td className="py-4">{product.category}</td>
 
                         <td className="py-4 font-bold text-black">
-                          ${product.isOnSale ? product.salePrice : product.price}
-                          {product.isOnSale && (
-                            <span className="text-[10px] text-gray-400 line-through block font-normal">
-                              ${product.price}
-                            </span>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5">
+                              <span>₨{product.isOnSale ? product.salePrice?.toLocaleString() : product.price?.toLocaleString()}</span>
+                              {product.isOnSale && (
+                                <span className="text-[10px] text-gray-400 line-through font-normal">
+                                  ₨{product.price?.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Sofa seat pricing summary badge */}
+                            {isSofa && (
+                              <button
+                                type="button"
+                                onClick={() => setSeatModalProduct(product)}
+                                className="w-fit text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1 transition-colors"
+                                title="Click to view all sofa seat prices"
+                              >
+                                <Armchair className="w-3 h-3 text-amber-600" />
+                                {seatPricingCount > 0 ? `${seatPricingCount} Seat Tiers` : 'Seat Pricing'}
+                                <Eye className="w-2.5 h-2.5 text-amber-500" />
+                              </button>
+                            )}
+                          </div>
                         </td>
 
                         <td className="py-4">
@@ -240,7 +269,7 @@ function AdminProductsContent() {
                             </span>
                           ) : product.purchaseType === 'hybrid' ? (
                             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-flex items-center gap-1">
-                              <Zap className="w-3 h-3" /> Hybrid (${product.price} /{' '}
+                              <Zap className="w-3 h-3" /> Hybrid (₨{product.price} /{' '}
                               {product.pointsPrice} pts)
                             </span>
                           ) : (
@@ -310,7 +339,7 @@ function AdminProductsContent() {
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               href={`/admin/products/edit/${product._id}`}
-                              className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
+                              className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
                               title="Edit Product"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -318,7 +347,7 @@ function AdminProductsContent() {
                             <button
                               onClick={() => handleDeleteClick(product)}
                               disabled={isThisDeleting || !!deletingId}
-                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               title="Delete Product"
                             >
                               {isThisDeleting ? (
@@ -347,6 +376,86 @@ function AdminProductsContent() {
         </div>
       )}
 
+      {/* ─── Sofa Seat Pricing Overview Modal ─── */}
+      {seatModalProduct && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full flex flex-col gap-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-500 text-white rounded-xl">
+                  <Armchair className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-900">
+                    Sofa Seat Pricing Overview
+                  </h3>
+                  <p className="text-xs text-gray-400 font-medium truncate max-w-[280px]">
+                    {seatModalProduct.name}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSeatModalProduct(null)}
+                className="text-gray-400 hover:text-black p-1 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="grid grid-cols-2 gap-3">
+                {SOFA_SEAT_OPTIONS.map((opt) => {
+                  const customPrice = seatModalProduct.seatPricing?.[opt.key];
+                  const displayPrice =
+                    customPrice !== undefined
+                      ? customPrice
+                      : opt.key === '1 seats'
+                      ? seatModalProduct.price
+                      : null;
+
+                  return (
+                    <div
+                      key={opt.key}
+                      className="bg-white p-3 rounded-xl border border-gray-200 flex flex-col gap-1 shadow-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-gray-900">{opt.label}</span>
+                        <span className="text-[9px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                          {opt.badge}
+                        </span>
+                      </div>
+                      <span className="text-sm font-extrabold text-black">
+                        {displayPrice !== null ? `₨${Number(displayPrice).toLocaleString()}` : <span className="text-gray-300 font-normal text-xs">Not Set (Base ₨{seatModalProduct.price})</span>}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-gray-400 font-mono">
+                SKU: {seatModalProduct.sku}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSeatModalProduct(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Close
+                </button>
+                <Link
+                  href={`/admin/products/edit/${seatModalProduct._id}`}
+                  className="px-4 py-2 bg-black hover:bg-gray-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
+                >
+                  <Edit3 className="w-3.5 h-3.5" /> Edit Pricing
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Sale Trigger Modal ─── */}
       {saleModalProduct && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -367,7 +476,7 @@ function AdminProductsContent() {
 
             <p className="text-xs text-gray-600">
               Triggering a sale on <strong>{saleModalProduct.name}</strong> will automatically
-              send a real-time Socket.IO alert to all connected store shoppers!
+              send a real-time alert to all connected store shoppers!
             </p>
 
             <form onSubmit={handleSaveSale} className="flex flex-col gap-4">
@@ -376,13 +485,13 @@ function AdminProductsContent() {
                 <input
                   type="text"
                   disabled
-                  value={`$${saleModalProduct.price}`}
+                  value={`₨${saleModalProduct.price}`}
                   className="bg-gray-100 rounded-xl p-2.5 text-xs text-gray-500 font-bold"
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-700">Discounted Sale Price ($)</label>
+                <label className="text-xs font-bold text-gray-700">Discounted Sale Price (PKR)</label>
                 <input
                   type="number"
                   value={salePriceInput}
@@ -391,7 +500,7 @@ function AdminProductsContent() {
                     const val = Number(e.target.value);
                     if (isNaN(val) || val <= 0 || val >= saleModalProduct.price) {
                       setSalePriceError(
-                        `Discounted price must be between $0.01 and $${saleModalProduct.price - 1}`,
+                        `Discounted price must be between ₨1 and ₨${saleModalProduct.price - 1}`,
                       );
                     } else {
                       setSalePriceError('');

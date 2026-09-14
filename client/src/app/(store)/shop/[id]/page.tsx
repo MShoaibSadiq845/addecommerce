@@ -14,10 +14,11 @@ import { useAddToCartBackendMutation } from '@/store/services/cartApi';
 import { getSessionId } from '@/lib/sessionId';
 import { ProductDetailSkeleton } from '@/components/ui/skeletons/ProductDetailSkeleton';
 import ReviewModal from '@/components/storefront/ReviewModal';
-import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, PenLine, Star, RefreshCw, Zap, Loader2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, PenLine, RefreshCw, Zap, Loader2, X } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 import { toast } from 'react-hot-toast';
 import { trackViewContent, trackAddToCart, trackInitiateCheckout } from '@/lib/fb-pixel';
+import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -71,6 +72,7 @@ export default function ProductDetailPage() {
   const [addToCartBackend] = useAddToCartBackendMutation();
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSeat, setSelectedSeat] = useState('1 seats');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -92,17 +94,66 @@ export default function ProductDetailPage() {
     return () => setLoading(false);
   }, [isLoading, isAddingToCart, buyingNow, setLoading]);
 
+  const isSofa = product
+    ? isSofaProduct(product.name, product.category, product.tags, product.seatPricing)
+    : false;
+
+  // Compute pricing: if DB has a custom seat price use it, otherwise multiply base price by seat count
+  // e.g. 1 seat = 750 => 2 seats = 1500, 3 seats = 2250, 5 seats = 3750, etc.
+  const SEAT_COUNT: Record<string, number> = {
+    '1 seats': 1, '2 seats': 2, '3 seats': 3,
+    '2(1+1)': 2, '5(3+1+1)': 5, '5(3+2)': 5,
+    '6(3+2+1)': 6, '7(3+2+1+1)': 7,
+  };
+
+  const getBaseSeatPrice = (seatKey: string): number => {
+    if (!product) return 0;
+    // If admin has set a custom price in DB for this seat key, use it
+    if (product.seatPricing && product.seatPricing[seatKey] !== undefined && Number(product.seatPricing[seatKey]) > 0) {
+      return Number(product.seatPricing[seatKey]);
+    }
+    // Otherwise: pure multiplication — price × number of seats
+    const base = product.price || 0;
+    const seatCount = SEAT_COUNT[seatKey] ?? 1;
+    return base * seatCount;
+  };
+
+  const currentBasePrice = product
+    ? isSofa
+      ? getBaseSeatPrice(selectedSeat)
+      : product.price
+    : 0;
+
+  const effectivePrice = product
+    ? product.isOnSale
+      ? product.salePrice && product.price
+        ? Math.round(currentBasePrice * (product.salePrice / product.price))
+        : Math.round(currentBasePrice * 0.8)
+      : currentBasePrice
+    : 0;
+
+  const discount = product && product.isOnSale
+    ? Math.round(((currentBasePrice - effectivePrice) / currentBasePrice) * 100) || 20
+    : 0;
+
+  // Strikethrough comparative price
+  const strikethroughPrice = product && product.isOnSale
+    ? currentBasePrice > effectivePrice
+      ? currentBasePrice
+      : Math.round(effectivePrice * 1.35)
+    : 0;
+
   // 🔥 Meta Pixel — ViewContent fires once product data is loaded
   useEffect(() => {
     if (!product) return;
     trackViewContent({
       name: product.name,
       contentId: product._id,
-      value: product.isOnSale ? product.salePrice : product.price,
+      value: effectivePrice,
       currency: 'PKR',
       category: product.category ?? '',
     });
-  }, [product]);
+  }, [product, effectivePrice]);
 
   // 2. Early return AFTER all hooks
   if (isLoading) return <ProductDetailSkeleton />;
@@ -117,20 +168,17 @@ export default function ProductDetailPage() {
     );
   }
 
-  const effectivePrice = product.isOnSale ? product.salePrice : product.price;
-  const discount = product.isOnSale
-    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
-    : 0;
   const images = product.images?.length > 0 ? product.images : ['/images/30.png'];
   const colors: string[] = product.colors || [];
   const sizes: string[] = product.sizes || [];
   const isOutOfStock = product.stock <= 0;
   const chosenImage = images[selectedImage] || images[0];
 
+  const chosenVariant = isSofa ? selectedSeat : selectedSize || (sizes[0] ?? '');
+  const chosenColor = selectedColor || (colors[0] ?? '');
+
   const handleAddToCart = async () => {
     setActiveActionButton('cart');
-    const chosenSize = selectedSize || (sizes[0] ?? '');
-    const chosenColor = selectedColor || (colors[0] ?? '');
 
     // 1. Update local Redux state immediately
     dispatch(addToCart({
@@ -139,10 +187,10 @@ export default function ProductDetailPage() {
       price: effectivePrice,
       image: chosenImage,
       quantity,
-      size: chosenSize,
+      size: chosenVariant,
       color: chosenColor,
     }));
-    toast.success(`${product.name} added to cart!`, { duration: 1500 });
+    toast.success(`${product.name} (${chosenVariant || 'Standard'}) added to cart!`, { duration: 1500 });
 
     // 🔥 Meta Pixel — AddToCart
     trackAddToCart({
@@ -159,7 +207,7 @@ export default function ProductDetailPage() {
       name: product.name,
       price: effectivePrice,
       quantity,
-      size: chosenSize,
+      size: chosenVariant,
       color: chosenColor,
       image: chosenImage,
     };
@@ -180,14 +228,12 @@ export default function ProductDetailPage() {
     setActiveActionButton('buy');
     setBuyingNow(true);
     try {
-      const chosenSize = selectedSize || (sizes[0] ?? '');
-      const chosenColor = selectedColor || (colors[0] ?? '');
       const itemPayload = {
         productId: product._id,
         name: product.name,
         price: effectivePrice,
         quantity,
-        size: chosenSize,
+        size: chosenVariant,
         color: chosenColor,
         image: chosenImage,
       };
@@ -199,7 +245,7 @@ export default function ProductDetailPage() {
         price: effectivePrice,
         image: chosenImage,
         quantity,
-        size: chosenSize,
+        size: chosenVariant,
         color: chosenColor,
       }));
 
@@ -229,16 +275,25 @@ export default function ProductDetailPage() {
     }
   };
 
+  // Sofa seat options structured in 3 rows matching the visual reference
+  const sofaRow1 = SOFA_SEAT_OPTIONS.slice(0, 3); // 1 seats, 2 seats, 3 seats
+  const sofaRow2 = SOFA_SEAT_OPTIONS.slice(3, 6); // 2(1+1), 5(3+1+1), 5(3+2)
+  const sofaRow3 = SOFA_SEAT_OPTIONS.slice(6, 8); // 6(3+2+1), 7(3+2+1+1)
+
   return (
     <div className="w-full font-['Satoshi']">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 py-8">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-8">
-          <Link href="/" className="hover:text-black">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <Link href="/shop" className="hover:text-black">Shop</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-black font-medium">{product.name}</span>
+        <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-8 font-light">
+          <Link href="/" className="hover:text-black transition-colors">Home</Link>
+          <ChevronRight className="w-3 h-3 text-gray-400" />
+          <Link href={`/shop?category=${encodeURIComponent(product.category)}`} className="hover:text-black transition-colors">
+            {product.category}
+          </Link>
+          <ChevronRight className="w-3 h-3 text-gray-400" />
+          <span className="text-black font-normal uppercase truncate max-w-[240px] sm:max-w-md">
+            {product.name}
+          </span>
         </nav>
 
         {/* Main grid */}
@@ -248,15 +303,15 @@ export default function ProductDetailPage() {
             <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible">
               {images.map((img: string, i: number) => (
                 <button key={i} onClick={() => setSelectedImage(i)}
-                  className={`shrink-0 relative w-[90px] h-[100px] bg-gray-100 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === i ? 'border-black' : 'border-transparent opacity-60 hover:opacity-90'}`}>
+                  className={`shrink-0 relative w-[80px] h-[90px] sm:w-[90px] sm:h-[100px] bg-gray-50 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === i ? 'border-black' : 'border-gray-200 opacity-70 hover:opacity-100'}`}>
                   <Image src={img} alt="" fill className="object-cover" />
                 </button>
               ))}
             </div>
-            <div className="flex-1 relative aspect-square sm:aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden">
+            <div className="flex-1 relative aspect-square sm:aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
               <Image src={images[selectedImage] || images[0]} alt={product.name} fill className="object-cover" priority />
               {product.isOnSale && (
-                <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                   -{discount}%
                 </span>
               )}
@@ -265,39 +320,136 @@ export default function ProductDetailPage() {
 
           {/* Info panel */}
           <div className="flex flex-col gap-5">
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight"
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-gray-900 tracking-tight uppercase"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
               {product.name}
             </h1>
 
             <div className="flex items-center gap-3">
               <Stars rating={product.rating || 4.5} />
-              <span className="text-sm text-gray-500">{product.rating || 4.5}/5</span>
+              <span className="text-xs text-gray-500">{(product.rating || 4.5).toFixed(1)}/5 ({reviews.length} reviews)</span>
             </div>
 
-            {/* Price in PKR */}
-            <div className="flex items-center gap-3 pb-5 border-b border-gray-200">
-              <span className="text-3xl font-bold text-black">₨{effectivePrice?.toLocaleString()}</span>
+            {/* Price display with PKR Rs. format matching reference */}
+            <div className="flex items-baseline gap-3 pb-4 border-b border-gray-100">
+              {strikethroughPrice > effectivePrice && (
+                <span className="text-xl sm:text-2xl font-light text-gray-400 line-through">
+                  Rs.{strikethroughPrice.toLocaleString()}.00
+                </span>
+              )}
+              <span className="text-2xl sm:text-3xl font-normal text-black">
+                Rs.{effectivePrice.toLocaleString()}.00
+              </span>
               {product.isOnSale && (
-                <>
-                  <span className="text-xl font-bold text-gray-300 line-through">₨{product.price?.toLocaleString()}</span>
-                  <span className="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full">-{discount}%</span>
-                </>
+                <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-200">
+                  Save {discount}%
+                </span>
               )}
             </div>
 
-            <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+            <p className="text-sm text-gray-600 leading-relaxed font-light">{product.description}</p>
+
+            {/* 🛋️ SOFA SEATS SELECTION (Matches Screenshot Design) */}
+            {isSofa ? (
+              <div className="py-2 flex flex-col gap-3">
+                <p className="text-xs tracking-[0.25em] text-gray-800 font-normal uppercase">
+                  S E A T S
+                </p>
+
+                <div className="flex flex-col gap-2.5">
+                  {/* Row 1: 1 seats, 2 seats, 3 seats */}
+                  <div className="grid grid-cols-3 gap-2.5 max-w-md">
+                    {sofaRow1.map((opt) => {
+                      const isSelected = selectedSeat === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setSelectedSeat(opt.key)}
+                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                            isSelected
+                              ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
+                              : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Row 2: 2(1+1), 5(3+1+1), 5(3+2) */}
+                  <div className="grid grid-cols-3 gap-2.5 max-w-md">
+                    {sofaRow2.map((opt) => {
+                      const isSelected = selectedSeat === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setSelectedSeat(opt.key)}
+                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                            isSelected
+                              ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
+                              : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Row 3: 6(3+2+1), 7(3+2+1+1) */}
+                  <div className="grid grid-cols-2 gap-2.5 max-w-[305px]">
+                    {sofaRow3.map((opt) => {
+                      const isSelected = selectedSeat === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setSelectedSeat(opt.key)}
+                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                            isSelected
+                              ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
+                              : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Regular Size selection for non-sofa products */
+              sizes.length > 0 && (
+                <div className="pb-4 border-b border-gray-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">
+                    Size {selectedSize && <span className="text-black normal-case font-bold">— {selectedSize}</span>}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {sizes.map((s) => (
+                      <button key={s} onClick={() => setSelectedSize(s)}
+                        className={`px-4 py-2 rounded-lg text-sm border transition-all ${selectedSize === s ? 'bg-black text-white border-black' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400'}`}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
 
             {/* Color selection */}
             {colors.length > 0 && (
-              <div className="pb-4 border-b border-gray-200">
-                <p className="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">
-                  Color {selectedColor && <span className="text-black normal-case font-bold">— {selectedColor}</span>}
+              <div className="py-2 border-t border-gray-100">
+                <p className="text-xs font-medium text-gray-700 mb-2 uppercase tracking-wider">
+                  Color {selectedColor && <span className="text-black font-bold">— {selectedColor}</span>}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((c) => (
                     <button key={c} onClick={() => setSelectedColor(c)}
-                      className={`px-4 py-1.5 rounded-full text-sm border transition-all ${selectedColor === c ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500'}`}>
+                      className={`px-4 py-1.5 text-xs font-medium border transition-all rounded-md ${selectedColor === c ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'}`}>
                       {c}
                     </button>
                   ))}
@@ -305,74 +457,56 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Size selection */}
-            {sizes.length > 0 && (
-              <div className="pb-4 border-b border-gray-200">
-                <p className="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">
-                  Size {selectedSize && <span className="text-black normal-case font-bold">— {selectedSize}</span>}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((s) => (
-                    <button key={s} onClick={() => setSelectedSize(s)}
-                      className={`px-4 py-2 rounded-full text-sm border transition-all ${selectedSize === s ? 'bg-black text-white border-black' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400'}`}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Quantity + Add to Cart + Buy Now */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-              <div className="flex items-center justify-between gap-3 bg-gray-100 rounded-full px-4 py-3 sm:w-36">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-gray-600 hover:text-black">
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="font-bold text-sm text-center">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="text-gray-600 hover:text-black">
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                {/* Qty stepper */}
+                <div className="flex items-center justify-between gap-3 bg-gray-100 rounded-full px-4 py-3 sm:w-36">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-gray-600 hover:text-black transition-colors">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="font-bold text-sm text-center">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="text-gray-600 hover:text-black transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
 
-              <div className="flex flex-1 gap-3">
+                {/* ADD TO CART — black border, white bg → hover: full black fill */}
                 <button
                   disabled={isOutOfStock || isAddingToCart || buyingNow}
                   onClick={handleAddToCart}
-                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${activeActionButton === 'cart'
-                      ? 'bg-black text-white hover:bg-gray-800 shadow-md'
-                      : 'bg-white text-black border-2 border-black hover:bg-gray-100'
-                    }`}
+                  className="group flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2
+                    border-2 border-black bg-white text-black
+                    hover:bg-black hover:text-white
+                    active:scale-95
+                    transition-all duration-200 ease-in-out
+                    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black"
                 >
                   {isAddingToCart ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" /> Adding…
-                    </>
+                    <><RefreshCw className="w-4 h-4 animate-spin" /> Adding…</>
                   ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" /> Add to Cart
-                    </>
-                  )}
-                </button>
-
-                <button
-                  disabled={isOutOfStock || isAddingToCart || buyingNow}
-                  onClick={handleBuyNow}
-                  className={`flex-1 py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${activeActionButton === 'buy'
-                      ? 'bg-black text-white hover:bg-gray-800 shadow-md'
-                      : 'bg-white text-black border-2 border-black hover:bg-gray-100'
-                    }`}
-                >
-                  {buyingNow ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Buying…
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4" /> Buy Now
-                    </>
+                    <><ShoppingCart className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" /> ADD TO CART</>
                   )}
                 </button>
               </div>
+
+              {/* BUY IT NOW — dark red → hover: full black (same style as ADD TO CART) */}
+              <button
+                disabled={isOutOfStock || isAddingToCart || buyingNow}
+                onClick={handleBuyNow}
+                className="group w-full py-3.5 px-4 rounded-full text-sm font-bold flex items-center justify-center gap-2
+                  bg-black text-white border-2 border-black
+                  hover:bg-gray-800 hover:border-gray-800 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]
+                  active:scale-95 active:bg-gray-900
+                  transition-all duration-200 ease-in-out
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:border-black disabled:hover:shadow-none"
+              >
+                {buyingNow ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Buying…</>
+                ) : (
+                  <><Zap className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" /> BUY IT NOW</>
+                )}
+              </button>
             </div>
 
             {isOutOfStock && (
@@ -384,6 +518,7 @@ export default function ProductDetailPage() {
               <span>Category: <strong className="text-black">{product.category}</strong></span>
               <span>Stock: <strong className="text-black">{product.stock} units</strong></span>
               <span>SKU: <strong className="text-black font-mono">{product.sku}</strong></span>
+              {isSofa && <span>Selected: <strong className="text-black font-semibold">{selectedSeat}</strong></span>}
             </div>
           </div>
         </div>
@@ -405,7 +540,19 @@ export default function ProductDetailPage() {
               {colors.length > 0 && (
                 <p className="mt-4 text-sm"><span className="font-bold">Available Colors:</span> {colors.join(', ')}</p>
               )}
-              {sizes.length > 0 && (
+              {isSofa ? (
+                <div className="mt-4 text-sm">
+                  <span className="font-bold">Available Seating Configurations:</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                    {SOFA_SEAT_OPTIONS.map((opt) => (
+                      <div key={opt.key} className="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs">
+                        <span className="font-bold block text-gray-900">{opt.label}</span>
+                        <span className="text-gray-500">{opt.badge}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : sizes.length > 0 && (
                 <p className="mt-2 text-sm"><span className="font-bold">Available Sizes:</span> {sizes.join(', ')}</p>
               )}
             </div>

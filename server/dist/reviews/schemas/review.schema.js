@@ -38,6 +38,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String, required: false }),
     __metadata("design:type", String)
 ], Review.prototype, "image", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], required: false, default: [] }),
+    __metadata("design:type", Array)
+], Review.prototype, "images", void 0);
 exports.Review = Review = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Review);

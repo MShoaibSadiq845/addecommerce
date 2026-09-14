@@ -88,28 +88,34 @@ export class OrdersService {
 
 
 
-      const unitPrice = product.isOnSale ? product.salePrice : product.price;
+      // Sofa products use seat-based pricing (e.g. 5 seats x Rs750 = Rs3750).
+      // The frontend sends the already-multiplied price in item.price.
+      // We use that for sofa products; for normal products we use the DB price.
+      const isSofaProduct =
+        product.name?.toLowerCase().includes('sofa') ||
+        product.category?.toLowerCase().includes('sofa') ||
+        (product.seatPricing && Object.keys(product.seatPricing || {}).length > 0);
+
+      let unitPrice: number;
+      if (isSofaProduct && item.price && Number(item.price) > 0) {
+        // Use the seat-calculated price the frontend sent
+        unitPrice = Number(item.price);
+      } else if (product.isOnSale && product.salePrice) {
+        unitPrice = product.salePrice;
+      } else {
+        unitPrice = product.price;
+      }
 
       totalAmount += unitPrice * item.quantity;
 
-
-
       processedItems.push({
-
         product: product._id,
-
         name: product.name,
-
         price: unitPrice,
-
         quantity: item.quantity,
-
         color: item.color || '',
-
         size: item.size || '',
-
         image: item.image || (product.images?.[0] ?? ''),
-
       });
 
 
