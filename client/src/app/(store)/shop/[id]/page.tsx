@@ -180,7 +180,30 @@ export default function ProductDetailPage() {
   const chosenVariant = isSofa ? selectedSeat : selectedSize || (sizes[0] ?? '');
   const chosenColor = selectedColor || (colors[0] ?? '');
 
+  const handleIncreaseQuantity = () => {
+    if (product && product.stock !== undefined) {
+      if (product.stock <= 0) {
+        toast.error('Sorry, this product is out of stock.');
+        return;
+      }
+      if (quantity >= product.stock) {
+        toast.error(`Stock is not available. Only ${product.stock} unit(s) available in stock.`);
+        return;
+      }
+    }
+    setQuantity((prev) => prev + 1);
+  };
+
+  const handleDecreaseQuantity = () => {
+    setQuantity((prev) => Math.max(1, prev - 1));
+  };
+
   const handleAddToCart = async () => {
+    if (product && product.stock !== undefined && quantity > product.stock) {
+      toast.error(`Stock is not available. Only ${product.stock} unit(s) available.`);
+      return;
+    }
+
     setActiveActionButton('cart');
 
     // 1. Update local Redux state immediately
@@ -228,6 +251,12 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = async () => {
     if (buyingNow || isOutOfStock) return;
+
+    if (product && product.stock !== undefined && quantity > product.stock) {
+      toast.error(`Stock is not available. Only ${product.stock} unit(s) available.`);
+      return;
+    }
+
     setActiveActionButton('buy');
     setBuyingNow(true);
     try {
@@ -469,11 +498,11 @@ export default function ProductDetailPage() {
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                 {/* Qty stepper */}
                 <div className="flex items-center justify-between gap-3 bg-gray-100 rounded-full px-4 py-3 sm:w-36">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-gray-600 hover:text-black transition-colors">
+                  <button onClick={handleDecreaseQuantity} className="text-gray-600 hover:text-black transition-colors" aria-label="Decrease quantity">
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="font-bold text-sm text-center">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="text-gray-600 hover:text-black transition-colors">
+                  <button onClick={handleIncreaseQuantity} className="text-gray-600 hover:text-black transition-colors" aria-label="Increase quantity">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>

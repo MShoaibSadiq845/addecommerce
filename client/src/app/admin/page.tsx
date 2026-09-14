@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useGetAdminMetricsQuery } from '@/store/services/ordersApi';
 import { DashboardWidgetSkeleton } from '@/components/ui/skeletons/TableSkeleton';
 import { useLoading } from '@/context/LoadingContext';
+import StockAlert from '@/components/admin/StockAlert';
 import { ShoppingCart, PackageCheck, Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -264,42 +265,50 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Recent Customer Orders Table */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 min-w-0">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h3 className="font-bold text-base text-gray-900">Recent Customer Orders</h3>
-          <Link href="/admin/orders" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
-            Manage Orders <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+      {/* Bottom Grid: Stock Alert + Recent Customer Orders Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Low Stock Alert Component */}
+        <div className="lg:col-span-1">
+          <StockAlert />
         </div>
 
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left text-xs font-['Open_Sans'] min-w-[500px]">
-            <thead>
-              <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
-                <th className="pb-3">Order ID</th>
-                <th className="pb-3">Customer</th>
-                <th className="pb-3">Items</th>
-                <th className="pb-3">Total Amount</th>
-                <th className="pb-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
-              {recentOrders.map((order: any) => (
-                <tr key={order._id} className="hover:bg-gray-50 transition-all">
-                  <td className="py-3.5 font-bold text-black">#{order._id.slice(-6)}</td>
-                  <td className="py-3.5">{order.user?.name || 'Customer'}</td>
-                  <td className="py-3.5">{order.items?.length || 1} Products</td>
-                  <td className="py-3.5 font-bold text-black">Rs {order.totalAmount?.toLocaleString()}</td>
-                  <td className="py-3.5">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
-                      {order.status}
-                    </span>
-                  </td>
+        {/* Recent Customer Orders Table */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 min-w-0">
+          <div className="flex items-center justify-between border-b pb-4">
+            <h3 className="font-bold text-base text-gray-900">Recent Customer Orders</h3>
+            <Link href="/admin/orders" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+              Manage Orders <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-xs font-['Open_Sans'] min-w-[500px]">
+              <thead>
+                <tr className="border-b text-gray-400 font-bold uppercase tracking-wider">
+                  <th className="pb-3">Order ID</th>
+                  <th className="pb-3">Customer</th>
+                  <th className="pb-3">Items</th>
+                  <th className="pb-3">Total Amount</th>
+                  <th className="pb-3">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
+                {recentOrders.map((order: any) => (
+                  <tr key={order._id} className="hover:bg-gray-50 transition-all">
+                    <td className="py-3.5 font-bold text-black">#{order._id.slice(-6)}</td>
+                    <td className="py-3.5">{order.user?.name || 'Customer'}</td>
+                    <td className="py-3.5">{order.items?.length || 1} Products</td>
+                    <td className="py-3.5 font-bold text-black">Rs {order.totalAmount?.toLocaleString()}</td>
+                    <td className="py-3.5">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

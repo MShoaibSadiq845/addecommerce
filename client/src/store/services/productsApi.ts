@@ -59,6 +59,10 @@ export const productsApi = apiSlice.injectEndpoints({
         formData: true,          // tells RTK Query: skip JSON serialisation, send as multipart
       }),
     }),
+    getLowStockProducts: builder.query({
+      query: () => '/products/low-stock',
+      providesTags: ['Product'],
+    }),
   }),
 });
 
@@ -72,4 +76,5 @@ export const {
   useDeleteProductMutation,
   useToggleSaleMutation,
   useUploadProductImageMutation,
+  useGetLowStockProductsQuery,
 } = productsApi;

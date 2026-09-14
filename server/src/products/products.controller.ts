@@ -71,6 +71,11 @@ export class ProductsController {
     return this.productsService.getFilterOptions();
   }
 
+  @Get('low-stock')
+  async getLowStock() {
+    return this.productsService.getLowStockProducts();
+  }
+
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return this.productsService.findById(id);

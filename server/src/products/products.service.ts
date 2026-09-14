@@ -233,4 +233,12 @@ export class ProductsService {
       categories: categories.filter(Boolean).sort(),
     };
   }
+
+  async getLowStockProducts(threshold = 6) {
+    return this.productModel
+      .find({ stock: { $lt: threshold } })
+      .select('name stock sku images price category')
+      .sort({ stock: 1 })
+      .exec();
+  }
 }

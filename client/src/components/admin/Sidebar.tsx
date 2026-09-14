@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, PackageCheck, XCircle, Bell, PlusCircle, Users, ArrowLeft, Mail, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, PackageCheck, XCircle, Bell, PlusCircle, Users, ArrowLeft, Mail, X, AlertTriangle } from 'lucide-react';
+import { useGetLowStockProductsQuery } from '@/store/services/productsApi';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -12,11 +13,19 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { data: lowStockProducts = [] } = useGetLowStockProductsQuery(undefined);
+  const lowStockCount = Array.isArray(lowStockProducts) ? lowStockProducts.length : 0;
 
   const navItems = [
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Products', href: '/admin/products', icon: ShoppingBag },
     { label: 'Add Product', href: '/admin/products/add', icon: PlusCircle },
+    {
+      label: 'Stock Alert',
+      href: '/admin/stock-alert',
+      icon: AlertTriangle,
+      badge: lowStockCount > 0 ? lowStockCount : undefined,
+    },
     { label: 'All Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Delivered Orders', href: '/admin/orders/delivered', icon: PackageCheck },
     { label: 'Canceled Orders', href: '/admin/orders/canceled', icon: XCircle },
@@ -81,13 +90,22 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isExactOrChild
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${isExactOrChild
                     ? 'bg-black text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-black'
                     }`}
                 >
-                  <Icon className="w-5 h-5 shrink-0" />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isExactOrChild ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
