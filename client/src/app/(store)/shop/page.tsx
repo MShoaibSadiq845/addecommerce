@@ -117,7 +117,7 @@ function ProductCard({ product }: { product: any }) {
   return (
     <div className="group flex flex-col gap-3 relative">
       <Link href={`/shop/${product._id}`}>
-        <div className="relative w-full aspect-[3/4] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
+        <div className="relative w-full aspect-[9/16] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
           <Image
             src={img}
             alt={product.name}

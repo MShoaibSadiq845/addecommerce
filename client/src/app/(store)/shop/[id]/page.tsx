@@ -343,7 +343,7 @@ export default function ProductDetailPage() {
                 </button>
               ))}
             </div>
-            <div className="flex-1 relative aspect-square sm:aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
+            <div className="flex-1 relative aspect-[9/16] bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
               {/* Display image changes freely with thumbnail selection for all products */}
               <Image src={images[selectedImage] || images[0]} alt={product.name} fill className="object-cover" priority />
               {product.isOnSale && (

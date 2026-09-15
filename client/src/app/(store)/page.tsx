@@ -130,7 +130,7 @@ function ProductCard({ product }: { product: any }) {
   return (
     <div className="group flex flex-col gap-3 relative">
       <Link href={`/shop/${product._id}`}>
-        <div className="relative w-full aspect-[3/4] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
+        <div className="relative w-full aspect-[9/16] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-105 transition-transform duration-500" />
           {product.isOnSale && (
@@ -224,7 +224,7 @@ function ProductSlider({
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full animate-pulse">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-3">
-              <div className="w-full aspect-[3/4] bg-gray-200 rounded-[20px]" />
+              <div className="w-full aspect-[9/16] bg-gray-200 rounded-[20px]" />
               <div className="h-4 bg-gray-200 rounded w-3/4" />
               <div className="h-3 bg-gray-100 rounded w-1/2" />
               <div className="h-5 bg-gray-200 rounded w-1/3" />
