@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -7,6 +7,7 @@ import { ProductsController } from './products.controller';
 import { Product, ProductSchema } from './schemas/product.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { ReviewsModule } from '../reviews/reviews.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     }),
     NotificationsModule,
     CloudinaryModule,
+    forwardRef(() => ReviewsModule),
   ],
   controllers: [ProductsController],
   providers: [ProductsService],

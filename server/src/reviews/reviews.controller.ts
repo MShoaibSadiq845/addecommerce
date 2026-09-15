@@ -32,11 +32,22 @@ export class ReviewsController {
     return { url: result.secure_url };
   }
 
+  @Post('audit')
+  async runAuditPost() {
+    return this.reviewsService.auditAndPopulateDefaultReviews();
+  }
+
+  @Get('audit')
+  async runAuditGet() {
+    return this.reviewsService.auditAndPopulateDefaultReviews();
+  }
+
   @Post()
   async createReview(
     @Body()
     body: {
-      name: string;
+      name?: string;
+      user_name?: string;
       comment: string;
       rating: number;
       productId?: string;
@@ -45,7 +56,10 @@ export class ReviewsController {
       images?: string[];
     },
   ) {
-    return this.reviewsService.createReview(body);
+    return this.reviewsService.createReview({
+      ...body,
+      name: body.name || body.user_name || 'Customer',
+    });
   }
 
   @Get()

@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ReviewsService } from '../reviews/reviews.service';
 
 export interface ProductQuery {
   category?: string;
@@ -23,6 +24,8 @@ export interface ProductQuery {
 export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @Inject(forwardRef(() => ReviewsService))
+    private readonly reviewsService: ReviewsService,
   ) {}
 
   private normalizeArrayParam(value?: string | string[]): string[] {
@@ -189,7 +192,19 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
-    return new this.productModel(dto).save();
+    const product = await new this.productModel(dto).save();
+    try {
+      if (this.reviewsService) {
+        await this.reviewsService.generateDefaultReviewsForProduct(
+          product._id.toString(),
+          product.name,
+        );
+      }
+    } catch (err) {
+      console.error('Failed to attach default reviews on product creation:', err);
+    }
+    const updatedProduct = await this.productModel.findById(product._id).exec();
+    return updatedProduct || product;
   }
 
   async update(id: string, dto: UpdateProductDto) {
