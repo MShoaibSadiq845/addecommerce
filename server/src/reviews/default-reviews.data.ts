@@ -15,6 +15,25 @@ export const PAKISTANI_BOY_NAMES = [
   'Haris Sheikh',
   'Babar Azam',
   'Shahmeer Khan',
+  'Waqas Ashraf',
+  'Naveed Akhtar',
+  'Junaid Jamshed',
+  'Rizwan Butt',
+  'Fahad Mustafa',
+  'Sohail Anjum',
+  'Zubair Chaudhry',
+  'Imran Abbasi',
+  'Kamran Akmal',
+  'Kashif Mehmood',
+  'Adeel Sarwar',
+  'Mubeen Shah',
+  'Arsalan Baig',
+  'Sheraz Qadir',
+  'Faizan Sheikh',
+  'Murtaza Ali',
+  'Yasir Hameed',
+  'Shahbaz Sharif',
+  'Rehan Siddique',
 ];
 
 export const PAKISTANI_GIRL_NAMES = [
@@ -34,6 +53,25 @@ export const PAKISTANI_GIRL_NAMES = [
   'Alizeh Shah',
   'Sadia Pervez',
   'Mehak Gul',
+  'Hania Amir',
+  'Nimra Ahmed',
+  'Areeba Habib',
+  'Sidra Tul Ain',
+  'Bushra Ansari',
+  'Rabia Basri',
+  'Amna Ilyas',
+  'Komal Rizvi',
+  'Saba Qamar',
+  'Zoya Nasir',
+  'Mawra Hocane',
+  'Momina Mustehsan',
+  'Urwa Hocane',
+  'Iqra Aziz',
+  'Dua Zahra',
+  'Nida Yasir',
+  'Ayeza Khan',
+  'Yumna Zaidi',
+  'Sajal Aly',
 ];
 
 export const ROMAN_URDU_5_STAR_COMMENTS = [
@@ -47,6 +85,14 @@ export const ROMAN_URDU_5_STAR_COMMENTS = [
   'Bohat khoobsurat product hai, packaging bhi classy thi. Fitting bilkul accurate aayi hai. Recommended!',
   'Main bohot satisfied hoon. Cloth material bohat soft aur breathable hai. 5 stars!',
   'Super fast delivery aur zabardast quality! Bilkul wesa hi hai jese details mein mention tha.',
+  'Bohot zabardast product hai! Price ke hisab se quality bohot behtareen hai.',
+  'Pure cotton material hai aur fitting bilkul perfect hai. 100% recommended!',
+  'Mera first experience tha aur bohot zabardast raha. Definitely dobara order karunga.',
+  'Stitching aur finishing bohot clean hai. Really happy with the purchase!',
+  'Fabric bohot soft hai aur wash hone ke baad bhi shine bilkul fresh rahi. Super happy!',
+  'Packaging bohat secure thi aur quality to lajwab hai. Very trustworthy store!',
+  'Bilkul original stuff hai, 100% satisfied. Bohot shukriya itni achi service ke liye.',
+  'Family ke sab members ko kapra bohot pasand aya. Size bhi perfect aaya hai.',
 ];
 
 export const ROMAN_URDU_4_STAR_COMMENTS = [
@@ -58,13 +104,17 @@ export const ROMAN_URDU_4_STAR_COMMENTS = [
   'Bohot achi cheez hai, stitching mazboot hai. Value for money product hai.',
   'Product acha hai, jesa socha tha wesa hi mila. Packaging aur delivery theek thi.',
   'Fitting achi hai aur color bhi fade nahi hua wash ke baad. Acha experience raha.',
+  'Cloth quality achi hai, stitching bhi mazboot hai. Value for money.',
+  'Overall satisfaction achi hai, timing aur packing dono theek the.',
+  'Kapre ka fall bohot pyara hai, color bilkul exact hai. Recommended!',
+  'Design bohot graceful hai. Delivery standard time pe mil gayi thi.',
 ];
 
 export const RATING_PATTERNS = [
-  [5, 4, 5],
-  [4, 5, 4],
-  [5, 5, 4],
-  [4, 5, 5],
+  [5, 4, 5, 5, 4, 5, 5],
+  [4, 5, 4, 5, 5, 4, 5],
+  [5, 5, 4, 5, 4, 5, 5],
+  [4, 5, 5, 5, 4, 5, 4],
 ];
 
 export interface DefaultReviewItem {
@@ -91,38 +141,70 @@ function getHashCode(str: string): number {
 }
 
 /**
- * Builds 3 default customer reviews in Roman Urdu with Pakistani boy/girl names
- * and rotating rating pattern for a specific product.
+ * Builds N default customer reviews in Roman Urdu with guaranteed UNIQUE Pakistani boy/girl names
+ * and UNIQUE comments for a specific product.
  */
 export function buildDefaultReviews(
   productId: string,
   productName: string,
   seedOffset = 0,
+  totalCount = 7,
+  existingNames: string[] = [],
+  existingComments: string[] = [],
 ): DefaultReviewItem[] {
   const seed = getHashCode(productId || productName || 'shop_co') + seedOffset;
   const patternIndex = seed % RATING_PATTERNS.length;
   const ratings = RATING_PATTERNS[patternIndex];
 
+  const usedNames = new Set<string>(existingNames.map((n) => n.trim().toLowerCase()));
+  const usedComments = new Set<string>(existingComments.map((c) => c.trim().toLowerCase()));
+
   const reviews: DefaultReviewItem[] = [];
   const now = Date.now();
 
-  for (let i = 0; i < 3; i++) {
-    const rating = ratings[i];
-    const isGirl = (seed + i) % 2 === 1;
+  for (let i = 0; i < totalCount; i++) {
+    const rating = ratings[i % ratings.length] ?? 5;
 
-    // Pick Pakistani name
-    const nameList = isGirl ? PAKISTANI_GIRL_NAMES : PAKISTANI_BOY_NAMES;
-    const nameIndex = (seed + i * 3) % nameList.length;
-    const reviewerName = nameList[nameIndex];
+    // Pick unique Pakistani name
+    let reviewerName = '';
+    let nameAttempt = 0;
+    while (nameAttempt < 50) {
+      const isGirl = ((seed + i + nameAttempt) % 2) === 1;
+      const nameList = isGirl ? PAKISTANI_GIRL_NAMES : PAKISTANI_BOY_NAMES;
+      const nameIdx = (seed + i * 7 + nameAttempt * 3) % nameList.length;
+      const candidate = nameList[nameIdx];
+      if (!usedNames.has(candidate.toLowerCase())) {
+        reviewerName = candidate;
+        usedNames.add(candidate.toLowerCase());
+        break;
+      }
+      nameAttempt++;
+    }
+    if (!reviewerName) {
+      reviewerName = `Customer ${i + 1}`;
+    }
 
-    // Pick Roman Urdu comment matching the rating
+    // Pick unique Roman Urdu comment matching the rating
     const commentPool =
       rating === 5 ? ROMAN_URDU_5_STAR_COMMENTS : ROMAN_URDU_4_STAR_COMMENTS;
-    const commentIndex = (seed + i * 5) % commentPool.length;
-    const comment = commentPool[commentIndex];
+    let comment = '';
+    let commentAttempt = 0;
+    while (commentAttempt < 50) {
+      const cIdx = (seed + i * 5 + commentAttempt * 2) % commentPool.length;
+      const candidateComment = commentPool[cIdx];
+      if (!usedComments.has(candidateComment.toLowerCase())) {
+        comment = candidateComment;
+        usedComments.add(candidateComment.toLowerCase());
+        break;
+      }
+      commentAttempt++;
+    }
+    if (!comment) {
+      comment = commentPool[(seed + i) % commentPool.length];
+    }
 
-    // Space reviews out realistically across the past 1-7 days
-    const daysAgo = (3 - i) * 2 + ((seed + i) % 2);
+    // Space reviews out realistically across the past 1-21 days
+    const daysAgo = (totalCount - i) * 2 + ((seed + i) % 3);
     const reviewDate = new Date(now - daysAgo * 24 * 60 * 60 * 1000);
 
     reviews.push({

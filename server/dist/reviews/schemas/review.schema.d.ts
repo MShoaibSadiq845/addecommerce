@@ -2,12 +2,14 @@ import { Document } from 'mongoose';
 export type ReviewDocument = Review & Document;
 export declare class Review {
     name: string;
+    user_name?: string;
     comment: string;
     rating: number;
     productId?: string;
     productName?: string;
     image?: string;
     images?: string[];
+    created_at?: Date;
 }
 export declare const ReviewSchema: import("mongoose").Schema<Review, import("mongoose").Model<Review, any, any, any, any, any, Review>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Review, Document<unknown, {}, Review, {
     id: string;
@@ -19,6 +21,15 @@ export declare const ReviewSchema: import("mongoose").Schema<Review, import("mon
     id: string;
 }>, {
     name?: import("mongoose").SchemaDefinitionProperty<string, Review, Document<unknown, {}, Review, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    user_name?: import("mongoose").SchemaDefinitionProperty<string, Review, Document<unknown, {}, Review, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
         _id: import("mongoose").Types.ObjectId;
@@ -73,6 +84,15 @@ export declare const ReviewSchema: import("mongoose").Schema<Review, import("mon
         id: string;
     }>>;
     images?: import("mongoose").SchemaDefinitionProperty<string[], Review, Document<unknown, {}, Review, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    created_at?: import("mongoose").SchemaDefinitionProperty<Date, Review, Document<unknown, {}, Review, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Review & {
         _id: import("mongoose").Types.ObjectId;

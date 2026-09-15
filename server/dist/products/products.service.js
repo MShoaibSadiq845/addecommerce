@@ -17,9 +17,11 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const product_schema_1 = require("./schemas/product.schema");
+const reviews_service_1 = require("../reviews/reviews.service");
 let ProductsService = class ProductsService {
-    constructor(productModel) {
+    constructor(productModel, reviewsService) {
         this.productModel = productModel;
+        this.reviewsService = reviewsService;
     }
     normalizeArrayParam(value) {
         if (value === undefined)
@@ -149,7 +151,17 @@ let ProductsService = class ProductsService {
         return product;
     }
     async create(dto) {
-        return new this.productModel(dto).save();
+        const product = await new this.productModel(dto).save();
+        try {
+            if (this.reviewsService) {
+                await this.reviewsService.generateDefaultReviewsForProduct(product._id.toString(), product.name);
+            }
+        }
+        catch (err) {
+            console.error('Failed to attach default reviews on product creation:', err);
+        }
+        const updatedProduct = await this.productModel.findById(product._id).exec();
+        return updatedProduct || product;
     }
     async update(id, dto) {
         const product = await this.productModel
@@ -191,11 +203,19 @@ let ProductsService = class ProductsService {
             categories: categories.filter(Boolean).sort(),
         };
     }
+    async getLowStockProducts(threshold = 6) {
+        return this.productModel
+            .find({ stock: { $lt: threshold } })
+            .select('name stock sku images price category')
+            .sort({ stock: 1 })
+            .exec();
+    }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => reviews_service_1.ReviewsService))),
+    __metadata("design:paramtypes", [mongoose_2.Model, reviews_service_1.ReviewsService])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

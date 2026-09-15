@@ -402,7 +402,7 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
                             isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
@@ -423,7 +423,7 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
                             isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
@@ -444,7 +444,7 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
                             isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'

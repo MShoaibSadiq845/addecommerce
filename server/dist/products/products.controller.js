@@ -59,6 +59,9 @@ let ProductsController = class ProductsController {
     async getFilterOptions() {
         return this.productsService.getFilterOptions();
     }
+    async getLowStock() {
+        return this.productsService.getLowStockProducts();
+    }
     async getOne(id) {
         return this.productsService.findById(id);
     }
@@ -112,6 +115,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getFilterOptions", null);
+__decorate([
+    (0, common_1.Get)('low-stock'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "getLowStock", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

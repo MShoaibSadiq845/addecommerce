@@ -29,8 +29,17 @@ let ReviewsController = class ReviewsController {
         const result = await this.cloudinaryService.uploadFile(file);
         return { url: result.secure_url };
     }
+    async runAuditPost() {
+        return this.reviewsService.auditAndPopulateDefaultReviews();
+    }
+    async runAuditGet() {
+        return this.reviewsService.auditAndPopulateDefaultReviews();
+    }
     async createReview(body) {
-        return this.reviewsService.createReview(body);
+        return this.reviewsService.createReview({
+            ...body,
+            name: body.name || body.user_name || 'Customer',
+        });
     }
     async getReviews(productId) {
         if (productId) {
@@ -51,6 +60,18 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ReviewsController.prototype, "uploadReviewImage", null);
+__decorate([
+    (0, common_1.Post)('audit'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReviewsController.prototype, "runAuditPost", null);
+__decorate([
+    (0, common_1.Get)('audit'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReviewsController.prototype, "runAuditGet", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

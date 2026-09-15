@@ -11,19 +11,100 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ReviewsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReviewsService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const review_schema_1 = require("./schemas/review.schema");
+const product_schema_1 = require("../products/schemas/product.schema");
 const notifications_gateway_1 = require("../notifications/notifications.gateway");
-let ReviewsService = class ReviewsService {
-    constructor(reviewModel, gateway) {
+const default_reviews_data_1 = require("./default-reviews.data");
+let ReviewsService = ReviewsService_1 = class ReviewsService {
+    constructor(reviewModel, productModel, gateway) {
         this.reviewModel = reviewModel;
+        this.productModel = productModel;
         this.gateway = gateway;
+        this.logger = new common_1.Logger(ReviewsService_1.name);
+    }
+    async onModuleInit() {
+        try {
+            this.logger.log('Starting background audit for product reviews...');
+            const result = await this.auditAndPopulateDefaultReviews();
+            this.logger.log(`Reviews audit completed: ${result.auditedProducts} products checked, ${result.updatedProducts} updated with ${result.createdReviews} default Roman Urdu reviews.`);
+        }
+        catch (error) {
+            this.logger.error('Error during startup reviews audit:', error);
+        }
+    }
+    async recalculateProductRating(productId) {
+        if (!productId)
+            return;
+        try {
+            const reviews = await this.reviewModel
+                .find({ productId })
+                .select('rating')
+                .exec();
+            if (reviews.length === 0) {
+                await this.productModel
+                    .findByIdAndUpdate(productId, { rating: 5.0, numReviews: 0 })
+                    .exec();
+                return;
+            }
+            const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+            const avgRating = Math.round((totalRating / reviews.length) * 10) / 10;
+            await this.productModel
+                .findByIdAndUpdate(productId, {
+                rating: avgRating,
+                numReviews: reviews.length,
+            })
+                .exec();
+        }
+        catch (err) {
+            this.logger.warn(`Failed to recalculate rating for product ${productId}:`, err);
+        }
+    }
+    async generateDefaultReviewsForProduct(productId, productName, seedOffset = 0) {
+        const existingCount = await this.reviewModel.countDocuments({ productId });
+        if (existingCount >= 7) {
+            return this.getReviewsByProduct(productId);
+        }
+        const defaultReviewsData = (0, default_reviews_data_1.buildDefaultReviews)(productId, productName, seedOffset);
+        const neededCount = 7 - existingCount;
+        const reviewsToInsert = defaultReviewsData.slice(0, neededCount);
+        const created = await this.reviewModel.insertMany(reviewsToInsert);
+        await this.recalculateProductRating(productId);
+        return created;
+    }
+    async auditAndPopulateDefaultReviews() {
+        const products = await this.productModel.find().exec();
+        let updatedProducts = 0;
+        let createdReviews = 0;
+        for (let i = 0; i < products.length; i++) {
+            const prod = products[i];
+            const pId = prod._id.toString();
+            const count = await this.reviewModel.countDocuments({ productId: pId });
+            if (count < 7) {
+                const defaultReviewsData = (0, default_reviews_data_1.buildDefaultReviews)(pId, prod.name, i);
+                const neededCount = 7 - count;
+                const toInsert = defaultReviewsData.slice(0, neededCount);
+                if (toInsert.length > 0) {
+                    await this.reviewModel.insertMany(toInsert);
+                    createdReviews += toInsert.length;
+                    updatedProducts++;
+                    await this.recalculateProductRating(pId);
+                }
+            }
+        }
+        return {
+            auditedProducts: products.length,
+            updatedProducts,
+            createdReviews,
+        };
     }
     async createReview(data) {
+        const reviewerName = data.name || data.user_name || 'Customer';
         const images = data.images && data.images.length > 0
             ? data.images
             : data.image
@@ -32,9 +113,14 @@ let ReviewsService = class ReviewsService {
         const mainImage = data.image || (images.length > 0 ? images[0] : undefined);
         const review = await this.reviewModel.create({
             ...data,
+            name: reviewerName,
+            user_name: reviewerName,
             image: mainImage,
             images,
         });
+        if (data.productId) {
+            await this.recalculateProductRating(data.productId);
+        }
         this.gateway.broadcastReview(review);
         return review;
     }
@@ -52,10 +138,11 @@ let ReviewsService = class ReviewsService {
     }
 };
 exports.ReviewsService = ReviewsService;
-exports.ReviewsService = ReviewsService = __decorate([
+exports.ReviewsService = ReviewsService = ReviewsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(review_schema_1.Review.name)),
-    __param(1, (0, common_1.Inject)(notifications_gateway_1.NotificationsGateway)),
-    __metadata("design:paramtypes", [mongoose_2.Model, notifications_gateway_1.NotificationsGateway])
+    __param(1, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
+    __param(2, (0, common_1.Inject)(notifications_gateway_1.NotificationsGateway)),
+    __metadata("design:paramtypes", [mongoose_2.Model, mongoose_2.Model, notifications_gateway_1.NotificationsGateway])
 ], ReviewsService);
 //# sourceMappingURL=reviews.service.js.map

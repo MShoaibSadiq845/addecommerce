@@ -31,59 +31,42 @@ async function runAudit() {
     const product = products[i];
     const productIdStr = product._id.toString();
 
-    // Check existing reviews for this product
-    const existingReviews = await reviewsCollection
-      .find({ productId: productIdStr })
-      .toArray();
+    // Clean any old reviews for this product
+    await reviewsCollection.deleteMany({ productId: productIdStr });
 
-    const count = existingReviews.length;
+    const freshReviews = buildDefaultReviews(
+      productIdStr,
+      product.name || 'Product',
+      i * 3,
+      7,
+      [],
+      [],
+    );
 
-    if (count < 3) {
-      const defaultReviews = buildDefaultReviews(
-        productIdStr,
-        product.name || 'Product',
-        i,
-      );
+    await reviewsCollection.insertMany(freshReviews);
+    createdReviewsCount += freshReviews.length;
+    updatedProductsCount++;
 
-      const neededCount = 3 - count;
-      const reviewsToInsert = defaultReviews.slice(0, neededCount);
+    const totalRating = freshReviews.reduce(
+      (sum, r) => sum + (Number(r.rating) || 5),
+      0,
+    );
+    const avgRating =
+      Math.round((totalRating / freshReviews.length) * 10) / 10;
 
-      if (reviewsToInsert.length > 0) {
-        await reviewsCollection.insertMany(reviewsToInsert);
-        createdReviewsCount += reviewsToInsert.length;
-        updatedProductsCount++;
+    await productsCollection.updateOne(
+      { _id: product._id },
+      {
+        $set: {
+          rating: avgRating,
+          numReviews: freshReviews.length,
+        },
+      },
+    );
 
-        // Fetch all reviews now to compute accurate average rating
-        const allReviews = await reviewsCollection
-          .find({ productId: productIdStr })
-          .toArray();
-
-        const totalRating = allReviews.reduce(
-          (sum, r) => sum + (Number(r.rating) || 5),
-          0,
-        );
-        const avgRating =
-          Math.round((totalRating / allReviews.length) * 10) / 10;
-
-        await productsCollection.updateOne(
-          { _id: product._id },
-          {
-            $set: {
-              rating: avgRating,
-              numReviews: allReviews.length,
-            },
-          },
-        );
-
-        console.log(
-          `[✓] Product "${product.name}" (${productIdStr}): Added ${reviewsToInsert.length} reviews. Total: ${allReviews.length}, Rating: ${avgRating}`,
-        );
-      }
-    } else {
-      console.log(
-        `[-] Product "${product.name}" (${productIdStr}): Already has ${count} reviews. Skipped.`,
-      );
-    }
+    console.log(
+      `[✓] Product "${product.name}" (${productIdStr}): 7 UNIQUE reviews -> ${freshReviews.map((r) => r.name).join(', ')}`,
+    );
   }
 
   console.log('\n═══════════════════════════════════════════');

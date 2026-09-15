@@ -19,6 +19,10 @@ __decorate([
     __metadata("design:type", String)
 ], Review.prototype, "name", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: String, required: false }),
+    __metadata("design:type", String)
+], Review.prototype, "user_name", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Review.prototype, "comment", void 0);
@@ -27,7 +31,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Review.prototype, "rating", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: false }),
+    (0, mongoose_1.Prop)({ type: String, required: false, index: true }),
     __metadata("design:type", String)
 ], Review.prototype, "productId", void 0);
 __decorate([
@@ -42,8 +46,23 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [String], required: false, default: [] }),
     __metadata("design:type", Array)
 ], Review.prototype, "images", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Date, required: false }),
+    __metadata("design:type", Date)
+], Review.prototype, "created_at", void 0);
 exports.Review = Review = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Review);
 exports.ReviewSchema = mongoose_1.SchemaFactory.createForClass(Review);
+exports.ReviewSchema.pre('save', function () {
+    if (!this.user_name && this.name) {
+        this.user_name = this.name;
+    }
+    if (!this.name && this.user_name) {
+        this.name = this.user_name;
+    }
+    if (!this.created_at) {
+        this.created_at = this.createdAt || new Date();
+    }
+});
 //# sourceMappingURL=review.schema.js.map

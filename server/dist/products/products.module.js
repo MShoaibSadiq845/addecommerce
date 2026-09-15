@@ -16,6 +16,7 @@ const products_controller_1 = require("./products.controller");
 const product_schema_1 = require("./schemas/product.schema");
 const notifications_module_1 = require("../notifications/notifications.module");
 const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
+const reviews_module_1 = require("../reviews/reviews.module");
 let ProductsModule = class ProductsModule {
 };
 exports.ProductsModule = ProductsModule;
@@ -31,6 +32,7 @@ exports.ProductsModule = ProductsModule = __decorate([
             }),
             notifications_module_1.NotificationsModule,
             cloudinary_module_1.CloudinaryModule,
+            (0, common_1.forwardRef)(() => reviews_module_1.ReviewsModule),
         ],
         controllers: [products_controller_1.ProductsController],
         providers: [products_service_1.ProductsService],

@@ -12,6 +12,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const reviews_controller_1 = require("./reviews.controller");
 const reviews_service_1 = require("./reviews.service");
 const review_schema_1 = require("./schemas/review.schema");
+const product_schema_1 = require("../products/schemas/product.schema");
 const notifications_module_1 = require("../notifications/notifications.module");
 const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
 let ReviewsModule = class ReviewsModule {
@@ -20,7 +21,10 @@ exports.ReviewsModule = ReviewsModule;
 exports.ReviewsModule = ReviewsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: review_schema_1.Review.name, schema: review_schema_1.ReviewSchema }]),
+            mongoose_1.MongooseModule.forFeature([
+                { name: review_schema_1.Review.name, schema: review_schema_1.ReviewSchema },
+                { name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema },
+            ]),
             notifications_module_1.NotificationsModule,
             cloudinary_module_1.CloudinaryModule,
         ],

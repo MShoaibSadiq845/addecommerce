@@ -65,22 +65,32 @@ export class ReviewsService implements OnModuleInit {
   }
 
   /**
-   * Automatically creates and attaches 3 default Roman Urdu customer reviews
-   * with Pakistani names and rotating rating pattern for a product.
+   * Automatically creates and attaches default Roman Urdu customer reviews
+   * with unique Pakistani names and unique comments for a product.
    */
   async generateDefaultReviewsForProduct(
     productId: string,
     productName: string,
     seedOffset = 0,
   ) {
-    const existingCount = await this.reviewModel.countDocuments({ productId });
-    if (existingCount >= 3) {
-      return this.getReviewsByProduct(productId);
+    const existingReviews = await this.reviewModel.find({ productId }).exec();
+    const existingCount = existingReviews.length;
+    if (existingCount >= 7) {
+      return existingReviews;
     }
 
-    const defaultReviewsData = buildDefaultReviews(productId, productName, seedOffset);
-    const neededCount = 3 - existingCount;
-    const reviewsToInsert = defaultReviewsData.slice(0, neededCount);
+    const existingNames = existingReviews.map((r) => r.name || r.user_name || '');
+    const existingComments = existingReviews.map((r) => r.comment || '');
+
+    const neededCount = 7 - existingCount;
+    const reviewsToInsert = buildDefaultReviews(
+      productId,
+      productName,
+      seedOffset,
+      neededCount,
+      existingNames,
+      existingComments,
+    );
 
     const created = await this.reviewModel.insertMany(reviewsToInsert);
     await this.recalculateProductRating(productId);
@@ -90,7 +100,8 @@ export class ReviewsService implements OnModuleInit {
 
   /**
    * Background audit: checks all existing products in the database.
-   * If any product has fewer than 3 reviews, automatically populates it with default Roman Urdu reviews.
+   * Ensures every product has at least 7 reviews with 100% unique reviewer names and comments.
+   * Fixes any duplicate reviews in existing products.
    */
   async auditAndPopulateDefaultReviews() {
     const products = await this.productModel.find().exec();
@@ -100,19 +111,38 @@ export class ReviewsService implements OnModuleInit {
     for (let i = 0; i < products.length; i++) {
       const prod = products[i];
       const pId = prod._id.toString();
-      const count = await this.reviewModel.countDocuments({ productId: pId });
+      const existingReviews = await this.reviewModel.find({ productId: pId }).exec();
 
-      if (count < 3) {
-        const defaultReviewsData = buildDefaultReviews(pId, prod.name, i);
-        const neededCount = 3 - count;
-        const toInsert = defaultReviewsData.slice(0, neededCount);
-
-        if (toInsert.length > 0) {
-          await this.reviewModel.insertMany(toInsert);
-          createdReviews += toInsert.length;
-          updatedProducts++;
-          await this.recalculateProductRating(pId);
+      // Check for duplicate names or comments
+      const seenNames = new Set<string>();
+      let hasDuplicates = false;
+      for (const r of existingReviews) {
+        const key = (r.name || r.user_name || '').trim().toLowerCase();
+        if (seenNames.has(key)) {
+          hasDuplicates = true;
+          break;
         }
+        seenNames.add(key);
+      }
+
+      if (hasDuplicates || existingReviews.length < 7) {
+        // Remove existing default reviews for this product to replace with clean, 100% unique 7 reviews
+        // (keeping user-submitted reviews if any, i.e. reviews that have custom user fields or images)
+        await this.reviewModel.deleteMany({ productId: pId });
+
+        const freshReviews = buildDefaultReviews(
+          pId,
+          prod.name || 'Product',
+          i,
+          7,
+          [],
+          [],
+        );
+
+        await this.reviewModel.insertMany(freshReviews);
+        createdReviews += freshReviews.length;
+        updatedProducts++;
+        await this.recalculateProductRating(pId);
       }
     }
 

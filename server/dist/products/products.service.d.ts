@@ -2,6 +2,7 @@ import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ReviewsService } from '../reviews/reviews.service';
 export interface ProductQuery {
     category?: string;
     isOnSale?: boolean | string;
@@ -17,7 +18,8 @@ export interface ProductQuery {
 }
 export declare class ProductsService {
     private productModel;
-    constructor(productModel: Model<ProductDocument>);
+    private readonly reviewsService;
+    constructor(productModel: Model<ProductDocument>, reviewsService: ReviewsService);
     private normalizeArrayParam;
     findAll(query: ProductQuery): Promise<{
         products: ProductDocument[];
@@ -62,4 +64,11 @@ export declare class ProductsService {
         sizes: string[];
         categories: string[];
     }>;
+    getLowStockProducts(threshold?: number): Promise<(import("mongoose").Document<unknown, {}, ProductDocument, {}, import("mongoose").DefaultSchemaOptions> & Product & import("mongoose").Document<import("mongoose").Types.ObjectId, any, any, Record<string, any>, {}> & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    } & {
+        id: string;
+    })[]>;
 }

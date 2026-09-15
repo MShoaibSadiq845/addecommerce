@@ -7,8 +7,19 @@ export declare class ReviewsController {
     uploadReviewImage(file: Express.Multer.File): Promise<{
         url: string;
     }>;
+    runAuditPost(): Promise<{
+        auditedProducts: number;
+        updatedProducts: number;
+        createdReviews: number;
+    }>;
+    runAuditGet(): Promise<{
+        auditedProducts: number;
+        updatedProducts: number;
+        createdReviews: number;
+    }>;
     createReview(body: {
-        name: string;
+        name?: string;
+        user_name?: string;
         comment: string;
         rating: number;
         productId?: string;

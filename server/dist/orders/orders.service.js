@@ -50,7 +50,19 @@ let OrdersService = class OrdersService {
             if (product.stock < item.quantity) {
                 throw new common_1.BadRequestException(`Insufficient stock for "${product.name}". Available: ${product.stock}`);
             }
-            const unitPrice = product.isOnSale ? product.salePrice : product.price;
+            const isSofaProduct = product.name?.toLowerCase().includes('sofa') ||
+                product.category?.toLowerCase().includes('sofa') ||
+                (product.seatPricing && Object.keys(product.seatPricing || {}).length > 0);
+            let unitPrice;
+            if (isSofaProduct && item.price && Number(item.price) > 0) {
+                unitPrice = Number(item.price);
+            }
+            else if (product.isOnSale && product.salePrice) {
+                unitPrice = product.salePrice;
+            }
+            else {
+                unitPrice = product.price;
+            }
             totalAmount += unitPrice * item.quantity;
             processedItems.push({
                 product: product._id,
