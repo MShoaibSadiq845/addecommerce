@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
@@ -21,12 +21,23 @@ export interface ProductQuery {
 }
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnModuleInit {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @Inject(forwardRef(() => ReviewsService))
     private readonly reviewsService: ReviewsService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      await this.productModel.updateMany(
+        { brand: { $in: ['SHOP.CO', 'shop.co', 'FebDecore', '', null] } },
+        { $set: { brand: 'Fab Decor' } },
+      );
+    } catch (err) {
+      console.error('Failed to migrate product brands to Fab Decor:', err);
+    }
+  }
 
   private normalizeArrayParam(value?: string | string[]): string[] {
     if (value === undefined) return [];

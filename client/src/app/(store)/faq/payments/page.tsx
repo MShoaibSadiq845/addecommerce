@@ -79,7 +79,7 @@ export default function PaymentsPage() {
       {/* FAQ */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col gap-1">
         <h2 className="font-bold text-base text-black mb-3">Frequently Asked Questions</h2>
-        <AccordionItem q="Is it safe to pay online on SHOP.CO?"
+        <AccordionItem q="Is it safe to pay online on FebDecore?"
           a="Absolutely. We use SSL 256-bit encryption for all transactions. We never store your card details — they are handled directly by our secure payment gateway." />
         <AccordionItem q="What currency are prices displayed in?"
           a="All prices are displayed in Pakistani Rupees (PKR). No foreign transaction fees apply." />

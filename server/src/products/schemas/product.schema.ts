@@ -23,7 +23,7 @@ export class Product {
   @Prop({ type: String, required: true })
   category: string;
 
-  @Prop({ type: String, default: 'SHOP.CO' })
+  @Prop({ type: String, default: 'Fab Decor' })
   brand: string;
 
   @Prop({ type: [String], default: [] })

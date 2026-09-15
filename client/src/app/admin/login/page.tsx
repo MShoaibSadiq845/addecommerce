@@ -219,7 +219,7 @@ function AdminLoginInner() {
                       <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       <input
                         type="email"
-                        placeholder="admin@shop.co"
+                        placeholder="admin@febdecore.com"
                         autoComplete="email"
                         className={inputCls(!!loginErrors.email)}
                         {...regLogin('email', {

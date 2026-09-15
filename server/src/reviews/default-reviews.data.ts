@@ -79,7 +79,7 @@ export const ROMAN_URDU_5_STAR_COMMENTS = [
   'Kapra aur stitching bohot pyari hai, jesa picture mein dikhaya tha bilkul wesa hi aya. Paisay wasool!',
   'Overall experience bohat acha raha. Delivery time pe mili aur packaging bhi zabardast thi. 10/10 quality!',
   'Bohat ala cheez hai, color aur design boht pasand aya. Definitely dobara order karungi!',
-  'Mashallah bohot pyari cheez hai. Stitching aur quality dono no. 1 hain. Bohot shukriya SHOP.CO!',
+  'Mashallah bohot pyari cheez hai. Stitching aur quality dono no. 1 hain. Bohot shukriya Fab Decor!',
   'Quality outstanding hai, kapra soft aur comfortable hai. Worth every rupee, family ko bhi bohot pasand aaya!',
   'Delivery bohat tez thi aur product quality bilkul original aur premium hai. Shandar experience!',
   'Bohat khoobsurat product hai, packaging bhi classy thi. Fitting bilkul accurate aayi hai. Recommended!',

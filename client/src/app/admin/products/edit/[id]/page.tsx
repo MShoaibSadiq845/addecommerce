@@ -60,12 +60,14 @@ export default function AdminEditProductPage() {
 
   useEffect(() => {
     if (product) {
+      const rawBrand = product.brand ? product.brand.trim() : '';
+      const brandVal = (!rawBrand || rawBrand.toUpperCase() === 'SHOP.CO') ? 'Fab Decor' : rawBrand;
       reset({
         name: product.name || '',
         description: product.description || '',
         price: product.price?.toString() || '',
         category: product.category || '',
-        brand: product.brand || '',
+        brand: brandVal,
         stock: product.stock?.toString() || '',
         imagesInput: product.images || [],
         colorsInput: (product.colors || []).join(', '),
@@ -173,7 +175,7 @@ export default function AdminEditProductPage() {
         description: data.description,
         price: Number(data.price),
         category: data.category,
-        brand: data.brand || 'SHOP.CO',
+        brand: data.brand || 'Fab Decor',
         colors: parseTags(data.colorsInput),
         sizes: isSofa
           ? SOFA_SEAT_OPTIONS.map((o) => o.key)

@@ -59,7 +59,7 @@ export default function TermsAndConditionsPage() {
         </Section>
 
         <Section title="6. Intellectual Property">
-          All content on FabDecor including text, images, logos, and design is the intellectual property of SHOP.CO and may not be copied, reproduced, or distributed without written permission.
+          All content on FabDecor including text, images, logos, and design is the intellectual property of FebDecore and may not be copied, reproduced, or distributed without written permission.
         </Section>
 
         <Section title="7. User Conduct">

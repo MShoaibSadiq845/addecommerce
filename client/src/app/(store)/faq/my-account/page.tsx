@@ -31,7 +31,7 @@ export default function MyAccountPage() {
 
       <div>
         <h1 className="text-3xl font-extrabold text-black" style={{ fontFamily: "'Integral CF','Inter',sans-serif" }}>MY ACCOUNT</h1>
-        <p className="text-gray-500 text-sm mt-2">Everything about managing your SHOP.CO account.</p>
+        <p className="text-gray-500 text-sm mt-2">Everything about managing your FebDecore account.</p>
       </div>
 
       {/* Quick links */}

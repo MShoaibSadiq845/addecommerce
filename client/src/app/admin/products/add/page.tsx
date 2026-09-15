@@ -65,7 +65,7 @@ export default function AdminAddProductPage() {
       price: '',
       rating: '4.5',
       category: '',
-      brand: 'SHOP.CO',
+      brand: 'Fab Decor',
       stock: '50',
       sku: generateSKU(),
       imagesInput: [],
@@ -192,7 +192,7 @@ export default function AdminAddProductPage() {
         price: Number(data.price),
         rating: data.rating ? Math.min(5, Math.max(0, Number(data.rating))) : 4.5,
         category: data.category,
-        brand: data.brand || 'SHOP.CO',
+        brand: data.brand || 'Fab Decor',
         colors: parseTags(data.colorsInput),
         sizes: isSofa
           ? SOFA_SEAT_OPTIONS.map((o) => o.key)
@@ -218,7 +218,7 @@ export default function AdminAddProductPage() {
         price: '',
         rating: '4.5',
         category: '',
-        brand: 'SHOP.CO',
+        brand: 'Fab Decor',
         stock: '50',
         sku: generateSKU(),
         imagesInput: [],
