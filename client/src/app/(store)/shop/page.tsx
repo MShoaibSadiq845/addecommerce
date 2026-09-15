@@ -544,14 +544,14 @@ function ShopContent() {
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
 
-              {activeCategory && (
+              {/* {activeCategory && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
                   {activeCategory}
                   <button onClick={() => update({ category: undefined, page: '1' })} className="hover:text-red-500">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
-              )}
+              )} */}
 
               {activeColors.map((c) => (
                 <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
