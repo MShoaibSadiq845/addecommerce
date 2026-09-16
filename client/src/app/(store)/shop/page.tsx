@@ -567,7 +567,7 @@ function ShopContent() {
                   </button>
                 </span>
               ))}
-              {activeSizes.map((s) => (
+              {/* {activeSizes.map((s) => (
                 <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full uppercase">
                   Size: {s}
                   <button
@@ -580,7 +580,7 @@ function ShopContent() {
                     <X className="w-3 h-3" />
                   </button>
                 </span>
-              ))}
+              ))} */}
 
             </div>
           )}
