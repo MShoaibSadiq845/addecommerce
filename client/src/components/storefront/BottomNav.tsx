@@ -57,83 +57,61 @@ export function BottomNav() {
   const searchParams = useSearchParams();
 
   return (
-    // fixed bottom-0 + md:hidden → locked to viewport bottom, mobile/tablet only
-    <nav
-      aria-label="Mobile bottom navigation"
-      // paddingBottom via inline style — env() is not valid as a Tailwind arbitrary value
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      className="
-        fixed bottom-0 left-0 right-0 z-50
-        md:hidden
-        bg-white/95 backdrop-blur-md
-        border-t border-gray-200
-        shadow-[0_-4px_24px_rgba(0,0,0,0.08)]
-        font-['Satoshi']
-      "
+    // Floating dock container with side margins and bottom spacing
+    <div
+      className="fixed bottom-3 inset-x-3 sm:inset-x-6 max-w-md mx-auto z-50 md:hidden pointer-events-none"
+      style={{ bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
     >
-      <ul className="flex items-stretch justify-around h-[62px]">
-        {NAV_ITEMS.map(({ id, label, href, icon: Icon, isActive }) => {
-          const active = isActive(pathname, searchParams);
+      <nav
+        aria-label="Mobile bottom navigation"
+        className="
+          pointer-events-auto
+          w-full
+          bg-white/95 backdrop-blur-xl
+          border border-gray-200/90
+          rounded-2xl sm:rounded-3xl
+          shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+          p-1.5
+          font-['Satoshi']
+        "
+      >
+        <ul className="flex items-center justify-around gap-1">
+          {NAV_ITEMS.map(({ id, label, href, icon: Icon, isActive }) => {
+            const active = isActive(pathname, searchParams);
 
-          return (
-            <li key={id} className="flex-1">
-              <Link
-                id={`bottom-nav-${id}`}
-                href={href}
-                aria-label={label}
-                aria-current={active ? 'page' : undefined}
-                className={`
-                  group relative flex flex-col items-center justify-center gap-[3px]
-                  w-full h-full px-1
-                  transition-colors duration-200 select-none
-                  ${active ? 'text-black' : 'text-gray-400 hover:text-gray-700'}
-                `}
-              >
-                {/* ── Active pill indicator at top edge ── */}
-                {active && (
-                  <span
-                    aria-hidden="true"
-                    className="
-                      absolute top-0 left-1/2 -translate-x-1/2
-                      w-8 h-[3px] rounded-b-full bg-black
-                    "
-                  />
-                )}
-
-                {/* ── Icon wrapper ── */}
-                <span
+            return (
+              <li key={id} className="flex-1">
+                <Link
+                  id={`bottom-nav-${id}`}
+                  href={href}
+                  aria-label={label}
+                  aria-current={active ? 'page' : undefined}
                   className={`
-                    flex items-center justify-center rounded-xl
-                    transition-all duration-200
+                    group relative flex flex-col items-center justify-center gap-1
+                    py-2 px-1 rounded-xl
+                    transition-all duration-200 select-none
                     ${
                       active
-                        ? 'bg-black/[0.06] w-10 h-7 scale-105'
-                        : 'w-10 h-7 group-hover:bg-gray-100 group-active:scale-90'
+                        ? 'bg-black text-white shadow-sm font-semibold'
+                        : 'text-gray-500 hover:text-black hover:bg-gray-100/80 font-medium'
                     }
                   `}
                 >
                   <Icon
-                    className="transition-all duration-200"
-                    style={{ width: active ? 18 : 17, height: active ? 18 : 17 }}
-                    strokeWidth={active ? 2.4 : 1.8}
+                    className="transition-transform duration-200 group-active:scale-90"
+                    style={{ width: 18, height: 18 }}
+                    strokeWidth={active ? 2.3 : 1.8}
                   />
-                </span>
 
-                {/* ── Label ── */}
-                <span
-                  className={`
-                    text-[10px] leading-none tracking-wide
-                    transition-all duration-200
-                    ${active ? 'font-semibold text-black' : 'font-medium'}
-                  `}
-                >
-                  {label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+                  <span className="text-[10.5px] leading-none tracking-tight">
+                    {label}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 }
