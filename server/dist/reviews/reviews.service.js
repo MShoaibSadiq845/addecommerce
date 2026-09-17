@@ -66,13 +66,15 @@ let ReviewsService = ReviewsService_1 = class ReviewsService {
         }
     }
     async generateDefaultReviewsForProduct(productId, productName, seedOffset = 0) {
-        const existingCount = await this.reviewModel.countDocuments({ productId });
+        const existingReviews = await this.reviewModel.find({ productId }).exec();
+        const existingCount = existingReviews.length;
         if (existingCount >= 7) {
-            return this.getReviewsByProduct(productId);
+            return existingReviews;
         }
-        const defaultReviewsData = (0, default_reviews_data_1.buildDefaultReviews)(productId, productName, seedOffset);
+        const existingNames = existingReviews.map((r) => r.name || r.user_name || '');
+        const existingComments = existingReviews.map((r) => r.comment || '');
         const neededCount = 7 - existingCount;
-        const reviewsToInsert = defaultReviewsData.slice(0, neededCount);
+        const reviewsToInsert = (0, default_reviews_data_1.buildDefaultReviews)(productId, productName, seedOffset, neededCount, existingNames, existingComments);
         const created = await this.reviewModel.insertMany(reviewsToInsert);
         await this.recalculateProductRating(productId);
         return created;
@@ -84,17 +86,24 @@ let ReviewsService = ReviewsService_1 = class ReviewsService {
         for (let i = 0; i < products.length; i++) {
             const prod = products[i];
             const pId = prod._id.toString();
-            const count = await this.reviewModel.countDocuments({ productId: pId });
-            if (count < 7) {
-                const defaultReviewsData = (0, default_reviews_data_1.buildDefaultReviews)(pId, prod.name, i);
-                const neededCount = 7 - count;
-                const toInsert = defaultReviewsData.slice(0, neededCount);
-                if (toInsert.length > 0) {
-                    await this.reviewModel.insertMany(toInsert);
-                    createdReviews += toInsert.length;
-                    updatedProducts++;
-                    await this.recalculateProductRating(pId);
+            const existingReviews = await this.reviewModel.find({ productId: pId }).exec();
+            const seenNames = new Set();
+            let hasDuplicates = false;
+            for (const r of existingReviews) {
+                const key = (r.name || r.user_name || '').trim().toLowerCase();
+                if (seenNames.has(key)) {
+                    hasDuplicates = true;
+                    break;
                 }
+                seenNames.add(key);
+            }
+            if (hasDuplicates || existingReviews.length < 7) {
+                await this.reviewModel.deleteMany({ productId: pId });
+                const freshReviews = (0, default_reviews_data_1.buildDefaultReviews)(pId, prod.name || 'Product', i, 7, [], []);
+                await this.reviewModel.insertMany(freshReviews);
+                createdReviews += freshReviews.length;
+                updatedProducts++;
+                await this.recalculateProductRating(pId);
             }
         }
         return {

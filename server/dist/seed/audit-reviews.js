@@ -59,35 +59,20 @@ async function runAudit() {
     for (let i = 0; i < products.length; i++) {
         const product = products[i];
         const productIdStr = product._id.toString();
-        const existingReviews = await reviewsCollection
-            .find({ productId: productIdStr })
-            .toArray();
-        const count = existingReviews.length;
-        if (count < 7) {
-            const defaultReviews = (0, default_reviews_data_1.buildDefaultReviews)(productIdStr, product.name || 'Product', i);
-            const neededCount = 7 - count;
-            const reviewsToInsert = defaultReviews.slice(0, neededCount);
-            if (reviewsToInsert.length > 0) {
-                await reviewsCollection.insertMany(reviewsToInsert);
-                createdReviewsCount += reviewsToInsert.length;
-                updatedProductsCount++;
-                const allReviews = await reviewsCollection
-                    .find({ productId: productIdStr })
-                    .toArray();
-                const totalRating = allReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
-                const avgRating = Math.round((totalRating / allReviews.length) * 10) / 10;
-                await productsCollection.updateOne({ _id: product._id }, {
-                    $set: {
-                        rating: avgRating,
-                        numReviews: allReviews.length,
-                    },
-                });
-                console.log(`[✓] Product "${product.name}" (${productIdStr}): Added ${reviewsToInsert.length} reviews. Total: ${allReviews.length}, Rating: ${avgRating}`);
-            }
-        }
-        else {
-            console.log(`[-] Product "${product.name}" (${productIdStr}): Already has ${count} reviews. Skipped.`);
-        }
+        await reviewsCollection.deleteMany({ productId: productIdStr });
+        const freshReviews = (0, default_reviews_data_1.buildDefaultReviews)(productIdStr, product.name || 'Product', i * 3, 7, [], []);
+        await reviewsCollection.insertMany(freshReviews);
+        createdReviewsCount += freshReviews.length;
+        updatedProductsCount++;
+        const totalRating = freshReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+        const avgRating = Math.round((totalRating / freshReviews.length) * 10) / 10;
+        await productsCollection.updateOne({ _id: product._id }, {
+            $set: {
+                rating: avgRating,
+                numReviews: freshReviews.length,
+            },
+        });
+        console.log(`[✓] Product "${product.name}" (${productIdStr}): 7 UNIQUE reviews -> ${freshReviews.map((r) => r.name).join(', ')}`);
     }
     console.log('\n═══════════════════════════════════════════');
     console.log('Audit Summary:');

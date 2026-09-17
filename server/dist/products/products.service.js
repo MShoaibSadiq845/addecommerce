@@ -23,6 +23,14 @@ let ProductsService = class ProductsService {
         this.productModel = productModel;
         this.reviewsService = reviewsService;
     }
+    async onModuleInit() {
+        try {
+            await this.productModel.updateMany({ brand: { $in: ['SHOP.CO', 'shop.co', 'FebDecore', '', null] } }, { $set: { brand: 'Fab Decor' } });
+        }
+        catch (err) {
+            console.error('Failed to migrate product brands to Fab Decor:', err);
+        }
+    }
     normalizeArrayParam(value) {
         if (value === undefined)
             return [];

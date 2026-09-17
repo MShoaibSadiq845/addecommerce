@@ -39,7 +39,7 @@ __decorate([
     __metadata("design:type", String)
 ], Product.prototype, "category", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, default: 'SHOP.CO' }),
+    (0, mongoose_1.Prop)({ type: String, default: 'Fab Decor' }),
     __metadata("design:type", String)
 ], Product.prototype, "brand", void 0);
 __decorate([

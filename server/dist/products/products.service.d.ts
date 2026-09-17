@@ -1,3 +1,4 @@
+import { OnModuleInit } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -16,10 +17,11 @@ export interface ProductQuery {
     color?: string | string[];
     size?: string | string[];
 }
-export declare class ProductsService {
+export declare class ProductsService implements OnModuleInit {
     private productModel;
     private readonly reviewsService;
     constructor(productModel: Model<ProductDocument>, reviewsService: ReviewsService);
+    onModuleInit(): Promise<void>;
     private normalizeArrayParam;
     findAll(query: ProductQuery): Promise<{
         products: ProductDocument[];

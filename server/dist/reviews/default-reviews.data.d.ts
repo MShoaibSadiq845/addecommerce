@@ -13,4 +13,4 @@ export interface DefaultReviewItem {
     createdAt: Date;
     created_at?: Date;
 }
-export declare function buildDefaultReviews(productId: string, productName: string, seedOffset?: number): DefaultReviewItem[];
+export declare function buildDefaultReviews(productId: string, productName: string, seedOffset?: number, totalCount?: number, existingNames?: string[], existingComments?: string[]): DefaultReviewItem[];
