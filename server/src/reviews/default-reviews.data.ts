@@ -152,7 +152,7 @@ export function buildDefaultReviews(
   existingNames: string[] = [],
   existingComments: string[] = [],
 ): DefaultReviewItem[] {
-  const seed = getHashCode(productId || productName || 'shop_co') + seedOffset;
+  const seed = getHashCode(productId || productName || 'fab_decor') + seedOffset;
   const patternIndex = seed % RATING_PATTERNS.length;
   const ratings = RATING_PATTERNS[patternIndex];
 
