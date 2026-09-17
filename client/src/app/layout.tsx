@@ -6,7 +6,7 @@ import { LoadingProvider } from "@/context/LoadingContext"; // 👈 1. Import Lo
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "FabDecor | E-Commerce Platform",
+  title: "FabDecor | Comfort, Quality & Style",
   description: "Pixel-perfect e-commerce platform with dynamic RTK Query API layer, NestJS backend, MongoDB, and real-time Socket.IO sales alerts.",
   icons: {
     icon: [
