@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, LayoutGrid, Tag, Sparkles } from 'lucide-react';
+import { Home, LayoutGrid, Tag, Package } from 'lucide-react';
 
 // ──────────────────────────────────────────────
 // Nav item definition
@@ -30,22 +30,28 @@ const NAV_ITEMS: NavItem[] = [
     label: 'All Products',
     href: '/shop',
     icon: LayoutGrid,
-    isActive: (pathname, sp) =>
-      pathname === '/shop' && !sp.get('isOnSale') && !sp.get('newArrivals'),
+    isActive: (pathname, sp) => {
+      if (pathname !== '/shop') return false;
+      const category = sp.get('category');
+      const isOnSale = sp.get('isOnSale');
+      const newArrivals = sp.get('newArrivals');
+      const search = sp.get('search');
+      return (!category || category === 'all') && !isOnSale && !newArrivals && !search;
+    },
   },
   {
     id: 'on-sale',
     label: 'On Sale',
     href: '/shop?isOnSale=true',
     icon: Tag,
-    isActive: (_pathname, sp) => sp.get('isOnSale') === 'true',
+    isActive: (pathname, sp) => pathname === '/shop' && sp.get('isOnSale') === 'true',
   },
   {
-    id: 'new-arrivals',
-    label: 'New Arrivals',
-    href: '/shop?newArrivals=true&sort=newest',
-    icon: Sparkles,
-    isActive: (_pathname, sp) => sp.get('newArrivals') === 'true',
+    id: 'my-orders',
+    label: 'My Orders',
+    href: '/orders',
+    icon: Package,
+    isActive: (pathname) => pathname === '/orders' || pathname.startsWith('/orders/'),
   },
 ];
 
