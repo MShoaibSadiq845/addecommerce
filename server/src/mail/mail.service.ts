@@ -30,7 +30,11 @@ export class MailService {
     }
 
     const orderIdStr = orderDetails._id ? orderDetails._id.toString() : '';
-    const orderShortId = orderIdStr ? orderIdStr.slice(-6).toUpperCase() : 'N/A';
+    const orderShortId = orderDetails.orderId
+      ? orderDetails.orderId.toUpperCase().replace(/^#/, '')
+      : orderIdStr
+      ? orderIdStr.slice(-8).toUpperCase()
+      : 'N/A';
     const guestName = orderDetails.guestName || 'Valued Customer';
     const paymentMethod = orderDetails.paymentMethod || 'COD';
     const paymentStatus = orderDetails.paymentStatus || 'Unpaid';

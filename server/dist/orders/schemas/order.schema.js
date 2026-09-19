@@ -121,6 +121,16 @@ __decorate([
 ], Order.prototype, "canceledAt", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
+        type: String,
+        index: true,
+        default: function () {
+            return this._id ? this._id.toString().slice(-8).toUpperCase() : undefined;
+        },
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "orderId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
         type: {
             street: { type: String, required: true },
             city: { type: String, required: true },
@@ -136,4 +146,12 @@ exports.Order = Order = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Order);
 exports.OrderSchema = mongoose_1.SchemaFactory.createForClass(Order);
+exports.OrderSchema.pre('save', function (next) {
+    if (!this.orderId && this._id) {
+        this.orderId = this._id.toString().slice(-8).toUpperCase();
+    }
+    if (typeof next === 'function') {
+        next();
+    }
+});
 //# sourceMappingURL=order.schema.js.map

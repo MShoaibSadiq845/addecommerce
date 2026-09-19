@@ -140,39 +140,29 @@ export class OrdersService {
 
 
 
+    const orderObjectId = new Types.ObjectId();
+    const orderId = orderObjectId.toString().slice(-8).toUpperCase();
+
     const order = await this.orderModel.create({
-
+      _id: orderObjectId,
+      orderId,
       guestName: dto.guestName,
-
       guestEmail: dto.guestEmail.toLowerCase(),
-
       guestPhone: dto.guestPhone || '',
-
       items: processedItems,
-
       totalAmount,
-
       status: OrderStatus.PENDING,
-
       paymentMethod,
-
       paymentStatus,
-
       shippingAddress: {
-
         street: dto.shippingAddress.street,
-
         city: dto.shippingAddress.city,
-
         province: dto.shippingAddress.province || '',
-
         postalCode: dto.shippingAddress.postalCode,
-
         country: dto.shippingAddress.country,
-
       },
-
     });
+
 
 
 
@@ -200,32 +190,21 @@ export class OrdersService {
 
 
 
-    console.log('✅ [OrdersService.create] Order successfully saved in database! Order ID:', order._id.toString(), 'Phone:', dto.guestPhone);
+    const orderDisplayId = order.orderId || order._id.toString().slice(-8).toUpperCase();
 
-
+    console.log('✅ [OrdersService.create] Order successfully saved in database! Order ID:', orderDisplayId, 'Phone:', dto.guestPhone);
 
     // Real-time notification for admin
-
     try {
-
       await this.notificationsService.createAndBroadcast({
-
         title: '🛒 New Order Placed!',
-
-        message: `Order #${order._id.toString().slice(-6)} by ${dto.guestName} (${paymentMethod}) — Rs ${totalAmount.toFixed(0)}`,
-
+        message: `Order #${orderDisplayId} by ${dto.guestName} (${paymentMethod}) — Rs ${totalAmount.toFixed(0)}`,
         type: 'order',
-
         link: `/admin/orders`,
-
       });
-
       console.log('📢 [OrdersService.create] Realtime admin notification broadcasted.');
-
     } catch (notifyErr: any) {
-
       console.error('⚠️ [OrdersService.create] Notification broadcast error:', notifyErr?.message || notifyErr);
-
     }
 
 
@@ -537,6 +516,7 @@ export class OrdersService {
     });
 
     const orClauses: any[] = [
+      { orderId: { $regex: escapedClean, $options: 'i' } },
       { _idStr: { $regex: escapedClean, $options: 'i' } },
       { guestName: searchRegex },
       { guestEmail: searchRegex },
@@ -575,12 +555,33 @@ export class OrdersService {
         .findById(cleanId)
         .populate('items.product')
         .exec();
-    } else {
+    }
+
+    if (!order) {
+      order = await this.orderModel
+        .findOne({
+          $or: [
+            { orderId: cleanId.toUpperCase() },
+            { orderId: cleanId },
+          ],
+        })
+        .populate('items.product')
+        .exec();
+    }
+
+    if (!order) {
       const escaped = cleanId.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const results = await this.orderModel
         .aggregate([
           { $addFields: { _idStr: { $toString: '$_id' } } },
-          { $match: { _idStr: { $regex: escaped + '$', $options: 'i' } } },
+          {
+            $match: {
+              $or: [
+                { orderId: { $regex: escaped + '$', $options: 'i' } },
+                { _idStr: { $regex: escaped + '$', $options: 'i' } },
+              ],
+            },
+          },
           { $limit: 1 },
         ])
         .exec();
@@ -635,12 +636,15 @@ export class OrdersService {
 
     await order.save();
 
+    const orderDisplayId = order.orderId || order._id.toString().slice(-8).toUpperCase();
+
     await this.notificationsService.createAndBroadcast({
       title: '📦 Order Status Updated',
-      message: `Order #${order._id.toString().slice(-6)} → ${status} (${order.paymentStatus})`,
+      message: `Order #${orderDisplayId} → ${status} (${order.paymentStatus})`,
       type: 'order',
       link: `/admin/orders`,
     });
+
 
     return order;
   }

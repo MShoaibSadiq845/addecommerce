@@ -90,6 +90,15 @@ export class Order {
   canceledAt?: Date;
 
   @Prop({
+    type: String,
+    index: true,
+    default: function (this: any) {
+      return this._id ? this._id.toString().slice(-8).toUpperCase() : undefined;
+    },
+  })
+  orderId?: string;
+
+  @Prop({
     type: {
       street: { type: String, required: true },
       city: { type: String, required: true },
@@ -109,3 +118,15 @@ export class Order {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+OrderSchema.pre<OrderDocument>('save', function (this: OrderDocument, next: any) {
+  if (!this.orderId && this._id) {
+    this.orderId = this._id.toString().slice(-8).toUpperCase();
+  }
+  if (typeof next === 'function') {
+    next();
+  }
+});
+
+
+

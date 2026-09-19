@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useVerifyStripeSessionMutation } from '@/store/services/ordersApi';
+import { formatOrderId } from '@/lib/utils';
 
 function OrderConfirmedInner() {
   const searchParams = useSearchParams();
@@ -81,7 +82,7 @@ function OrderConfirmedInner() {
 
       <p className="text-sm text-gray-600 max-w-sm">
         Thank you, <strong>{order?.guestName || 'Customer'}</strong>! Your order{' '}
-        <strong>#{order?._id?.slice(-6)?.toUpperCase()}</strong> has been placed.
+        <strong>#{formatOrderId(order)}</strong> has been placed.
         A confirmation will be sent to <strong>{order?.guestEmail || email}</strong>.
       </p>
 

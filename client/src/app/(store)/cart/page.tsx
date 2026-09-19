@@ -18,6 +18,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { StoreAuthModal } from '@/components/storefront/StoreAuthModal';
 import { trackInitiateCheckout, trackPurchase } from '@/lib/fb-pixel';
+import { formatOrderId } from '@/lib/utils';
 
 type DeliveryForm = {
   guestName: string;
@@ -237,7 +238,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
         </h1>
         <p className="text-sm text-gray-600 max-w-sm">
           Thank you, <strong>{orderSuccess.guestName}</strong>! Your order{' '}
-          <strong>#{orderSuccess._id?.slice(-6)}</strong> has been placed.
+          <strong>#{formatOrderId(orderSuccess)}</strong> has been placed.
           A confirmation will be sent to <strong>{orderSuccess.guestEmail}</strong>.
         </p>
         <div className="w-full bg-gray-50 rounded-2xl p-5 text-sm text-left flex flex-col gap-2 border border-gray-200">

@@ -8,6 +8,7 @@ import { Eye, Loader2, CreditCard, Banknote, Search, X, Database, CheckCircle2, 
 import { toast } from 'react-hot-toast';
 import { useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
+import { formatOrderId } from '@/lib/utils';
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -218,7 +219,7 @@ export default function AdminOrdersPage() {
                 return (
                   <tr key={order._id} className="hover:bg-gray-50 transition-all">
                     <td className="px-5 py-4 font-bold text-black font-mono">
-                      #{order._id.slice(-6).toUpperCase()}
+                      #{formatOrderId(order)}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col">

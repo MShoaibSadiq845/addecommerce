@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useGetOrderByIdQuery, useUpdateOrderStatusMutation } from '@/store/services/ordersApi';
 import { ArrowLeft, User, MapPin, Package, Loader2, CreditCard, Banknote, X, ZoomIn } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { formatOrderId } from '@/lib/utils';
 
 const STATUS_COLORS: Record<string, string> = {
   Pending: 'text-yellow-700 bg-yellow-50',
@@ -86,7 +87,7 @@ export default function AdminOrderDetailPage() {
             <ArrowLeft className="w-4 h-4 text-gray-700" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Order #{order._id.slice(-8).toUpperCase()}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Order #{formatOrderId(order)}</h1>
             <p className="text-xs text-gray-400">Placed on {new Date(order.createdAt).toLocaleString()}</p>
           </div>
         </div>

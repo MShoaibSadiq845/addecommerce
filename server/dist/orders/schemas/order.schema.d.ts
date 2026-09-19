@@ -40,6 +40,7 @@ export declare class Order {
     stripePaymentIntentId?: string;
     deliveredAt?: Date;
     canceledAt?: Date;
+    orderId?: string;
     shippingAddress: {
         street: string;
         city: string;
@@ -157,6 +158,15 @@ export declare const OrderSchema: MongooseSchema<Order, import("mongoose").Model
         id: string;
     }>>;
     canceledAt?: import("mongoose").SchemaDefinitionProperty<Date, Order, Document<unknown, {}, Order, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Order & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>>;
+    orderId?: import("mongoose").SchemaDefinitionProperty<string, Order, Document<unknown, {}, Order, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Order & {
         _id: import("mongoose").Types.ObjectId;

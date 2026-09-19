@@ -17,6 +17,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
+import { formatOrderId } from '@/lib/utils';
+
 
 export default function AdminDashboardPage() {
   const { data: metrics, isLoading } = useGetAdminMetricsQuery(undefined);
@@ -295,7 +297,7 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-gray-100 font-semibold text-gray-700">
                 {recentOrders.map((order: any) => (
                   <tr key={order._id} className="hover:bg-gray-50 transition-all">
-                    <td className="py-3.5 font-bold text-black">#{order._id.slice(-6)}</td>
+                    <td className="py-3.5 font-bold text-black font-mono">#{formatOrderId(order)}</td>
                     <td className="py-3.5">{order.user?.name || 'Customer'}</td>
                     <td className="py-3.5">{order.items?.length || 1} Products</td>
                     <td className="py-3.5 font-bold text-black">Rs {order.totalAmount?.toLocaleString()}</td>

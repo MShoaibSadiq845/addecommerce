@@ -17,6 +17,7 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { useGetOrdersByEmailQuery } from '@/store/services/ordersApi';
+import { formatOrderId } from '@/lib/utils';
 
 // ─── Status badge ───────────────────────────────────────────────────────────
 
@@ -168,7 +169,7 @@ function OrderCard({ order }: { order: any }) {
             Order ID
           </span>
           <span className="font-bold text-sm font-mono text-black">
-            #{order._id.slice(-8).toUpperCase()}
+            #{formatOrderId(order)}
           </span>
         </div>
 

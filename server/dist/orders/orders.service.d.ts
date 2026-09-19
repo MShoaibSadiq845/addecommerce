@@ -36,6 +36,7 @@ export declare class OrdersService {
         stripePaymentIntentId?: string;
         deliveredAt?: Date;
         canceledAt?: Date;
+        orderId?: string;
         shippingAddress: {
             street: string;
             city: string;
