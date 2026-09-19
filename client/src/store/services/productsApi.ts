@@ -63,6 +63,14 @@ export const productsApi = apiSlice.injectEndpoints({
       query: () => '/products/low-stock',
       providesTags: ['Product'],
     }),
+    bulkUpdatePrices: builder.mutation({
+      query: (items: { id: string; price: number; salePrice?: number; isOnSale?: boolean }[]) => ({
+        url: '/products/bulk-prices',
+        method: 'PUT',
+        body: { items },
+      }),
+      invalidatesTags: ['Product'],
+    }),
   }),
 });
 
@@ -77,4 +85,5 @@ export const {
   useToggleSaleMutation,
   useUploadProductImageMutation,
   useGetLowStockProductsQuery,
+  useBulkUpdatePricesMutation,
 } = productsApi;

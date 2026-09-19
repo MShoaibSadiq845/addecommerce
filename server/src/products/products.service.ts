@@ -278,10 +278,50 @@ export class ProductsService implements OnModuleInit {
   }
 
   async update(id: string, dto: UpdateProductDto) {
+    const existing = await this.productModel.findById(id).exec();
+    if (!existing) throw new NotFoundException('Product not found');
+
+    const updateData: any = { ...dto };
+
+    if (dto.price !== undefined) {
+      const newPrice = Number(dto.price);
+      updateData.price = newPrice;
+
+      const isSofa =
+        (existing.seatPricing && Object.keys(existing.seatPricing).length > 0) ||
+        /sofa/i.test(existing.name || '') ||
+        /sofa/i.test(existing.category || '') ||
+        (existing.tags && existing.tags.some((t: string) => /sofa/i.test(t)));
+
+      if (isSofa && !dto.seatPricing) {
+        const SEAT_TIERS: Record<string, number> = {
+          '1 seats': 1,
+          '2 seats': 2,
+          '3 seats': 3,
+          '2(1+1)': 2,
+          '5(3+1+1)': 5,
+          '5(3+2)': 5,
+          '6(3+2+1)': 6,
+          '7(3+2+1+1)': 7,
+        };
+        const updatedSeatPricing: Record<string, number> = {};
+        Object.entries(SEAT_TIERS).forEach(([key, mult]) => {
+          updatedSeatPricing[key] = newPrice * mult;
+        });
+        updateData.seatPricing = updatedSeatPricing;
+
+        if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
+          updateData.description = existing.description.replace(
+            /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
+            `Price: Rs. ${newPrice} per seat`,
+          );
+        }
+      }
+    }
+
     const product = await this.productModel
-      .findByIdAndUpdate(id, dto, { returnDocument: 'after' })
+      .findByIdAndUpdate(id, updateData, { returnDocument: 'after' })
       .exec();
-    if (!product) throw new NotFoundException('Product not found');
     return product;
   }
 
@@ -325,5 +365,90 @@ export class ProductsService implements OnModuleInit {
       .select('name stock sku images price category')
       .sort({ stock: 1 })
       .exec();
+  }
+
+  async bulkUpdatePrices(items: { id: string; price: number; salePrice?: number; isOnSale?: boolean }[]) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return { success: true, count: 0, matchedCount: 0, modifiedCount: 0, message: 'No items to update' };
+    }
+
+    const SEAT_TIERS: Record<string, number> = {
+      '1 seats': 1,
+      '2 seats': 2,
+      '3 seats': 3,
+      '2(1+1)': 2,
+      '5(3+1+1)': 5,
+      '5(3+2)': 5,
+      '6(3+2+1)': 6,
+      '7(3+2+1+1)': 7,
+    };
+
+    const ids = items.map((item) => item.id);
+    const existingProducts = await this.productModel.find({ _id: { $in: ids } }).exec();
+    const productMap = new Map(existingProducts.map((p) => [p._id.toString(), p]));
+
+    const bulkOps: any[] = [];
+
+    for (const item of items) {
+      const existing = productMap.get(item.id);
+      if (!existing) continue;
+
+      const newPrice = Number(item.price);
+      if (isNaN(newPrice) || newPrice < 0) continue;
+
+      const updateFields: any = {
+        price: newPrice,
+      };
+
+      if (item.salePrice !== undefined) {
+        updateFields.salePrice = Number(item.salePrice);
+      }
+      if (item.isOnSale !== undefined) {
+        updateFields.isOnSale = Boolean(item.isOnSale);
+      }
+
+      // Check if product has sofa seating pricing
+      const isSofa =
+        (existing.seatPricing && Object.keys(existing.seatPricing).length > 0) ||
+        /sofa/i.test(existing.name || '') ||
+        /sofa/i.test(existing.category || '') ||
+        (existing.tags && existing.tags.some((t: string) => /sofa/i.test(t)));
+
+      if (isSofa) {
+        const updatedSeatPricing: Record<string, number> = {};
+        Object.entries(SEAT_TIERS).forEach(([key, mult]) => {
+          updatedSeatPricing[key] = newPrice * mult;
+        });
+        updateFields.seatPricing = updatedSeatPricing;
+
+        // Also update description if it contains "Price: Rs. xxx per seat"
+        if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
+          updateFields.description = existing.description.replace(
+            /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
+            `Price: Rs. ${newPrice} per seat`,
+          );
+        }
+      }
+
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: item.id },
+          update: { $set: updateFields },
+        },
+      });
+    }
+
+    if (bulkOps.length === 0) {
+      return { success: true, count: 0, matchedCount: 0, modifiedCount: 0, message: 'No valid operations' };
+    }
+
+    const result = await this.productModel.bulkWrite(bulkOps);
+
+    return {
+      success: true,
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount,
+      message: `Successfully updated ${result.modifiedCount} product price(s) in bulk.`,
+    };
   }
 }

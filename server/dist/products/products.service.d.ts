@@ -73,4 +73,22 @@ export declare class ProductsService implements OnModuleInit {
     } & {
         id: string;
     })[]>;
+    bulkUpdatePrices(items: {
+        id: string;
+        price: number;
+        salePrice?: number;
+        isOnSale?: boolean;
+    }[]): Promise<{
+        success: boolean;
+        count: number;
+        matchedCount: number;
+        modifiedCount: number;
+        message: string;
+    } | {
+        count?: undefined;
+        success: boolean;
+        matchedCount: number;
+        modifiedCount: number;
+        message: string;
+    }>;
 }

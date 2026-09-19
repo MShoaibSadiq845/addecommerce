@@ -62,6 +62,14 @@ let ProductsController = class ProductsController {
     async getLowStock() {
         return this.productsService.getLowStockProducts();
     }
+    async bulkUpdatePricesPut(body) {
+        const items = Array.isArray(body) ? body : body?.items || [];
+        return this.productsService.bulkUpdatePrices(items);
+    }
+    async bulkUpdatePricesPost(body) {
+        const items = Array.isArray(body) ? body : body?.items || [];
+        return this.productsService.bulkUpdatePrices(items);
+    }
     async getOne(id) {
         return this.productsService.findById(id);
     }
@@ -121,6 +129,20 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "getLowStock", null);
+__decorate([
+    (0, common_1.Put)('bulk-prices'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkUpdatePricesPut", null);
+__decorate([
+    (0, common_1.Post)('bulk-prices'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkUpdatePricesPost", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

@@ -76,6 +76,18 @@ export class ProductsController {
     return this.productsService.getLowStockProducts();
   }
 
+  @Put('bulk-prices')
+  async bulkUpdatePricesPut(@Body() body: any) {
+    const items = Array.isArray(body) ? body : body?.items || [];
+    return this.productsService.bulkUpdatePrices(items);
+  }
+
+  @Post('bulk-prices')
+  async bulkUpdatePricesPost(@Body() body: any) {
+    const items = Array.isArray(body) ? body : body?.items || [];
+    return this.productsService.bulkUpdatePrices(items);
+  }
+
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return this.productsService.findById(id);

@@ -9,13 +9,15 @@ import {
   useGetCategoriesQuery,
   useDeleteProductMutation,
   useToggleSaleMutation,
+  useUpdateProductMutation,
 } from '@/store/services/productsApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search, Armchair, Eye } from 'lucide-react';
+import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search, Armchair, Eye, SlidersHorizontal, Check, RotateCcw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
 import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
+import BulkPriceModal from '@/components/admin/BulkPriceModal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -107,6 +109,7 @@ function AdminProductsContent() {
 
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [toggleSale, { isLoading: isToggling }] = useToggleSaleMutation();
+  const [updateProduct, { isLoading: isUpdatingProduct }] = useUpdateProductMutation();
 
   const products = data?.products || [];
   const total = data?.total || 0;
@@ -119,6 +122,54 @@ function AdminProductsContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState<any>(null);
+  const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
+
+  // Inline table price editing state
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [inlinePriceInput, setInlinePriceInput] = useState<string>('');
+  const [inlinePriceError, setInlinePriceError] = useState<string>('');
+
+  const handleStartInlineEdit = (product: any) => {
+    setEditingPriceId(product._id);
+    setInlinePriceInput(String(product.price ?? 0));
+    setInlinePriceError('');
+  };
+
+  const handleCancelInlineEdit = () => {
+    setEditingPriceId(null);
+    setInlinePriceInput('');
+    setInlinePriceError('');
+  };
+
+  const handleSaveInlinePrice = async (product: any) => {
+    const num = parseFloat(inlinePriceInput);
+    if (isNaN(num) || num < 0) {
+      setInlinePriceError('Invalid price');
+      toast.error('Please enter a valid price.');
+      return;
+    }
+
+    // If user changed price back to original value (or didn't change it), cleanly exit edit mode
+    if (num === product.price) {
+      setEditingPriceId(null);
+      setInlinePriceInput('');
+      setInlinePriceError('');
+      return;
+    }
+
+    try {
+      await updateProduct({
+        id: product._id,
+        price: num,
+      }).unwrap();
+      toast.success(`Price updated to ₨${num.toLocaleString()}`);
+      setEditingPriceId(null);
+      setInlinePriceInput('');
+      setInlinePriceError('');
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to update price.');
+    }
+  };
 
   useEffect(() => {
     setLoading(isLoading || isFetching || isDeleting || isToggling);
@@ -187,12 +238,22 @@ function AdminProductsContent() {
             Manage inventory, dynamic sofa seat pricing &amp; flash sales
           </p>
         </div>
-        <Link
-          href={getAddHref()}
-          className="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all w-fit shadow-md"
-        >
-          <PlusCircle className="w-4 h-4" /> Add New Product
-        </Link>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsBulkPriceModalOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-gray-900 via-gray-800 to-black text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:from-black hover:to-gray-900 transition-all shadow-md cursor-pointer border border-gray-700/50"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-amber-400" />
+            <span>Bulk Price Adjust</span>
+          </button>
+          <Link
+            href={getAddHref()}
+            className="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all w-fit shadow-md"
+          >
+            <PlusCircle className="w-4 h-4" /> Add New Product
+          </Link>
+        </div>
       </div>
 
       {/* ─── Server-Side Filters ─── */}
@@ -292,16 +353,81 @@ function AdminProductsContent() {
 
                         <td className="py-4">{product.category}</td>
 
-                        <td className="py-4 font-bold text-black">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5">
-                              <span>₨{product.isOnSale ? product.salePrice?.toLocaleString() : product.price?.toLocaleString()}</span>
-                              {product.isOnSale && (
-                                <span className="text-[10px] text-gray-400 line-through font-normal">
-                                  ₨{product.price?.toLocaleString()}
-                                </span>
-                              )}
-                            </div>
+                        <td className="py-4 font-bold text-black min-w-[200px]">
+                          <div className="flex flex-col gap-1.5">
+                            {editingPriceId === product._id ? (
+                              <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
+                                <div className="relative flex-1">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                                    ₨
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    autoFocus
+                                    value={inlinePriceInput}
+                                    onChange={(e) => {
+                                      setInlinePriceInput(e.target.value);
+                                      setInlinePriceError('');
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveInlinePrice(product);
+                                      if (e.key === 'Escape') handleCancelInlineEdit();
+                                    }}
+                                    className={`w-full pl-5 pr-2 py-1 bg-white border-2 rounded-lg text-xs font-bold text-gray-900 outline-none shadow-xs ${
+                                      inlinePriceError ? 'border-red-500' : 'border-black'
+                                    }`}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveInlinePrice(product)}
+                                  disabled={isUpdatingProduct}
+                                  className="p-1 bg-black hover:bg-gray-800 text-white rounded-lg transition-colors cursor-pointer shadow-xs"
+                                  title="Save Price (Enter)"
+                                >
+                                  {isUpdatingProduct ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Check className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelInlineEdit}
+                                  className="p-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors cursor-pointer"
+                                  title="Revert / Cancel (Escape)"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 group">
+                                <div
+                                  className="flex items-center gap-1.5 cursor-pointer"
+                                  onClick={() => handleStartInlineEdit(product)}
+                                  title="Click to edit price inline"
+                                >
+                                  <span>
+                                    ₨{product.isOnSale ? product.salePrice?.toLocaleString() : product.price?.toLocaleString()}
+                                  </span>
+                                  {product.isOnSale && (
+                                    <span className="text-[10px] text-gray-400 line-through font-normal">
+                                      ₨{product.price?.toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartInlineEdit(product)}
+                                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-black p-1 hover:bg-gray-100 rounded-md transition-all cursor-pointer"
+                                  title="Quick edit price"
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
 
                             {/* Sofa seat pricing summary badge */}
                             {isSofa && (
@@ -638,6 +764,13 @@ function AdminProductsContent() {
           </div>
         </div>
       )}
+
+      {/* ─── Bulk Price Adjustment Modal ─── */}
+      <BulkPriceModal
+        isOpen={isBulkPriceModalOpen}
+        onClose={() => setIsBulkPriceModalOpen(false)}
+        initialCategory={categoryFilter}
+      />
     </div>
   );
 }
