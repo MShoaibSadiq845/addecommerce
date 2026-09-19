@@ -409,11 +409,10 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
-                            isSelected
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
-                          }`}
+                            }`}
                         >
                           {opt.label}
                         </button>
@@ -430,11 +429,10 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
-                            isSelected
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
-                          }`}
+                            }`}
                         >
                           {opt.label}
                         </button>
@@ -451,11 +449,10 @@ export default function ProductDetailPage() {
                           key={opt.key}
                           type="button"
                           onClick={() => setSelectedSeat(opt.key)}
-                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${
-                            isSelected
+                          className={`py-3 px-3 rounded-lg text-center text-sm sm:text-base transition-all duration-200 cursor-pointer active:scale-95 ${isSelected
                               ? 'border-2 border-black bg-black text-white font-semibold shadow-sm'
                               : 'border border-gray-200 bg-white text-gray-800 font-normal hover:bg-black hover:text-white hover:border-black'
-                          }`}
+                            }`}
                         >
                           {opt.label}
                         </button>
@@ -607,7 +604,7 @@ export default function ProductDetailPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-bold text-black" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
-                    All Reviews ({reviews.length})
+                    All Reviews
                   </h3>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {reviewsLoading

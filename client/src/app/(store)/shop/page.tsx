@@ -268,7 +268,7 @@ function ShopContent() {
 
   const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
-    limit: activeNewArrivals ? 100 : 9,
+    limit: activeNewArrivals ? 100 : 12,
     sort: sortRaw,
     ...(activeSearch && { search: activeSearch }),
     ...(activeCategory && { category: activeCategory }),
@@ -587,7 +587,7 @@ function ShopContent() {
 
           {isLoading || isFetching ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-              <ProductGridSkeleton count={9} />
+              <ProductGridSkeleton count={12} />
             </div>
           ) : products.length === 0 ? (
             <div className="py-20 flex flex-col items-center gap-3 bg-[#f2f0f1] rounded-[24px] text-center px-4">
@@ -651,7 +651,7 @@ function ShopContent() {
 export default function ShopPage() {
   return (
     <LoadingProvider>
-      <Suspense fallback={<div className="p-12"><ProductGridSkeleton count={9} /></div>}>
+      <Suspense fallback={<div className="p-12"><ProductGridSkeleton count={12} /></div>}>
         <ShopContent />
       </Suspense>
     </LoadingProvider>

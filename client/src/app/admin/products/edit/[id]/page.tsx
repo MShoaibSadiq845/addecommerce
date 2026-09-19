@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useGetProductByIdQuery, useUpdateProductMutation } from '@/store/services/productsApi';
 import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X, Armchair, Calculator } from 'lucide-react';
@@ -25,13 +25,27 @@ type ProductEditFormInputs = {
 const parseTags = (raw: string): string[] =>
   raw.split(',').map((s) => s.trim()).filter(Boolean);
 
-export default function AdminEditProductPage() {
+function AdminEditProductContent() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: product, isLoading: loadingProduct } = useGetProductByIdQuery(id as string);
   const [updateProduct, { isLoading: updating }] = useUpdateProductMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const categoryParam = searchParams.get('category');
+  const searchParam = searchParams.get('search');
+  const pageParam = searchParams.get('page');
+
+  const getReturnUrl = () => {
+    const params = new URLSearchParams();
+    if (categoryParam) params.set('category', categoryParam);
+    if (searchParam) params.set('search', searchParam);
+    if (pageParam && Number(pageParam) > 1) params.set('page', pageParam);
+    const qs = params.toString();
+    return qs ? `/admin/products?${qs}` : '/admin/products';
+  };
 
   const [seatPrices, setSeatPrices] = useState<Record<string, string>>({
     '1 seats': '',
@@ -43,6 +57,7 @@ export default function AdminEditProductPage() {
     '6(3+2+1)': '',
     '7(3+2+1+1)': '',
   });
+
 
   const lastSyncedPriceRef = React.useRef<string>('');
   const isInitialLoadRef = React.useRef<boolean>(true);
@@ -220,7 +235,8 @@ export default function AdminEditProductPage() {
         ],
       }).unwrap();
       toast.success('Product updated successfully!');
-      router.push('/admin/products');
+      const returnUrl = getReturnUrl();
+      router.push(returnUrl);
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to update product';
       setErrorMsg(msg);
@@ -237,7 +253,7 @@ export default function AdminEditProductPage() {
   return (
     <div className="flex flex-col gap-6 font-['Rubik'] max-w-3xl mx-auto pb-12">
       <div className="flex items-center gap-3">
-        <Link href="/admin/products" className="p-2 bg-white rounded-xl border hover:bg-gray-50">
+        <Link href={getReturnUrl()} className="p-2 bg-white rounded-xl border hover:bg-gray-50">
           <ArrowLeft className="w-4 h-4 text-gray-700" />
         </Link>
         <div>
@@ -428,3 +444,12 @@ export default function AdminEditProductPage() {
     </div>
   );
 }
+
+export default function AdminEditProductPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>}>
+      <AdminEditProductContent />
+    </Suspense>
+  );
+}
+

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useGetProductsQuery,
   useGetCategoriesQuery,
@@ -20,23 +21,79 @@ const ITEMS_PER_PAGE = 10;
 
 function AdminProductsContent() {
   const { setLoading } = useLoading();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  /* ─── Server-side filter state ─── */
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const urlCategory = searchParams.get('category') || '';
+  const urlSearch = searchParams.get('search') || '';
+  const urlPage = Number(searchParams.get('page')) || 1;
+
+  /* ─── Server-side filter state initialized from URL params ─── */
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+  const [categoryFilter, setCategoryFilter] = useState(urlCategory);
+  const [currentPage, setCurrentPage] = useState(urlPage);
+
+  // Sync state if URL searchParams change externally
+  useEffect(() => {
+    if (urlCategory !== categoryFilter) setCategoryFilter(urlCategory);
+    if (urlSearch !== searchInput) {
+      setSearchInput(urlSearch);
+      setDebouncedSearch(urlSearch);
+    }
+    if (urlPage !== currentPage) setCurrentPage(urlPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlCategory, urlSearch, urlPage]);
 
   // Debounce search input by 350 ms
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 350);
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // Reset page on filter change
+  // Sync current filter state to URL query parameters
   useEffect(() => {
+    const params = new URLSearchParams();
+    if (categoryFilter) params.set('category', categoryFilter);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    const newQuery = params.toString() ? `?${params.toString()}` : '';
+    router.replace(`/admin/products${newQuery}`, { scroll: false });
+  }, [categoryFilter, debouncedSearch, currentPage, router]);
+
+  // Reset page to 1 when search or category filter changes
+  const handleCategoryChange = (cat: string) => {
+    setCategoryFilter(cat);
     setCurrentPage(1);
-  }, [debouncedSearch, categoryFilter]);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
+    setCurrentPage(1);
+  };
+
+  const getEditHref = useCallback(
+    (prodId: string) => {
+      const params = new URLSearchParams();
+      if (categoryFilter) params.set('category', categoryFilter);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (currentPage > 1) params.set('page', String(currentPage));
+      const qs = params.toString();
+      return `/admin/products/edit/${prodId}${qs ? `?${qs}` : ''}`;
+    },
+    [categoryFilter, debouncedSearch, currentPage],
+  );
+
+  const getAddHref = useCallback(() => {
+    const params = new URLSearchParams();
+    if (categoryFilter) params.set('category', categoryFilter);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    const qs = params.toString();
+    return `/admin/products/add${qs ? `?${qs}` : ''}`;
+  }, [categoryFilter, debouncedSearch, currentPage]);
 
   /* ─── API calls ─── */
   const { data, isLoading, isFetching } = useGetProductsQuery({
@@ -131,7 +188,7 @@ function AdminProductsContent() {
           </p>
         </div>
         <Link
-          href="/admin/products/add"
+          href={getAddHref()}
           className="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all w-fit shadow-md"
         >
           <PlusCircle className="w-4 h-4" /> Add New Product
@@ -147,7 +204,7 @@ function AdminProductsContent() {
             type="text"
             placeholder="Search by name, description… (server-side)"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-9 pr-4 bg-white border border-gray-200 rounded-xl py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-black/20"
           />
           {isFetching && (
@@ -157,7 +214,7 @@ function AdminProductsContent() {
         <select
           id="product-category-filter"
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
+          onChange={(e) => handleCategoryChange(e.target.value)}
           className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold outline-none min-w-[180px]"
         >
           <option value="">All Categories</option>
@@ -338,7 +395,7 @@ function AdminProductsContent() {
                         <td className="py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Link
-                              href={`/admin/products/edit/${product._id}`}
+                              href={getEditHref(product._id)}
                               className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
                               title="Edit Product"
                             >
@@ -444,7 +501,7 @@ function AdminProductsContent() {
                   Close
                 </button>
                 <Link
-                  href={`/admin/products/edit/${seatModalProduct._id}`}
+                  href={getEditHref(seatModalProduct._id)}
                   className="px-4 py-2 bg-black hover:bg-gray-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
                 >
                   <Edit3 className="w-3.5 h-3.5" /> Edit Pricing
