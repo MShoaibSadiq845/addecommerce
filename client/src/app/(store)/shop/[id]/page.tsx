@@ -108,13 +108,20 @@ export default function ProductDetailPage() {
 
   const getBaseSeatPrice = (seatKey: string): number => {
     if (!product) return 0;
-    // If admin has set a custom price in DB for this seat key, use it
-    if (product.seatPricing && product.seatPricing[seatKey] !== undefined && Number(product.seatPricing[seatKey]) > 0) {
-      return Number(product.seatPricing[seatKey]);
-    }
-    // Otherwise: pure multiplication — price × number of seats
-    const base = product.price || 0;
+    const base = Number(product.price) || Number(product.seatPricing?.['1 seats']) || 0;
     const seatCount = SEAT_COUNT[seatKey] ?? 1;
+
+    if (seatKey === '1 seats') {
+      return base;
+    }
+
+    const customVal = Number(product.seatPricing?.[seatKey]);
+    const seat1Val = Number(product.seatPricing?.['1 seats']);
+
+    if (customVal > 0 && (!seat1Val || seat1Val === Number(product.price))) {
+      return customVal;
+    }
+
     return base * seatCount;
   };
 

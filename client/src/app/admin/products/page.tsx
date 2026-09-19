@@ -406,12 +406,11 @@ function AdminProductsContent() {
               <div className="grid grid-cols-2 gap-3">
                 {SOFA_SEAT_OPTIONS.map((opt) => {
                   const customPrice = seatModalProduct.seatPricing?.[opt.key];
+                  const baseNum = Number(seatModalProduct.seatPricing?.['1 seats']) || Number(seatModalProduct.price) || 0;
                   const displayPrice =
-                    customPrice !== undefined
+                    (customPrice !== undefined && Number(customPrice) > 0)
                       ? customPrice
-                      : opt.key === '1 seats'
-                      ? seatModalProduct.price
-                      : null;
+                      : (baseNum > 0 ? baseNum * opt.seats : null);
 
                   return (
                     <div
@@ -425,7 +424,7 @@ function AdminProductsContent() {
                         </span>
                       </div>
                       <span className="text-sm font-extrabold text-black">
-                        {displayPrice !== null ? `₨${Number(displayPrice).toLocaleString()}` : <span className="text-gray-300 font-normal text-xs">Not Set (Base ₨{seatModalProduct.price})</span>}
+                        {displayPrice !== null ? `₨${Number(displayPrice).toLocaleString()}` : <span className="text-gray-300 font-normal text-xs">Not Set</span>}
                       </span>
                     </div>
                   );

@@ -34,8 +34,67 @@ export class ProductsService implements OnModuleInit {
         { brand: { $in: ['SHOP.CO', 'shop.co', 'FebDecore', '', null] } },
         { $set: { brand: 'Fab Decor' } },
       );
+
+      // Auto-sync seatPricing for all sofa products where seatPricing is missing or outdated
+      const sofaProducts = await this.productModel.find({
+        $or: [
+          { name: { $regex: /sofa/i } },
+          { category: { $regex: /sofa/i } },
+          { tags: { $in: [/sofa/i] } },
+          { seatPricing: { $exists: true, $ne: {} } },
+        ],
+      }).exec();
+
+      const SEAT_TIERS: Record<string, number> = {
+        '1 seats': 1,
+        '2 seats': 2,
+        '3 seats': 3,
+        '2(1+1)': 2,
+        '5(3+1+1)': 5,
+        '5(3+2)': 5,
+        '6(3+2+1)': 6,
+        '7(3+2+1+1)': 7,
+      };
+
+      for (const prod of sofaProducts) {
+        const basePrice = Number(prod.price) || 0;
+        if (basePrice > 0) {
+          const currentSeat1 = Number(prod.seatPricing?.['1 seats']) || 0;
+          const needsSync =
+            !prod.seatPricing ||
+            Object.keys(prod.seatPricing).length < 8 ||
+            currentSeat1 !== basePrice;
+
+          if (needsSync) {
+            const updatedSeatPricing: Record<string, number> = {};
+            Object.entries(SEAT_TIERS).forEach(([key, multiplier]) => {
+              updatedSeatPricing[key] = basePrice * multiplier;
+            });
+
+            // Also update description if it contains outdated "Price: Rs. xxx per seat"
+            let updatedDesc = prod.description;
+            if (updatedDesc && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(updatedDesc)) {
+              updatedDesc = updatedDesc.replace(
+                /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
+                `Price: Rs. ${basePrice} per seat`,
+              );
+            }
+
+            await this.productModel.updateOne(
+              { _id: prod._id },
+              {
+                $set: {
+                  seatPricing: updatedSeatPricing,
+                  ...(updatedDesc !== prod.description ? { description: updatedDesc } : {}),
+                },
+              },
+            ).exec();
+          }
+        }
+      }
+      console.log('✅ Sofa product seatPricing synchronized successfully.');
     } catch (err) {
-      console.error('Failed to migrate product brands to Fab Decor:', err);
+      console.error('Failed to migrate product brands/seatPricing to Fab Decor:', err);
     }
   }
 

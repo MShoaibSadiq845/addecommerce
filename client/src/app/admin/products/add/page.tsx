@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import { useLoading } from '@/context/LoadingContext';
-import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
+import { SOFA_SEAT_OPTIONS, calculateSeatPricesString, isSofaProduct } from '@/lib/sofaConfig';
 
 type ProductFormInputs = {
   name: string;
@@ -81,24 +81,14 @@ export default function AdminAddProductPage() {
 
   const isSofa = isSofaProduct(watchName, watchCategory);
 
-  // Auto-sync all seat prices whenever the base price changes (pure multiplication)
+  // Auto-sync all seat prices whenever the base price changes
   useEffect(() => {
     if (isSofa && watchPrice) {
       const base = Number(watchPrice);
       if (base > 0) {
-        setSeatPrices({
-          '1 seats': String(base * 1),
-          '2 seats': String(base * 2),
-          '3 seats': String(base * 3),
-          '2(1+1)': String(base * 2),
-          '5(3+1+1)': String(base * 5),
-          '5(3+2)': String(base * 5),
-          '6(3+2+1)': String(base * 6),
-          '7(3+2+1+1)': String(base * 7),
-        });
+        setSeatPrices(calculateSeatPricesString(base));
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchPrice, isSofa]);
 
   // Global loading
@@ -118,6 +108,14 @@ export default function AdminAddProductPage() {
       ...prev,
       [key]: val,
     }));
+
+    if (key === '1 seats') {
+      setValue('price', val, { shouldValidate: true });
+      const base = Number(val);
+      if (base > 0) {
+        setSeatPrices(calculateSeatPricesString(base));
+      }
+    }
   };
 
   // Quick auto-fill: seat price = base price × seat count
@@ -127,16 +125,9 @@ export default function AdminAddProductPage() {
       toast.error('Please enter a base price first to auto-calculate seat prices');
       return;
     }
-    setSeatPrices({
-      '1 seats': String(base * 1),
-      '2 seats': String(base * 2),
-      '3 seats': String(base * 3),
-      '2(1+1)': String(base * 2),
-      '5(3+1+1)': String(base * 5),
-      '5(3+2)': String(base * 5),
-      '6(3+2+1)': String(base * 6),
-      '7(3+2+1+1)': String(base * 7),
-    });
+    const newPrices = calculateSeatPricesString(base);
+    setValue('price', String(base), { shouldValidate: true });
+    setSeatPrices(newPrices);
     toast.success(`Prices auto-set: 1 seat=₨${base}, 2=₨${base*2}, 3=₨${base*3}, 5=₨${base*5}, 6=₨${base*6}, 7=₨${base*7}`);
   };
 
@@ -175,15 +166,20 @@ export default function AdminAddProductPage() {
     try {
       // Build clean seatPricing object if sofa
       let cleanSeatPricing: Record<string, number> = {};
+      const basePriceNum = Number(data.price) || Number(seatPrices['1 seats']) || 0;
+
       if (isSofa) {
         SOFA_SEAT_OPTIONS.forEach((opt) => {
           const val = Number(seatPrices[opt.key]);
           if (!isNaN(val) && val > 0) {
             cleanSeatPricing[opt.key] = val;
-          } else if (opt.key === '1 seats') {
-            cleanSeatPricing['1 seats'] = Number(data.price) || 0;
+          } else if (basePriceNum > 0) {
+            cleanSeatPricing[opt.key] = basePriceNum * opt.seats;
           }
         });
+        if (basePriceNum > 0) {
+          cleanSeatPricing['1 seats'] = Number(seatPrices['1 seats']) || basePriceNum;
+        }
       }
 
       await createProduct({

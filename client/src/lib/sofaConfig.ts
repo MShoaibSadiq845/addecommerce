@@ -53,6 +53,26 @@ export const calculateSeatPrices = (basePrice: number): Record<string, number> =
   return result;
 };
 
+export const calculateSeatPricesString = (basePrice: number | string): Record<string, string> => {
+  const result: Record<string, string> = {
+    '1 seats': '',
+    '2 seats': '',
+    '3 seats': '',
+    '2(1+1)': '',
+    '5(3+1+1)': '',
+    '5(3+2)': '',
+    '6(3+2+1)': '',
+    '7(3+2+1+1)': '',
+  };
+  const base = Number(basePrice) || 0;
+  if (base > 0) {
+    SOFA_SEAT_OPTIONS.forEach((opt) => {
+      result[opt.key] = String(base * opt.seats);
+    });
+  }
+  return result;
+};
+
 export const isSofaProduct = (
   name?: string,
   category?: string,
@@ -69,3 +89,4 @@ export const isSofaProduct = (
     .toLowerCase();
   return combined.includes('sofa');
 };
+

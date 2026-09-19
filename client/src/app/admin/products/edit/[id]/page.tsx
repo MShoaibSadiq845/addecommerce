@@ -8,7 +8,7 @@ import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X, Armchair,
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
-import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
+import { SOFA_SEAT_OPTIONS, calculateSeatPricesString, isSofaProduct } from '@/lib/sofaConfig';
 
 type ProductEditFormInputs = {
   name: string;
@@ -44,6 +44,9 @@ export default function AdminEditProductPage() {
     '7(3+2+1+1)': '',
   });
 
+  const lastSyncedPriceRef = React.useRef<string>('');
+  const isInitialLoadRef = React.useRef<boolean>(true);
+
   const {
     register, handleSubmit, reset, watch, setValue,
     formState: { errors },
@@ -62,10 +65,12 @@ export default function AdminEditProductPage() {
     if (product) {
       const rawBrand = product.brand ? product.brand.trim() : '';
       const brandVal = (!rawBrand || rawBrand.toUpperCase() === 'SHOP.CO') ? 'Fab Decor' : rawBrand;
+      const initialPriceStr = product.price?.toString() || '';
+
       reset({
         name: product.name || '',
         description: product.description || '',
-        price: product.price?.toString() || '',
+        price: initialPriceStr,
         category: product.category || '',
         brand: brandVal,
         stock: product.stock?.toString() || '',
@@ -74,38 +79,62 @@ export default function AdminEditProductPage() {
         sizesInput: (product.sizes || []).join(', '),
       });
 
+      lastSyncedPriceRef.current = initialPriceStr;
+
       if (product.seatPricing && Object.keys(product.seatPricing).length > 0) {
-        const loadedPrices: Record<string, string> = {
-          '1 seats': '',
-          '2 seats': '',
-          '3 seats': '',
-          '2(1+1)': '',
-          '5(3+1+1)': '',
-          '5(3+2)': '',
-          '6(3+2+1)': '',
-          '7(3+2+1+1)': '',
-        };
-        Object.entries(product.seatPricing).forEach(([k, v]) => {
-          loadedPrices[k] = String(v);
+        const baseNum = Number(product.price) || 0;
+        const loadedPrices: Record<string, string> = {};
+        SOFA_SEAT_OPTIONS.forEach((opt) => {
+          if (product.seatPricing?.[opt.key] !== undefined && Number(product.seatPricing[opt.key]) > 0) {
+            loadedPrices[opt.key] = String(product.seatPricing[opt.key]);
+          } else if (baseNum > 0) {
+            loadedPrices[opt.key] = String(baseNum * opt.seats);
+          } else {
+            loadedPrices[opt.key] = '';
+          }
         });
-        if (!loadedPrices['1 seats'] && product.price) {
-          loadedPrices['1 seats'] = String(product.price);
+        if (!loadedPrices['1 seats'] && initialPriceStr) {
+          loadedPrices['1 seats'] = initialPriceStr;
         }
         setSeatPrices(loadedPrices);
       } else if (product.price) {
-        setSeatPrices((prev) => ({
-          ...prev,
-          '1 seats': String(product.price),
-        }));
+        setSeatPrices(calculateSeatPricesString(product.price));
       }
+
+      // Mark initial load done after first populate
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 50);
     }
   }, [product, reset]);
+
+  // Auto-sync seat prices when the Base Price (1 Seat) input is changed by admin
+  useEffect(() => {
+    if (isInitialLoadRef.current) return;
+    if (isSofa && watchPrice !== undefined && watchPrice !== lastSyncedPriceRef.current) {
+      lastSyncedPriceRef.current = watchPrice;
+      const base = Number(watchPrice);
+      if (base > 0) {
+        setSeatPrices(calculateSeatPricesString(base));
+      }
+    }
+  }, [watchPrice, isSofa]);
 
   const handleSeatPriceChange = (key: string, val: string) => {
     setSeatPrices((prev) => ({
       ...prev,
       [key]: val,
     }));
+
+    // If changing 1 seat tier directly, sync to main base price and recalculate tiers
+    if (key === '1 seats') {
+      setValue('price', val, { shouldValidate: true });
+      lastSyncedPriceRef.current = val;
+      const base = Number(val);
+      if (base > 0) {
+        setSeatPrices(calculateSeatPricesString(base));
+      }
+    }
   };
 
   const handleAutoEstimatePrices = () => {
@@ -114,16 +143,10 @@ export default function AdminEditProductPage() {
       toast.error('Please enter a base price first');
       return;
     }
-    setSeatPrices({
-      '1 seats': String(base * 1),
-      '2 seats': String(base * 2),
-      '3 seats': String(base * 3),
-      '2(1+1)': String(base * 2),
-      '5(3+1+1)': String(base * 5),
-      '5(3+2)': String(base * 5),
-      '6(3+2+1)': String(base * 6),
-      '7(3+2+1+1)': String(base * 7),
-    });
+    const newPrices = calculateSeatPricesString(base);
+    setValue('price', String(base), { shouldValidate: true });
+    lastSyncedPriceRef.current = String(base);
+    setSeatPrices(newPrices);
     toast.success(`Prices auto-set: 1 seat=₨${base}, 2=₨${base*2}, 3=₨${base*3}, 5=₨${base*5}, 6=₨${base*6}, 7=₨${base*7}`);
   };
 
@@ -158,16 +181,22 @@ export default function AdminEditProductPage() {
     setErrorMsg('');
     try {
       let cleanSeatPricing: Record<string, number> = {};
+      const basePriceNum = Number(data.price) || Number(seatPrices['1 seats']) || 0;
+
       if (isSofa) {
         SOFA_SEAT_OPTIONS.forEach((opt) => {
           const val = Number(seatPrices[opt.key]);
           if (!isNaN(val) && val > 0) {
             cleanSeatPricing[opt.key] = val;
-          } else if (opt.key === '1 seats') {
-            cleanSeatPricing['1 seats'] = Number(data.price) || 0;
+          } else if (basePriceNum > 0) {
+            cleanSeatPricing[opt.key] = basePriceNum * opt.seats;
           }
         });
+        if (basePriceNum > 0) {
+          cleanSeatPricing['1 seats'] = Number(seatPrices['1 seats']) || basePriceNum;
+        }
       }
+
 
       await updateProduct({
         id: id as string,
