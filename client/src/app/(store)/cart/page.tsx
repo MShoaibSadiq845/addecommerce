@@ -420,7 +420,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                       </div>
                       <div>
                         <p className="font-bold text-black text-xs">Already have an account?</p>
-                        <p className="text-[11px] text-gray-500">Sign in to auto-fill details and earn points</p>
+                        <p className="text-[11px] text-gray-500">Sign in to auto-fill details</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

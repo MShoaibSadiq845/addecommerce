@@ -33,8 +33,8 @@ export class MailService {
     const orderShortId = orderDetails.orderId
       ? orderDetails.orderId.toUpperCase().replace(/^#/, '')
       : orderIdStr
-      ? orderIdStr.slice(-8).toUpperCase()
-      : 'N/A';
+        ? orderIdStr.slice(-8).toUpperCase()
+        : 'N/A';
     const guestName = orderDetails.guestName || 'Valued Customer';
     const paymentMethod = orderDetails.paymentMethod || 'COD';
     const paymentStatus = orderDetails.paymentStatus || 'Unpaid';
@@ -177,7 +177,7 @@ export class MailService {
                 <tr>
                   <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
                     <p style="margin: 0 0 6px 0; color: #64748b; font-size: 13px;">&copy; ${new Date().getFullYear()} Fab Decor. All rights reserved.</p>
-                    <p style="margin: 0; color: #94a3b8; font-size: 12px;">This email was sent automatically to confirm your order.</p>
+                    // <p style="margin: 0; color: #94a3b8; font-size: 12px;">This email was sent automatically to confirm your order.</p>
                   </td>
                 </tr>
 
