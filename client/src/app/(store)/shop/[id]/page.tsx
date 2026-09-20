@@ -20,15 +20,43 @@ import { toast } from 'react-hot-toast';
 import { trackViewContent, trackAddToCart, trackInitiateCheckout } from '@/lib/fb-pixel';
 import { SOFA_SEAT_OPTIONS, isSofaProduct } from '@/lib/sofaConfig';
 
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, size = 'w-4 h-4' }: { rating: number; size?: string }) {
+  const safeRating = Math.max(0, Math.min(5, Number(rating) || 0));
+
   return (
     <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-amber-400' : 'text-gray-200'}`}
-          fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
+      {[0, 1, 2, 3, 4].map((i) => {
+        const fillPercentage = Math.max(0, Math.min(100, (safeRating - i) * 100));
+
+        return (
+          <div key={i} className={`relative inline-flex items-center justify-center shrink-0 ${size}`}>
+            {/* Background empty star */}
+            <svg
+              className={`${size} text-gray-200 fill-gray-200 shrink-0`}
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+
+            {/* Filled / partial star overlay */}
+            {fillPercentage > 0 && (
+              <div
+                className="absolute top-0 left-0 h-full overflow-hidden pointer-events-none"
+                style={{ width: `${fillPercentage}%` }}
+              >
+                <svg
+                  className={`${size} text-amber-400 fill-amber-400 shrink-0 max-w-none`}
+                  viewBox="0 0 20 20"
+                  aria-hidden="true"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -370,7 +398,7 @@ export default function ProductDetailPage() {
 
             <div className="flex items-center gap-3">
               <Stars rating={product.rating || 4.5} />
-              <span className="text-xs text-gray-500">{(product.rating || 4.5).toFixed(1)}/5 ({reviews.length} reviews)</span>
+              <span className="text-xs text-gray-500">{(product.rating || 4.5).toFixed(1)}/5</span>
             </div>
 
             {/* Price display with PKR Rs. format matching reference */}

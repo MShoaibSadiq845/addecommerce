@@ -122,7 +122,7 @@ export class MailService {
                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 28px;">
                       <table width="100%" cellspacing="0" cellpadding="0" style="font-size: 14px;">
                         <tr>
-                          <td style="padding: 6px 0; color: #64748b; width: 42%;">Order Number:</td>
+                          <td style="padding: 6px 0; color: #64748b; width: 42%;">Order ID:</td>
                           <td style="padding: 6px 0; color: #0f172a; font-weight: 700;">#${orderShortId}</td>
                         </tr>
                         <tr>

@@ -13,15 +13,31 @@ import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 
 /* ─── Rating Stars helper ─── */
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, size = 'w-3.5 h-3.5' }: { rating: number; size?: string }) {
+  const safeRating = Math.max(0, Math.min(5, Number(rating) || 0));
+
   return (
     <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`w-3.5 h-3.5 ${i < Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'}`}
-        />
-      ))}
+      {[0, 1, 2, 3, 4].map((i) => {
+        const fillPercentage = Math.max(0, Math.min(100, (safeRating - i) * 100));
+
+        return (
+          <div key={i} className={`relative inline-flex items-center justify-center shrink-0 ${size}`}>
+            {/* Background empty star */}
+            <Star className={`${size} text-gray-200 fill-gray-200 shrink-0`} />
+
+            {/* Filled / partial star overlay */}
+            {fillPercentage > 0 && (
+              <div
+                className="absolute top-0 left-0 h-full overflow-hidden pointer-events-none"
+                style={{ width: `${fillPercentage}%` }}
+              >
+                <Star className={`${size} text-amber-400 fill-amber-400 shrink-0 max-w-none`} />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
