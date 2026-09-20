@@ -513,7 +513,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Street */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Street Address</label>
-                  <input type="text" placeholder="House 12, Street 5, Gulshan-e-Iqbal"
+                  <input type="text" placeholder="e.g., House 12, Street 5, Gulshan-e-Iqbal"
                     {...register('street', { required: 'Street address is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.street ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.street && <span className="text-[10px] text-red-500">{errors.street.message}</span>}
@@ -522,7 +522,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* City */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">City</label>
-                  <input type="text" placeholder="Karachi"
+                  <input type="text" placeholder="e.g. Lahore"
                     {...register('city', { required: 'City is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.city ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.city && <span className="text-[10px] text-red-500">{errors.city.message}</span>}
@@ -531,7 +531,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Province / State with Validation */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Province / State</label>
-                  <input type="text" placeholder="Sindh"
+                  <input type="text" placeholder="e.g. Punjab"
                     {...register('province', { required: 'Province / State is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.province ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.province && <span className="text-[10px] text-red-500">{errors.province.message}</span>}
@@ -540,7 +540,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Postal Code */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Postal Code</label>
-                  <input type="text" placeholder="75300"
+                  <input type="text" placeholder="e.g., 75300"
                     {...register('postalCode', { required: 'Postal code is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.postalCode && <span className="text-[10px] text-red-500">{errors.postalCode.message}</span>}
@@ -549,7 +549,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Country */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Country</label>
-                  <input type="text" placeholder="Pakistan"
+                  <input type="text" placeholder="e.g. Pakistan"
                     {...register('country', { required: 'Country is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.country ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.country && <span className="text-[10px] text-red-500">{errors.country.message}</span>}
