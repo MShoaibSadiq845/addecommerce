@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState, Suspense } from 'react';
+import React, { useRef, useEffect, useState, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
@@ -22,6 +22,27 @@ import { useAddToCartBackendMutation } from '@/store/services/cartApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { getSessionId } from '@/lib/sessionId';
+
+/* ─── Scroll-reveal hook ─── */
+function useScrollReveal<T extends HTMLElement>(delay = 0) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => el.classList.add('card-visible'), delay);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.12 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [delay]);
+  return ref;
+}
 
 /* ─── Rating Stars helper ─── */
 function Stars({ rating, size = 'w-3.5 h-3.5' }: { rating: number; size?: string }) {
@@ -54,7 +75,8 @@ function Stars({ rating, size = 'w-3.5 h-3.5' }: { rating: number; size?: string
 }
 
 /* ─── Single Product Card with Add to Cart + Buy Now ─── */
-function ProductCard({ product }: { product: any }) {
+function ProductCard({ product, delay = 0 }: { product: any; delay?: number }) {
+  const cardRef = useScrollReveal<HTMLDivElement>(delay);
   const dispatch = useDispatch();
   const router = useRouter();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -144,7 +166,7 @@ function ProductCard({ product }: { product: any }) {
   };
 
   return (
-    <div className="group flex flex-col gap-3 relative">
+    <div ref={cardRef} className="card-reveal group flex flex-col gap-3 relative">
       <Link href={`/shop/${product._id}`}>
         <div className="relative w-full aspect-[9/16] bg-[#f2f0f1] rounded-[20px] overflow-hidden">
           <Image src={img} alt={product.name} fill
@@ -195,9 +217,13 @@ function ProductCard({ product }: { product: any }) {
 
 /* ─── Section Heading (standalone, without arrows) ─── */
 function SectionHeading({ children }: { children: React.ReactNode }) {
+  const ref = useScrollReveal<HTMLHeadingElement>();
   return (
-    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
-      style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+    <h2
+      ref={ref}
+      className="card-reveal text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight"
+      style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
+    >
       {children}
     </h2>
   );
@@ -290,8 +316,8 @@ function ProductSlider({
         className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full"
         style={{ animation: 'fadeSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
       >
-        {visibleProducts.map((p: any) => (
-          <ProductCard key={p._id} product={p} />
+        {visibleProducts.map((p: any, i: number) => (
+          <ProductCard key={p._id} product={p} delay={i * 90} />
         ))}
       </div>
 
@@ -397,11 +423,61 @@ function HomeContent() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Keyframe animation for page slide */}
+      {/* Keyframe animations */}
       <style>{`
         @keyframes fadeSlide {
           from { opacity: 0; transform: translateX(16px); }
           to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroFadeDown {
+          from { opacity: 0; transform: translateY(-24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroSlideLeft {
+          from { opacity: 0; transform: translateX(-56px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroSlideRight {
+          from { opacity: 0; transform: translateX(56px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroFadeUp {
+          from { opacity: 0; transform: translateY(32px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .hero-badge   { animation: heroFadeDown  0.6s cubic-bezier(0.16,1,0.3,1) both; }
+        .hero-h1      { animation: heroSlideLeft 0.75s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
+        .hero-p       { animation: heroFadeUp    0.75s cubic-bezier(0.16,1,0.3,1) 0.22s both; }
+        .hero-btn     { animation: heroFadeUp    0.75s cubic-bezier(0.16,1,0.3,1) 0.32s both; }
+        .hero-stats   { animation: heroFadeUp    0.75s cubic-bezier(0.16,1,0.3,1) 0.44s both; }
+        .hero-img     { animation: heroSlideRight 0.85s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+        .marquee-inner { display: flex; animation: marquee 22s linear infinite; width: max-content; }
+        .marquee-inner:hover { animation-play-state: paused; }
+        .reveal {
+          opacity: 0;
+          transform: translateY(40px);
+          transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+        .reveal.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        /* ── Scroll-reveal for cards & headings ── */
+        .card-reveal {
+          opacity: 0;
+          transform: translateY(48px) scale(0.96);
+          transition:
+            opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+            transform 0.65s cubic-bezier(0.16,1,0.3,1);
+          will-change: opacity, transform;
+        }
+        .card-visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
       `}</style>
 
@@ -411,7 +487,7 @@ function HomeContent() {
           {/* Left Text & Stats Content */}
           <div className="flex flex-col gap-6 w-full md:w-1/2 lg:w-[48%] xl:w-[45%] shrink-0">
             {/* Free Delivery Tag Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold w-fit shadow-sm border border-gray-800">
+            <div className="hero-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold w-fit shadow-sm border border-gray-800">
               <Truck className="w-3.5 h-3.5 text-amber-400" />
               <span className="inline-flex items-center gap-1.5">
                 Free Delivery All Over Pakistan
@@ -420,21 +496,22 @@ function HomeContent() {
             </div>
 
             <h1
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[56px] font-extrabold text-black leading-[1.1] tracking-tight"
+              className="hero-h1 text-3xl sm:text-4xl lg:text-5xl xl:text-[56px] font-extrabold text-black leading-[1.1] tracking-tight"
               style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
             >
               FIND FABRICS THAT MATCHES YOUR STYLE
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-md">
-              Explore our diverse range of beautifully crafted home textiles, designed to add comfort, elegance, and timeless style to every space.            </p>
+            <p className="hero-p text-sm sm:text-base text-gray-600 leading-relaxed max-w-md">
+              Explore our diverse range of beautifully crafted home textiles, designed to add comfort, elegance, and timeless style to every space.
+            </p>
             <Link
               href="/shop"
-              className="w-fit px-10 py-3.5 sm:px-14 sm:py-4 bg-black text-white rounded-full font-medium text-sm sm:text-base hover:bg-gray-900 transition-colors shadow-md"
+              className="hero-btn w-fit px-10 py-3.5 sm:px-14 sm:py-4 bg-black text-white rounded-full font-medium text-sm sm:text-base hover:bg-gray-900 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md"
             >
               Shop Now
             </Link>
 
-            <div className="flex flex-wrap gap-y-4 gap-x-2 pt-6 border-t border-black/10 divide-x divide-black/10">
+            <div className="hero-stats flex flex-wrap gap-y-4 gap-x-2 pt-6 border-t border-black/10 divide-x divide-black/10">
               {[
                 { value: '200+', label: 'International Brands' },
                 { value: '2,000+', label: 'High-Quality Products' },
@@ -451,34 +528,42 @@ function HomeContent() {
           </div>
 
           {/* Right Image (Visible on Tablet md, Laptop lg, PC xl) */}
-          <div className="hidden md:block relative w-full md:w-1/2 lg:w-[50%] xl:w-[52%] h-[360px] md:h-[420px] lg:h-[500px] xl:h-[560px] rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+          <div className="hero-img hidden md:block relative w-full md:w-1/2 lg:w-[50%] xl:w-[52%] h-[360px] md:h-[420px] lg:h-[500px] xl:h-[560px] rounded-2xl overflow-hidden shadow-sm border border-gray-100">
             <Image
               src="/images/89.jpeg"
               alt="Fabric Collection"
               fill
-              className="object-cover object-right"
+              className="object-cover object-right hover:scale-105 transition-transform duration-700"
               priority
             />
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════ BRANDS BAR ═══════════════════ */}
-      <section className="w-full bg-black py-6 px-4 overflow-hidden">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-around gap-y-4 gap-x-6 sm:gap-x-8 lg:gap-x-0">
-          {[
-            'SIGNATURE COLLECTION',
-            'TIMELESS FABRICS',
-            'LUXE HOME',
-            'ELVORA',
-          ].map((name) => (
-            <span
-              key={name}
-              className="text-white font-extrabold tracking-[0.18em] text-sm sm:text-base lg:text-xl uppercase select-none whitespace-nowrap opacity-90 hover:opacity-100 transition-opacity"
-              style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
-            >
-              {name}
-            </span>
+      {/* ═══════════════════ BRANDS BAR (marquee) ═══════════════════ */}
+      <section className="w-full bg-black py-6 overflow-hidden">
+        <div className="marquee-inner">
+          {[...Array(2)].map((_, gi) => (
+            <div key={gi} className="flex items-center gap-x-10 sm:gap-x-16 px-5 sm:px-8">
+              {[
+                'SIGNATURE COLLECTION',
+                '✦',
+                'TIMELESS FABRICS',
+                '✦',
+                'LUXE HOME',
+                '✦',
+                'ELVORA',
+                '✦',
+              ].map((name, i) => (
+                <span
+                  key={`${gi}-${i}`}
+                  className="text-white font-extrabold tracking-[0.18em] text-sm sm:text-base lg:text-xl uppercase select-none whitespace-nowrap opacity-90 hover:opacity-100 transition-opacity"
+                  style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </section>

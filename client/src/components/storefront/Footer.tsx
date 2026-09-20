@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -98,11 +98,12 @@ export function StorefrontFooter() {
             <button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="group relative w-full bg-white text-black rounded-full py-3 text-sm font-semibold overflow-hidden
+              className="group relative w-full bg-amber-400 text-black lg:bg-white lg:text-black rounded-full py-3 text-sm font-semibold overflow-hidden
                 transition-all duration-300 ease-in-out
-                hover:bg-black hover:text-white hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)]
+                hover:bg-amber-500 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(251,191,36,0.5)]
+                lg:hover:bg-black lg:hover:text-white
                 active:scale-[0.98]
-                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white disabled:hover:text-black"
+                disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span className="absolute inset-0 bg-black translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-full" />
               <span className="relative flex items-center justify-center gap-2">
@@ -218,7 +219,7 @@ export function StorefrontFooter() {
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-black font-medium underline transition-colors"
             >
-              Website banwani hai? Rabta karein 💬
+              Need a website? Let's connect 💬
             </a>
           </div>
 
