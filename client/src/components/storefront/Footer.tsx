@@ -99,9 +99,32 @@ export function StorefrontFooter() {
             <button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="w-full bg-white text-black rounded-full py-3 text-sm font-semibold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="group relative w-full bg-white text-black rounded-full py-3 text-sm font-semibold overflow-hidden
+                transition-all duration-300 ease-in-out
+                hover:bg-black hover:text-white hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)]
+                active:scale-[0.98]
+                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white disabled:hover:text-black"
             >
-              {isLoading ? 'Subscribing…' : 'Subscribe to Newsletter'}
+              {/* Sliding background on hover */}
+              <span className="absolute inset-0 bg-black translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-full" />
+
+              <span className="relative flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="w-4 h-4 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Subscribing…
+                  </>
+                ) : (
+                  'Subscribe to Newsletter'
+                )}
+              </span>
             </button>
           </div>
         </div>
