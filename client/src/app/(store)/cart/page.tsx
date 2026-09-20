@@ -522,7 +522,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* City */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">City</label>
-                  <input type="text" placeholder="e.g. Lahore"
+                  <input type="text" placeholder="e.g., Lahore"
                     {...register('city', { required: 'City is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.city ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.city && <span className="text-[10px] text-red-500">{errors.city.message}</span>}
@@ -531,7 +531,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Province / State with Validation */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Province / State</label>
-                  <input type="text" placeholder="e.g. Punjab"
+                  <input type="text" placeholder="e.g., Punjab"
                     {...register('province', { required: 'Province / State is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.province ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.province && <span className="text-[10px] text-red-500">{errors.province.message}</span>}
@@ -549,7 +549,7 @@ export default function CartPage({ defaultShowCheckout = false }: { defaultShowC
                 {/* Country */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Country</label>
-                  <input type="text" placeholder="e.g. Pakistan"
+                  <input type="text" placeholder="e.g., Pakistan"
                     {...register('country', { required: 'Country is required' })}
                     className={`border rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-black ${errors.country ? 'border-red-500 bg-red-50' : 'border-gray-200'}`} />
                   {errors.country && <span className="text-[10px] text-red-500">{errors.country.message}</span>}
