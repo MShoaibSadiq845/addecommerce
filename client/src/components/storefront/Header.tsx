@@ -41,6 +41,18 @@ export function StorefrontHeader() {
     setMounted(true);
   }, []);
 
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   const { data: filterOptions, isLoading: loadingCategories } = useGetFilterOptionsQuery(undefined);
   const categories: string[] = filterOptions?.categories || [];
 
@@ -360,9 +372,46 @@ export function StorefrontHeader() {
         </div>
       </div>
 
-      {/* Mobile slide-down menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white px-4 py-4 flex flex-col gap-3">
+      {/* ── Mobile sidebar overlay ── */}
+      {/* Backdrop */}
+      <div
+        className={`lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Sidebar panel */}
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 z-[70] w-[80vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile navigation"
+      >
+        {/* Sidebar header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/94.webp"
+              alt="Logo"
+              className="h-8 w-auto object-contain mix-blend-multiply"
+            />
+          </Link>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-4 py-3 border-b border-gray-100">
           <form onSubmit={handleSearchSubmit} className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -370,53 +419,58 @@ export function StorefrontHeader() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-100 rounded-full py-2.5 pl-9 pr-4 text-sm outline-none"
+              className="w-full bg-gray-100 rounded-full py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-black/10"
             />
           </form>
-          <nav className="flex flex-col gap-1">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/shop', label: 'All Products' },
-              ...categories.map((c) => ({
-                href: `/shop?category=${encodeURIComponent(c)}`,
-                label: c,
-              })),
-              { href: '/shop?isOnSale=true', label: 'On Sale' },
-              { href: '/shop?newArrivals=true&sort=newest', label: 'New Arrivals' },
-              { href: '/orders', label: 'My Orders' },
-              { href: '/faq/my-account', label: 'My Account & Profile' },
-            ].map(({ href, label }) => (
-              <Link
-                key={label}
-                href={href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-xl transition-colors capitalize"
-              >
-                {label}
-              </Link>
-            ))}
-
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors text-left flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" /> Log Out
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setAuthModalOpen(true);
-                }}
-                className="px-3 py-2.5 text-sm font-bold text-black hover:bg-gray-100 rounded-xl transition-colors text-left flex items-center gap-2"
-              >
-                <User className="w-4 h-4" /> Log In / Register
-              </button>
-            )}
-          </nav>
         </div>
-      )}
+
+        {/* Nav links — scrollable */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-0.5">
+          {[
+            { href: '/', label: 'Home' },
+            { href: '/shop', label: 'All Products' },
+            ...categories.map((c) => ({
+              href: `/shop?category=${encodeURIComponent(c)}`,
+              label: c,
+            })),
+            { href: '/shop?isOnSale=true', label: 'On Sale' },
+            { href: '/shop?newArrivals=true&sort=newest', label: 'New Arrivals' },
+            { href: '/orders', label: 'My Orders' },
+            { href: '/faq/my-account', label: 'My Account & Profile' },
+          ].map(({ href, label }) => (
+            <Link
+              key={label}
+              href={href}
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-xl transition-colors capitalize border-b border-gray-50 last:border-0"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Bottom auth action */}
+        <div className="px-3 py-4 border-t border-gray-100">
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors text-left flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" /> Log Out
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setAuthModalOpen(true);
+              }}
+              className="w-full px-4 py-3 text-sm font-bold text-black bg-black text-white hover:bg-gray-800 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <User className="w-4 h-4" /> Log In / Register
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Auth Modal & Profile Edit Modal */}
       <StoreAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />

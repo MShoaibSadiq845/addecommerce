@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -50,9 +50,40 @@ const socialLinks = [
   },
 ];
 
+/* ── ripple helper ── */
+type Ripple = { id: number; x: number; y: number };
+
+function useRipple() {
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const counter = useRef(0);
+
+  const addRipple = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+      const btn = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+      let clientX: number, clientY: number;
+      if ('touches' in e) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = (e as React.MouseEvent).clientX;
+        clientY = (e as React.MouseEvent).clientY;
+      }
+      const x = clientX - btn.left;
+      const y = clientY - btn.top;
+      const id = counter.current++;
+      setRipples((prev) => [...prev, { id, x, y }]);
+      setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 600);
+    },
+    []
+  );
+
+  return { ripples, addRipple };
+}
+
 export function StorefrontFooter() {
   const [email, setEmail] = useState('');
   const [subscribe, { isLoading }] = useSubscribeNewsletterMutation();
+  const { ripples, addRipple } = useRipple();
 
   const handleSubscribe = async () => {
     const trimmed = email.trim();
@@ -96,7 +127,8 @@ export function StorefrontFooter() {
               />
             </div>
             <button
-              onClick={handleSubscribe}
+              onClick={(e) => { addRipple(e); handleSubscribe(); }}
+              onTouchStart={addRipple}
               disabled={isLoading}
               className="group relative w-full bg-white text-black border border-black lg:bg-white lg:text-black lg:border lg:border-black rounded-full py-3 text-sm font-semibold overflow-hidden
                 transition-all duration-300 ease-in-out
@@ -105,7 +137,25 @@ export function StorefrontFooter() {
                 active:scale-[0.98]
                 disabled:opacity-60 disabled:cursor-not-allowed"
             >
+              {/* Slide-in hover fill (desktop) */}
               <span className="absolute inset-0 bg-black translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-full" />
+
+              {/* Ripple circles (mobile / tablet touch) */}
+              {ripples.map(({ id, x, y }) => (
+                <span
+                  key={id}
+                  className="pointer-events-none absolute rounded-full bg-black/20"
+                  style={{
+                    left: x,
+                    top: y,
+                    width: 10,
+                    height: 10,
+                    transform: 'translate(-50%, -50%) scale(0)',
+                    animation: 'ripple-expand 0.6s ease-out forwards',
+                  }}
+                />
+              ))}
+
               <span className="relative flex items-center justify-center gap-2">
                 {isLoading ? (
                   <>

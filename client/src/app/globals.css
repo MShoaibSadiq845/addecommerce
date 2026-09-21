@@ -231,3 +231,15 @@ input[type='range']::-webkit-slider-thumb:hover {
   position: absolute !important;
   inset: 0 !important;
 }
+
+/* ─── Button Ripple Effect (mobile / tablet touch) ─── */
+@keyframes ripple-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(30);
+    opacity: 0;
+  }
+}
