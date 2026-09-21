@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -98,9 +98,9 @@ export function StorefrontFooter() {
             <button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="group relative w-full bg-amber-400 text-black lg:bg-white lg:text-black rounded-full py-3 text-sm font-semibold overflow-hidden
+              className="group relative w-full bg-white text-black border border-black lg:bg-white lg:text-black lg:border lg:border-black rounded-full py-3 text-sm font-semibold overflow-hidden
                 transition-all duration-300 ease-in-out
-                hover:bg-amber-500 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(251,191,36,0.5)]
+                hover:bg-gray-100 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(0,0,0,0.15)]
                 lg:hover:bg-black lg:hover:text-white
                 active:scale-[0.98]
                 disabled:opacity-60 disabled:cursor-not-allowed"
