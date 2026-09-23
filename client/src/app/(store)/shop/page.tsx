@@ -345,12 +345,19 @@ function ShopContent() {
   };
 
   const pageNumbers = () => {
-    const nums: (number | '...')[] = [];
-    for (let i = 1; i <= Math.min(totalPages, 10); i++) {
-      if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) nums.push(i);
-      else if (nums[nums.length - 1] !== '...') nums.push('...');
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    return nums;
+
+    if (page <= 3) {
+      return [1, 2, 3, '...', totalPages];
+    }
+
+    if (page >= totalPages - 2) {
+      return [1, '...', totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, '...', page, '...', totalPages];
   };
 
   const hasActiveFilters = Boolean(
@@ -625,36 +632,50 @@ function ShopContent() {
           )}
 
           {totalPages > 1 && !isLoading && !isFetching && (
-            <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
+            <div className="flex items-center justify-between gap-1 sm:gap-4 border-t border-gray-200 pt-6 mt-4 w-full flex-nowrap">
               <button
                 disabled={page <= 1}
                 onClick={() => update({ page: String(page - 1) })}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black hover:text-white hover:border-black transition-all shrink-0 bg-white text-gray-700 shadow-sm"
+                aria-label="Previous Page"
               >
-                <ChevronLeft className="w-4 h-4" /> Previous
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span className="inline">Previous</span>
               </button>
-              <div className="flex items-center gap-1">
+
+              <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-nowrap shrink-0">
                 {pageNumbers().map((num, i) =>
                   num === '...' ? (
-                    <span key={i} className="px-2 text-gray-400">…</span>
+                    <span
+                      key={`ellipsis-${i}`}
+                      className="w-5 sm:w-6 text-center text-gray-400 font-bold select-none text-xs sm:text-sm shrink-0"
+                    >
+                      …
+                    </span>
                   ) : (
                     <button
-                      key={num}
+                      key={`page-${num}`}
                       onClick={() => update({ page: String(num) })}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${page === num ? 'bg-black text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
-                        }`}
+                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-center shrink-0 ${
+                        page === num
+                          ? 'bg-black text-white font-bold shadow-md'
+                          : 'hover:bg-gray-100 text-gray-700 border border-gray-200 bg-white shadow-sm'
+                      }`}
                     >
                       {num}
                     </button>
                   )
                 )}
               </div>
+
               <button
                 disabled={page >= totalPages}
                 onClick={() => update({ page: String(page + 1) })}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium disabled:opacity-40 hover:bg-black hover:text-white hover:border-black transition-all"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black hover:text-white hover:border-black transition-all shrink-0 bg-white text-gray-700 shadow-sm"
+                aria-label="Next Page"
               >
-                Next <ChevronRight className="w-4 h-4" />
+                <span className="inline">Next</span>
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               </button>
             </div>
           )}

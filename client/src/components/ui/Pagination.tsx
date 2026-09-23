@@ -27,74 +27,52 @@ export default function Pagination({
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // Generate page numbers array with ellipsis if needed
+  // Generate compact page numbers array with dynamic ellipsis
   const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible + 2) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-
-      let start = Math.max(2, currentPage - 1);
-      let end = Math.min(totalPages - 1, currentPage + 1);
-
-      if (currentPage <= 3) {
-        end = 4;
-      } else if (currentPage >= totalPages - 2) {
-        start = totalPages - 3;
-      }
-
-      if (start > 2) {
-        pages.push('...');
-      }
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (end < totalPages - 1) {
-        pages.push('...');
-      }
-
-      pages.push(totalPages);
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    return pages;
+    if (currentPage <= 3) {
+      return [1, 2, 3, '...', totalPages];
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return [1, '...', totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, '...', currentPage, '...', totalPages];
   };
 
   const pages = getPageNumbers();
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100 font-['Rubik'] text-xs text-gray-600 ${className}`}
+      className={`flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-4 border-t border-gray-100 font-['Rubik'] text-xs text-gray-600 w-full ${className}`}
     >
-      <div className="font-semibold text-gray-500 text-xs">
+      <div className="font-semibold text-gray-500 text-xs text-center sm:text-left">
         Showing <span className="font-bold text-gray-900">{startItem}</span> to{' '}
         <span className="font-bold text-gray-900">{endItem}</span> of{' '}
         <span className="font-bold text-gray-900">{totalItems}</span> entries
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-center flex-nowrap gap-1 sm:gap-1.5 shrink-0">
         {/* Previous Button */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex items-center justify-center p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="flex items-center justify-center p-1.5 sm:p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm shrink-0"
           aria-label="Previous Page"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Page Numbers */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-nowrap shrink-0">
           {pages.map((p, idx) => {
             if (p === '...') {
               return (
-                <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 font-bold">
+                <span key={`ellipsis-${idx}`} className="w-5 sm:w-6 text-center text-gray-400 font-bold select-none text-xs sm:text-sm shrink-0">
                   ...
                 </span>
               );
@@ -105,9 +83,9 @@ export default function Pagination({
 
             return (
               <button
-                key={pageNum}
+                key={`page-${pageNum}`}
                 onClick={() => onPageChange(pageNum)}
-                className={`w-8 h-8 rounded-xl font-bold transition-all flex items-center justify-center text-xs ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl font-bold transition-all flex items-center justify-center text-xs shrink-0 ${
                   isActive
                     ? 'bg-black text-white shadow-md'
                     : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
@@ -123,10 +101,10 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex items-center justify-center p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="flex items-center justify-center p-1.5 sm:p-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm shrink-0"
           aria-label="Next Page"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
     </div>
