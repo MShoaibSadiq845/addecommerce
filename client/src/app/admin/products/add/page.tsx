@@ -4,11 +4,10 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useCreateProductMutation } from '@/store/services/productsApi';
-import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X, Armchair, Sparkles, Calculator } from 'lucide-react';
+import { ArrowLeft, Save, UploadCloud, Image as ImageIcon, Loader2, X, Armchair, Sparkles, Calculator, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
-import { useLoading } from '@/context/LoadingContext';
 import { SOFA_SEAT_OPTIONS, calculateSeatPricesString, isSofaProduct } from '@/lib/sofaConfig';
 
 type ProductFormInputs = {
@@ -52,7 +51,7 @@ function AdminAddProductContent() {
   const [createProduct, { isLoading }] = useCreateProductMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const { setLoading } = useLoading();
+  const [successMsg, setSuccessMsg] = useState('');
 
   const [seatPrices, setSeatPrices] = useState<Record<string, string>>({
     '1 seats': '',
@@ -106,18 +105,6 @@ function AdminAddProductContent() {
     }
   }, [watchPrice, isSofa]);
 
-  // Global loading
-  useEffect(() => {
-    if (isLoading || isUploading) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-    return () => {
-      setLoading(false);
-    };
-  }, [isLoading, isUploading, setLoading]);
-
   const handleSeatPriceChange = (key: string, val: string) => {
     setSeatPrices((prev) => ({
       ...prev,
@@ -168,16 +155,18 @@ function AdminAddProductContent() {
       }
       const currentImages = watch('imagesInput') || [];
       setValue('imagesInput', [...currentImages, ...uploadedUrls], { shouldValidate: true });
-      toast.success('Images uploaded!');
+      toast.success('Images uploaded successfully!');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to upload images');
     } finally {
       setIsUploading(false);
+      e.target.value = '';
     }
   };
 
   const onSubmit = async (data: ProductFormInputs) => {
     setErrorMsg('');
+    setSuccessMsg('');
     try {
       // Build clean seatPricing object if sofa
       let cleanSeatPricing: Record<string, number> = {};
@@ -220,8 +209,58 @@ function AdminAddProductContent() {
         ],
       }).unwrap();
 
-      toast.success('Product created successfully with sofa seating pricing!');
-      router.push(getReturnUrl());
+      const createdProductName = data.name;
+
+      // Reset form fields with fresh SKU and default values
+      reset({
+        name: '',
+        description: '',
+        price: '',
+        rating: '4.5',
+        category: categoryParam || '',
+        brand: 'Fab Decor',
+        stock: '50',
+        sku: generateSKU(),
+        imagesInput: [],
+        colorsInput: '',
+        sizesInput: '',
+      });
+
+      // Reset sofa seating state
+      setSeatPrices({
+        '1 seats': '',
+        '2 seats': '',
+        '3 seats': '',
+        '2(1+1)': '',
+        '5(3+1+1)': '',
+        '5(3+2)': '',
+        '6(3+2+1)': '',
+        '7(3+2+1+1)': '',
+      });
+
+      setSuccessMsg(`"${createdProductName}" has been created successfully! You can now add another product.`);
+
+      toast.success('Product created successfully! You can add more products.', {
+        duration: 4500,
+        position: 'top-right',
+        style: {
+          background: '#0f172a',
+          color: '#fff',
+          fontWeight: 600,
+          borderRadius: '12px',
+          padding: '12px 18px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+        },
+        iconTheme: {
+          primary: '#10b981',
+          secondary: '#fff',
+        },
+      });
+
+      // Smooth scroll to top to see confirmation & fresh empty form
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (err: any) {
       const msg = err?.data?.message || 'Failed to create product';
       setErrorMsg(msg);
@@ -241,6 +280,21 @@ function AdminAddProductContent() {
           <p className="text-xs text-gray-400">Fill in product details below</p>
         </div>
       </div>
+
+      {successMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-2xl font-semibold flex items-center justify-between gap-2 shadow-xs animate-in fade-in duration-300">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+          <Link
+            href={getReturnUrl()}
+            className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline whitespace-nowrap ml-2"
+          >
+            View Products →
+          </Link>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-2xl font-bold flex items-center gap-2">
