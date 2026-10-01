@@ -26,7 +26,7 @@ const footerLinks = {
     { label: 'Returns & Refunds', href: '/faq/returns-and-refunds' },
   ],
   contact: [
-    { label: '📞 0329-1747459', href: 'tel:+923281298871' },
+    { label: '📞 0329-1747459', href: 'tel:+923291747459' },
     { label: '💬 EmailUs:    fabdecor09@gmail.com', href: 'mailto:fabdecor09@gmail.com' },
     { label: '📍 Faisalabad, Pakistan', href: '#' },
   ],
