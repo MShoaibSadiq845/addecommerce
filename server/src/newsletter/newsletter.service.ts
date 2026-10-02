@@ -10,18 +10,23 @@ export class NewsletterService {
     private newsletterModel: Model<NewsletterDocument>,
   ) {}
 
-  async subscribe(email: string) {
+  async subscribe(email: string, phone?: string) {
     const existing = await this.newsletterModel.findOne({ email });
     if (existing) {
       throw new ConflictException('This email is already subscribed.');
     }
-    return this.newsletterModel.create({ email });
+    return this.newsletterModel.create({ email, phone: phone?.trim() || '' });
   }
 
   async getAll(search?: string) {
-    const filter: any = {};
+    let filter: any = {};
     if (search) {
-      filter.email = { $regex: search, $options: 'i' };
+      filter = {
+        $or: [
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } },
+        ],
+      };
     }
     return this.newsletterModel.find(filter).sort({ createdAt: -1 }).exec();
   }

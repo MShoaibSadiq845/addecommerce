@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
@@ -82,19 +82,44 @@ function useRipple() {
 
 export function StorefrontFooter() {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [subscribe, { isLoading }] = useSubscribeNewsletterMutation();
   const { ripples, addRipple } = useRipple();
 
   const handleSubscribe = async () => {
-    const trimmed = email.trim();
-    if (!trimmed || !trimmed.includes('@')) {
+    const trimmedEmail = email.trim();
+    const trimmedPhone = phone.trim();
+
+    if (!trimmedEmail && !trimmedPhone) {
+      toast.error('Please enter your email and phone number.');
+      return;
+    }
+
+    if (!trimmedEmail) {
+      toast.error('Please enter your email address.');
+      return;
+    }
+
+    if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
       toast.error('Please enter a valid email address.');
       return;
     }
+
+    if (!trimmedPhone) {
+      toast.error('Please enter your phone number.');
+      return;
+    }
+
+    if (trimmedPhone.length < 7) {
+      toast.error('Please enter a valid phone number.');
+      return;
+    }
+
     try {
-      await subscribe(trimmed).unwrap();
+      await subscribe({ email: trimmedEmail, phone: trimmedPhone }).unwrap();
       toast.success("You're subscribed! Thanks for joining.");
       setEmail('');
+      setPhone('');
     } catch (err: any) {
       const msg = err?.data?.message || 'Something went wrong. Please try again.';
       toast.error(msg);
@@ -113,6 +138,7 @@ export function StorefrontFooter() {
             STAY UPTO DATE ABOUT OUR LATEST OFFERS
           </h2>
           <div className="flex flex-col gap-3 w-full max-w-sm">
+            {/* Email Input */}
             <div className="relative">
               <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -126,25 +152,40 @@ export function StorefrontFooter() {
                 className="w-full bg-white rounded-full py-3 pl-10 pr-4 text-sm outline-none placeholder:text-gray-400"
               />
             </div>
+
+            {/* Phone Number Input */}
+            <div className="relative">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+                placeholder="Enter your phone number"
+                className="w-full bg-white rounded-full py-3 pl-10 pr-4 text-sm outline-none placeholder:text-gray-400"
+              />
+            </div>
+
             <button
               onClick={(e) => { addRipple(e); handleSubscribe(); }}
               onTouchStart={addRipple}
               disabled={isLoading}
-              className="group relative w-full bg-white text-black border border-black lg:bg-white lg:text-black lg:border lg:border-black rounded-full py-3 text-sm font-semibold overflow-hidden
+              className="group relative w-full bg-white text-black border border-white/20 rounded-full py-3 text-sm font-semibold overflow-hidden
                 transition-all duration-300 ease-in-out
-                hover:bg-gray-100 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(0,0,0,0.15)]
-                lg:hover:bg-black lg:hover:text-white
+                hover:scale-[1.02] hover:shadow-[0_4px_20px_rgba(255,255,255,0.15)]
                 active:scale-[0.98]
                 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {/* Slide-in hover fill (desktop) */}
-              <span className="absolute inset-0 bg-black translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-full" />
+              <span className="absolute inset-0 bg-neutral-900 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-full" />
 
               {/* Ripple circles (mobile / tablet touch) */}
               {ripples.map(({ id, x, y }) => (
                 <span
                   key={id}
-                  className="pointer-events-none absolute rounded-full bg-black/20"
+                  className="pointer-events-none absolute rounded-full bg-white/20"
                   style={{
                     left: x,
                     top: y,
@@ -156,10 +197,10 @@ export function StorefrontFooter() {
                 />
               ))}
 
-              <span className="relative flex items-center justify-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2 text-black group-hover:text-white transition-colors duration-300 font-semibold">
                 {isLoading ? (
                   <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 animate-spin text-current" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>

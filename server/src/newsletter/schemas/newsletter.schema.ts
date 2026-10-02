@@ -7,6 +7,10 @@ export type NewsletterDocument = Newsletter & Document;
 export class Newsletter {
   @Prop({ type: String, required: true, unique: true, lowercase: true, trim: true })
   email: string;
+
+  @Prop({ type: String, required: false, trim: true, default: '' })
+  phone?: string;
 }
 
 export const NewsletterSchema = SchemaFactory.createForClass(Newsletter);
+

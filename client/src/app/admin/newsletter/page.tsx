@@ -63,7 +63,7 @@ export default function NewsletterSubscribersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by email… (server-side)"
+              placeholder="Search by email or phone… (server-side)"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black bg-gray-50"
@@ -81,6 +81,7 @@ export default function NewsletterSubscribersPage() {
               <tr className="border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider">
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Email</th>
+                <th className="px-6 py-4">Phone</th>
                 <th className="px-6 py-4">Subscribed At</th>
               </tr>
             </thead>
@@ -91,11 +92,12 @@ export default function NewsletterSubscribersPage() {
                     <td className="px-6 py-4"><div className="h-3 w-6 bg-gray-100 rounded animate-pulse" /></td>
                     <td className="px-6 py-4"><div className="h-3 w-56 bg-gray-100 rounded animate-pulse" /></td>
                     <td className="px-6 py-4"><div className="h-3 w-32 bg-gray-100 rounded animate-pulse" /></td>
+                    <td className="px-6 py-4"><div className="h-3 w-32 bg-gray-100 rounded animate-pulse" /></td>
                   </tr>
                 ))
               ) : subscribers.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-16 text-center text-gray-400">
+                  <td colSpan={4} className="px-6 py-16 text-center text-gray-400">
                     <div className="flex flex-col items-center gap-2">
                       <Mail className="w-8 h-8 text-gray-200" />
                       {debouncedSearch ? 'No subscribers match your search.' : 'No subscribers yet.'}
@@ -113,6 +115,9 @@ export default function NewsletterSubscribersPage() {
                           {sub.email?.[0]?.toUpperCase() || '?'}
                         </div>
                         {sub.email}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {sub.phone || '—'}
                       </td>
                       <td className="px-6 py-4 text-gray-500">
                         {new Date(sub.createdAt).toLocaleDateString('en-US', {

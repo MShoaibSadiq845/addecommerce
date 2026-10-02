@@ -9,11 +9,24 @@ export class NewsletterController {
   ) {}
 
   @Post('subscribe')
-  async subscribe(@Body('email') email: string) {
-    if (!email || !email.includes('@')) {
-      throw new BadRequestException('A valid email is required.');
+  async subscribe(@Body() body: any) {
+    let email = typeof body === 'string' ? body : (body?.email || '');
+    let phone = body?.phone || '';
+
+    // Safeguard in case body was sent as nested { email: { email, phone } }
+    if (typeof email === 'object' && email !== null) {
+      phone = email.phone || phone;
+      email = email.email || '';
     }
-    return this.newsletterService.subscribe(email.trim().toLowerCase());
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      throw new BadRequestException('Please enter a valid email address.');
+    }
+    if (!phone || typeof phone !== 'string' || phone.trim().length < 5) {
+      throw new BadRequestException('Please enter your phone number.');
+    }
+
+    return this.newsletterService.subscribe(email.trim().toLowerCase(), phone.trim());
   }
 
   @Get('subscribers')
