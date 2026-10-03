@@ -513,7 +513,7 @@ function HomeContent() {
 
             <div className="hero-stats flex flex-wrap gap-y-4 gap-x-2 pt-6 border-t border-black/10 divide-x divide-black/10">
               {[
-                { value: '200+', label: 'International Brands' },
+                { value: '100%', label: 'Secure Shopping' },
                 { value: '2,000+', label: 'High-Quality Products' },
                 { value: '30,000+', label: 'Happy Customers' },
               ].map(({ value, label }, index) => (
