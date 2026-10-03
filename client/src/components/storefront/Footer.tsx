@@ -26,7 +26,7 @@ const footerLinks = {
     { label: 'Returns & Refunds', href: '/faq/returns-and-refunds' },
   ],
   contact: [
-    { label: '📞 0329-1747459', href: 'tel:+923291747459' },
+    { label: '📞 0329-1747459', href: 'https://wa.me/923291747459' },
     { label: '💬 EmailUs:    fabdecor09@gmail.com', href: 'mailto:fabdecor09@gmail.com' },
     { label: '📍 Faisalabad, Pakistan', href: '#' },
   ],
@@ -41,7 +41,7 @@ const socialLinks = [
   {
     img: '/images/98.jpg',
     alt: 'WhatsApp',
-    href: 'https://wa.me/923281298871',
+    href: 'https://wa.me/923291747459',
   },
   {
     img: '/images/23.png',
@@ -282,7 +282,13 @@ export function StorefrontFooter() {
           <div className="flex flex-col gap-3">
             <h4 className="font-bold text-sm tracking-widest uppercase">CONTACT US</h4>
             {footerLinks.contact.map(({ label, href }) => (
-              <a key={label} href={href} className="text-sm text-gray-600 hover:text-black transition-colors">
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="text-sm text-gray-600 hover:text-black transition-colors"
+              >
                 {label}
               </a>
             ))}
