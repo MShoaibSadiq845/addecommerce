@@ -18,6 +18,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const product_schema_1 = require("./schemas/product.schema");
 const reviews_service_1 = require("../reviews/reviews.service");
+const price_description_util_1 = require("./utils/price-description.util");
 let ProductsService = class ProductsService {
     constructor(productModel, reviewsService) {
         this.productModel = productModel;
@@ -56,10 +57,7 @@ let ProductsService = class ProductsService {
                         Object.entries(SEAT_TIERS).forEach(([key, multiplier]) => {
                             updatedSeatPricing[key] = basePrice * multiplier;
                         });
-                        let updatedDesc = prod.description;
-                        if (updatedDesc && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(updatedDesc)) {
-                            updatedDesc = updatedDesc.replace(/Price:\s*Rs\.?\s*\d+\s*per seat/gi, `Price: Rs. ${basePrice} per seat`);
-                        }
+                        const updatedDesc = (0, price_description_util_1.syncPriceInDescription)(prod.description, basePrice);
                         await this.productModel.updateOne({ _id: prod._id }, {
                             $set: {
                                 seatPricing: updatedSeatPricing,
@@ -70,9 +68,23 @@ let ProductsService = class ProductsService {
                 }
             }
             console.log('✅ Sofa product seatPricing synchronized successfully.');
+            const allProducts = await this.productModel.find({ description: { $exists: true, $ne: '' } }).exec();
+            let syncedDescCount = 0;
+            for (const prod of allProducts) {
+                if (prod.description && prod.price !== undefined && prod.price !== null) {
+                    const syncedDesc = (0, price_description_util_1.syncPriceInDescription)(prod.description, prod.price);
+                    if (syncedDesc !== prod.description) {
+                        await this.productModel.updateOne({ _id: prod._id }, { $set: { description: syncedDesc } }).exec();
+                        syncedDescCount++;
+                    }
+                }
+            }
+            if (syncedDescCount > 0) {
+                console.log(`✅ Synchronized hardcoded prices in ${syncedDescCount} product description(s).`);
+            }
         }
         catch (err) {
-            console.error('Failed to migrate product brands/seatPricing to Fab Decor:', err);
+            console.error('Failed to migrate product brands/seatPricing/descriptions to Fab Decor:', err);
         }
     }
     normalizeArrayParam(value) {
@@ -203,7 +215,11 @@ let ProductsService = class ProductsService {
         return product;
     }
     async create(dto) {
-        const product = await new this.productModel(dto).save();
+        const data = { ...dto };
+        if (data.description && data.price !== undefined) {
+            data.description = (0, price_description_util_1.syncPriceInDescription)(data.description, data.price);
+        }
+        const product = await new this.productModel(data).save();
         try {
             if (this.reviewsService) {
                 await this.reviewsService.generateDefaultReviewsForProduct(product._id.toString(), product.name);
@@ -220,6 +236,7 @@ let ProductsService = class ProductsService {
         if (!existing)
             throw new common_1.NotFoundException('Product not found');
         const updateData = { ...dto };
+        const effectivePrice = dto.price !== undefined ? Number(dto.price) : Number(existing.price);
         if (dto.price !== undefined) {
             const newPrice = Number(dto.price);
             updateData.price = newPrice;
@@ -243,9 +260,14 @@ let ProductsService = class ProductsService {
                     updatedSeatPricing[key] = newPrice * mult;
                 });
                 updateData.seatPricing = updatedSeatPricing;
-                if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
-                    updateData.description = existing.description.replace(/Price:\s*Rs\.?\s*\d+\s*per seat/gi, `Price: Rs. ${newPrice} per seat`);
-                }
+            }
+        }
+        const rawDescription = dto.description !== undefined ? dto.description : existing.description;
+        if (rawDescription) {
+            const syncedDescription = (0, price_description_util_1.syncPriceInDescription)(rawDescription, effectivePrice);
+            if (syncedDescription !== existing.description ||
+                dto.description !== undefined) {
+                updateData.description = syncedDescription;
             }
         }
         const product = await this.productModel
@@ -336,8 +358,11 @@ let ProductsService = class ProductsService {
                     updatedSeatPricing[key] = newPrice * mult;
                 });
                 updateFields.seatPricing = updatedSeatPricing;
-                if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
-                    updateFields.description = existing.description.replace(/Price:\s*Rs\.?\s*\d+\s*per seat/gi, `Price: Rs. ${newPrice} per seat`);
+            }
+            if (existing.description) {
+                const syncedDesc = (0, price_description_util_1.syncPriceInDescription)(existing.description, newPrice);
+                if (syncedDesc !== existing.description) {
+                    updateFields.description = syncedDesc;
                 }
             }
             bulkOps.push({

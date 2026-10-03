@@ -7,7 +7,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "npm run build && node dist/main.js",
     "start:dev": "tsx watch src/main.ts",
-    "audit:reviews": "tsx src/seed/audit-reviews.ts"
+    "audit:reviews": "tsx src/seed/audit-reviews.ts",
+    "migrate:prices": "tsx src/seed/migrate-description-prices.ts"
   },
   "keywords": [],
   "author": "",

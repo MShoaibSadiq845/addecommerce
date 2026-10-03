@@ -79,6 +79,9 @@ let ProductsController = class ProductsController {
     async update(id, dto) {
         return this.productsService.update(id, dto);
     }
+    async updatePatch(id, dto) {
+        return this.productsService.update(id, dto);
+    }
     async remove(id) {
         return this.productsService.remove(id);
     }
@@ -165,6 +168,14 @@ __decorate([
     __metadata("design:paramtypes", [String, update_product_dto_1.UpdateProductDto]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_product_dto_1.UpdateProductDto]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "updatePatch", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),

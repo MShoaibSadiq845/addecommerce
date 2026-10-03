@@ -5,6 +5,7 @@ import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ReviewsService } from '../reviews/reviews.service';
+import { syncPriceInDescription } from './utils/price-description.util';
 
 export interface ProductQuery {
   category?: string;
@@ -71,14 +72,7 @@ export class ProductsService implements OnModuleInit {
               updatedSeatPricing[key] = basePrice * multiplier;
             });
 
-            // Also update description if it contains outdated "Price: Rs. xxx per seat"
-            let updatedDesc = prod.description;
-            if (updatedDesc && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(updatedDesc)) {
-              updatedDesc = updatedDesc.replace(
-                /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
-                `Price: Rs. ${basePrice} per seat`,
-              );
-            }
+            const updatedDesc = syncPriceInDescription(prod.description, basePrice);
 
             await this.productModel.updateOne(
               { _id: prod._id },
@@ -93,8 +87,27 @@ export class ProductsService implements OnModuleInit {
         }
       }
       console.log('✅ Sofa product seatPricing synchronized successfully.');
+
+      // General auto-sync for all products having hardcoded prices in their description
+      const allProducts = await this.productModel.find({ description: { $exists: true, $ne: '' } }).exec();
+      let syncedDescCount = 0;
+      for (const prod of allProducts) {
+        if (prod.description && prod.price !== undefined && prod.price !== null) {
+          const syncedDesc = syncPriceInDescription(prod.description, prod.price);
+          if (syncedDesc !== prod.description) {
+            await this.productModel.updateOne(
+              { _id: prod._id },
+              { $set: { description: syncedDesc } },
+            ).exec();
+            syncedDescCount++;
+          }
+        }
+      }
+      if (syncedDescCount > 0) {
+        console.log(`✅ Synchronized hardcoded prices in ${syncedDescCount} product description(s).`);
+      }
     } catch (err) {
-      console.error('Failed to migrate product brands/seatPricing to Fab Decor:', err);
+      console.error('Failed to migrate product brands/seatPricing/descriptions to Fab Decor:', err);
     }
   }
 
@@ -262,7 +275,11 @@ export class ProductsService implements OnModuleInit {
   }
 
   async create(dto: CreateProductDto) {
-    const product = await new this.productModel(dto).save();
+    const data: any = { ...dto };
+    if (data.description && data.price !== undefined) {
+      data.description = syncPriceInDescription(data.description, data.price);
+    }
+    const product = await new this.productModel(data).save();
     try {
       if (this.reviewsService) {
         await this.reviewsService.generateDefaultReviewsForProduct(
@@ -282,6 +299,8 @@ export class ProductsService implements OnModuleInit {
     if (!existing) throw new NotFoundException('Product not found');
 
     const updateData: any = { ...dto };
+    const effectivePrice =
+      dto.price !== undefined ? Number(dto.price) : Number(existing.price);
 
     if (dto.price !== undefined) {
       const newPrice = Number(dto.price);
@@ -309,13 +328,22 @@ export class ProductsService implements OnModuleInit {
           updatedSeatPricing[key] = newPrice * mult;
         });
         updateData.seatPricing = updatedSeatPricing;
+      }
+    }
 
-        if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
-          updateData.description = existing.description.replace(
-            /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
-            `Price: Rs. ${newPrice} per seat`,
-          );
-        }
+    // Automatically sync hardcoded price in description whenever price or description is updated
+    const rawDescription =
+      dto.description !== undefined ? dto.description : existing.description;
+    if (rawDescription) {
+      const syncedDescription = syncPriceInDescription(
+        rawDescription,
+        effectivePrice,
+      );
+      if (
+        syncedDescription !== existing.description ||
+        dto.description !== undefined
+      ) {
+        updateData.description = syncedDescription;
       }
     }
 
@@ -420,13 +448,13 @@ export class ProductsService implements OnModuleInit {
           updatedSeatPricing[key] = newPrice * mult;
         });
         updateFields.seatPricing = updatedSeatPricing;
+      }
 
-        // Also update description if it contains "Price: Rs. xxx per seat"
-        if (existing.description && /Price:\s*Rs\.?\s*\d+\s*per seat/i.test(existing.description)) {
-          updateFields.description = existing.description.replace(
-            /Price:\s*Rs\.?\s*\d+\s*per seat/gi,
-            `Price: Rs. ${newPrice} per seat`,
-          );
+      // Sync description price for bulk price updates
+      if (existing.description) {
+        const syncedDesc = syncPriceInDescription(existing.description, newPrice);
+        if (syncedDesc !== existing.description) {
+          updateFields.description = syncedDesc;
         }
       }
 
