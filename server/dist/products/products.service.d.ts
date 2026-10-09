@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { BulkUploadProductDto } from './dto/bulk-upload-product.dto';
 import { ReviewsService } from '../reviews/reviews.service';
 export interface ProductQuery {
     category?: string;
@@ -90,5 +91,13 @@ export declare class ProductsService implements OnModuleInit {
         matchedCount: number;
         modifiedCount: number;
         message: string;
+    }>;
+    bulkUploadProducts(rows: BulkUploadProductDto[]): Promise<{
+        inserted: number;
+        skipped: number;
+        errors: {
+            row: number;
+            reason: string;
+        }[];
     }>;
 }

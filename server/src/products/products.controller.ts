@@ -11,11 +11,14 @@ import {
   Inject,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import * as XLSX from 'xlsx';
 import { ProductsService, ProductQuery } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { BulkUploadProductDto } from './dto/bulk-upload-product.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -55,6 +58,51 @@ export class ProductsController {
       console.error('Upload error:', error);
       throw error;
     }
+  }
+
+  // ── Bulk Upload: POST /products/bulk-upload ──────────────────────────────
+  @Post('bulk-upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async bulkUpload(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded');
+
+    const allowedMimes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'application/csv',
+    ];
+    if (!allowedMimes.includes(file.mimetype) && !file.originalname.match(/\.(xlsx|xls|csv)$/i)) {
+      throw new BadRequestException('Only CSV or Excel files are allowed');
+    }
+
+    let rows: Record<string, unknown>[];
+    try {
+      const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    } catch {
+      throw new BadRequestException('Could not parse file — make sure it is a valid CSV or Excel file');
+    }
+
+    if (!rows.length) throw new BadRequestException('File is empty or has no data rows');
+
+    // Map spreadsheet columns → DTO
+    const dtos: BulkUploadProductDto[] = rows.map((r) => ({
+      name: String(r['productName'] ?? r['name'] ?? '').trim(),
+      description: String(r['description'] ?? '').trim(),
+      price: Number(r['price'] ?? 0),
+      category: String(r['category'] ?? '').trim(),
+      stock: Number(r['stockQuantity'] ?? r['stock'] ?? 0),
+      sku: String(r['skuCode'] ?? r['sku'] ?? '').trim(),
+      colors: String(r['colors'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+      sizes: String(r['sizes'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+      images: String(r['imageUrls'] ?? r['images'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+      brand: String(r['brand'] ?? 'Fab Decor').trim(),
+      rating: Number(r['rating'] ?? 4.5),
+    }));
+
+    return this.productsService.bulkUploadProducts(dtos);
   }
 
   @Get()

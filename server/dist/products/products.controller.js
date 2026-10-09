@@ -1,10 +1,43 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
@@ -15,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
+const XLSX = __importStar(require("xlsx"));
 const products_service_1 = require("./products.service");
 const create_product_dto_1 = require("./dto/create-product.dto");
 const update_product_dto_1 = require("./dto/update-product.dto");
@@ -49,6 +83,44 @@ let ProductsController = class ProductsController {
             console.error('Upload error:', error);
             throw error;
         }
+    }
+    async bulkUpload(file) {
+        if (!file)
+            throw new common_1.BadRequestException('No file uploaded');
+        const allowedMimes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'text/csv',
+            'application/csv',
+        ];
+        if (!allowedMimes.includes(file.mimetype) && !file.originalname.match(/\.(xlsx|xls|csv)$/i)) {
+            throw new common_1.BadRequestException('Only CSV or Excel files are allowed');
+        }
+        let rows;
+        try {
+            const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        }
+        catch {
+            throw new common_1.BadRequestException('Could not parse file — make sure it is a valid CSV or Excel file');
+        }
+        if (!rows.length)
+            throw new common_1.BadRequestException('File is empty or has no data rows');
+        const dtos = rows.map((r) => ({
+            name: String(r['productName'] ?? r['name'] ?? '').trim(),
+            description: String(r['description'] ?? '').trim(),
+            price: Number(r['price'] ?? 0),
+            category: String(r['category'] ?? '').trim(),
+            stock: Number(r['stockQuantity'] ?? r['stock'] ?? 0),
+            sku: String(r['skuCode'] ?? r['sku'] ?? '').trim(),
+            colors: String(r['colors'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+            sizes: String(r['sizes'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+            images: String(r['imageUrls'] ?? r['images'] ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+            brand: String(r['brand'] ?? 'Fab Decor').trim(),
+            rating: Number(r['rating'] ?? 4.5),
+        }));
+        return this.productsService.bulkUploadProducts(dtos);
     }
     async getAll(query) {
         return this.productsService.findAll(query);
@@ -107,6 +179,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "uploadImage", null);
+__decorate([
+    (0, common_1.Post)('bulk-upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkUpload", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),

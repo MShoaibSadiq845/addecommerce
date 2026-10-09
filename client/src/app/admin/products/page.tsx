@@ -12,7 +12,7 @@ import {
   useUpdateProductMutation,
 } from '@/store/services/productsApi';
 import { TableSkeleton } from '@/components/ui/skeletons/TableSkeleton';
-import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search, Armchair, Eye, SlidersHorizontal, Check, RotateCcw } from 'lucide-react';
+import { PlusCircle, Trash2, Tag, Edit3, Award, Zap, X, Loader2, Search, Armchair, Eye, SlidersHorizontal, Check, RotateCcw, UploadCloud } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
 import Pagination from '@/components/ui/Pagination';
@@ -239,6 +239,13 @@ function AdminProductsContent() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/admin/products/bulk-upload"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>Bulk Upload</span>
+          </Link>
           <button
             type="button"
             onClick={() => setIsBulkPriceModalOpen(true)}

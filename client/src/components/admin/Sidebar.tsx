@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, PackageCheck, XCircle, Bell, PlusCircle, Users, ArrowLeft, Mail, X, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, PackageCheck, XCircle, Bell, PlusCircle, Users, ArrowLeft, Mail, X, AlertTriangle, UploadCloud } from 'lucide-react';
 import { useGetLowStockProductsQuery } from '@/store/services/productsApi';
 
 interface AdminSidebarProps {
@@ -20,6 +20,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Products', href: '/admin/products', icon: ShoppingBag },
     { label: 'Add Product', href: '/admin/products/add', icon: PlusCircle },
+    { label: 'Bulk Upload', href: '/admin/products/bulk-upload', icon: UploadCloud },
     {
       label: 'Stock Alert',
       href: '/admin/stock-alert',

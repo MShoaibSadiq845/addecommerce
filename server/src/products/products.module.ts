@@ -15,7 +15,7 @@ import { ReviewsModule } from '../reviews/reviews.module';
     MulterModule.register({
       storage: memoryStorage(),
       limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+        fileSize: 10 * 1024 * 1024, // 10MB (supports large Excel/CSV bulk uploads)
       },
     }),
     NotificationsModule,

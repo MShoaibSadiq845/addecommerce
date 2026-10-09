@@ -71,6 +71,15 @@ export const productsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Product'],
     }),
+    bulkUploadProducts: builder.mutation({
+      query: (formData: FormData) => ({
+        url: '/products/bulk-upload',
+        method: 'POST',
+        body: formData,
+        formData: true,
+      }),
+      invalidatesTags: ['Product'],
+    }),
   }),
 });
 
@@ -86,4 +95,5 @@ export const {
   useUploadProductImageMutation,
   useGetLowStockProductsQuery,
   useBulkUpdatePricesMutation,
+  useBulkUploadProductsMutation,
 } = productsApi;

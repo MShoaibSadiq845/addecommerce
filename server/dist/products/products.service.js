@@ -383,6 +383,67 @@ let ProductsService = class ProductsService {
             message: `Successfully updated ${result.modifiedCount} product price(s) in bulk.`,
         };
     }
+    async bulkUploadProducts(rows) {
+        const errors = [];
+        const docsToInsert = [];
+        const existingSkus = new Set();
+        const allSkus = await this.productModel.find({}, { sku: 1 }).lean();
+        allSkus.forEach((p) => existingSkus.add(p.sku));
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const rowNum = i + 2;
+            if (!row.name?.toString().trim()) {
+                errors.push({ row: rowNum, reason: 'name is required' });
+                continue;
+            }
+            if (!row.category?.toString().trim()) {
+                errors.push({ row: rowNum, reason: 'category is required' });
+                continue;
+            }
+            const price = Number(row.price);
+            if (!price || price <= 0) {
+                errors.push({ row: rowNum, reason: 'price must be a positive number' });
+                continue;
+            }
+            let sku = row.sku?.toString().trim();
+            if (!sku || existingSkus.has(sku)) {
+                sku = `SKU-${Math.floor(100000 + Math.random() * 900000)}`;
+                while (existingSkus.has(sku)) {
+                    sku = `SKU-${Math.floor(100000 + Math.random() * 900000)}`;
+                }
+            }
+            existingSkus.add(sku);
+            docsToInsert.push({
+                name: row.name.toString().trim(),
+                description: row.description?.toString().trim() || '',
+                price,
+                category: row.category.toString().trim(),
+                stock: Number(row.stock) || 0,
+                sku,
+                colors: row.colors || [],
+                sizes: row.sizes || [],
+                images: row.images || [],
+                brand: row.brand?.toString().trim() || 'Fab Decor',
+                rating: Number(row.rating) || 4.5,
+                isOnSale: false,
+                salePrice: 0,
+                tags: [],
+                seatPricing: {},
+                numReviews: 0,
+                totalSales: 0,
+            });
+        }
+        let inserted = 0;
+        if (docsToInsert.length > 0) {
+            await this.productModel.insertMany(docsToInsert);
+            inserted = docsToInsert.length;
+        }
+        return {
+            inserted,
+            skipped: errors.length,
+            errors,
+        };
+    }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([

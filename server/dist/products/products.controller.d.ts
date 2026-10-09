@@ -11,6 +11,14 @@ export declare class ProductsController {
     uploadImage(file: Express.Multer.File): Promise<{
         url: string;
     }>;
+    bulkUpload(file: Express.Multer.File): Promise<{
+        inserted: number;
+        skipped: number;
+        errors: {
+            row: number;
+            reason: string;
+        }[];
+    }>;
     getAll(query: ProductQuery): Promise<{
         products: import("./schemas/product.schema").ProductDocument[];
         total: number;

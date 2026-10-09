@@ -271,14 +271,23 @@ function AdminAddProductContent() {
   return (
     <div className="flex flex-col gap-6 font-['Rubik'] max-w-3xl mx-auto pb-12">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href={getReturnUrl()} className="p-2 bg-white rounded-xl border hover:bg-gray-50">
-          <ArrowLeft className="w-4 h-4 text-gray-700" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-          <p className="text-xs text-gray-400">Fill in product details below</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link href={getReturnUrl()} className="p-2 bg-white rounded-xl border hover:bg-gray-50">
+            <ArrowLeft className="w-4 h-4 text-gray-700" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+            <p className="text-xs text-gray-400">Fill in product details below</p>
+          </div>
         </div>
+        <Link
+          href="/admin/products/bulk-upload"
+          className="flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs"
+        >
+          <UploadCloud className="w-4 h-4 text-indigo-600" />
+          <span>Bulk Upload</span>
+        </Link>
       </div>
 
       {successMsg && (
