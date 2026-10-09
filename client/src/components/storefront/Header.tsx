@@ -31,6 +31,45 @@ export function StorefrontHeader() {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
+  // Scroll visibility state: fully visible at top (scrollY === 0) by default; hides on scroll down, shows on scroll up
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
+
+  useEffect(() => {
+    lastScrollY.current = typeof window !== 'undefined' ? Math.max(0, window.scrollY) : 0;
+
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = Math.max(0, window.scrollY);
+          const prevScrollY = lastScrollY.current;
+          const delta = currentScrollY - prevScrollY;
+
+          if (currentScrollY <= 80) {
+            // Near the top of the page, keep navbar visible
+            setIsVisible(true);
+          } else if (delta < -4) {
+            // User scrolled back up
+            setIsVisible(true);
+          } else if (delta > 6 && currentScrollY > 80) {
+            // User deliberately scrolled down past the top buffer
+            setIsVisible(false);
+          }
+
+          lastScrollY.current = currentScrollY;
+          ticking.current = false;
+        });
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
   const isUrlSync = useRef(false);
@@ -125,7 +164,12 @@ export function StorefrontHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+    <>
+      <header
+        className={`sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm transition-transform duration-300 ease-in-out ${
+          isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
       {/* ── Top Announcement Banner: Free Delivery All Over Pakistan ── */}
       {showAnnouncement && (
         <div className="w-full bg-black text-white py-2 px-4 text-xs font-['Satoshi'] tracking-wide">
@@ -370,6 +414,7 @@ export function StorefrontHeader() {
           </div>
         </div>
       </div>
+    </header>
 
       {/* ── Mobile sidebar overlay ── */}
       {/* Backdrop */}
@@ -472,6 +517,6 @@ export function StorefrontHeader() {
       {/* Auth Modal & Profile Edit Modal */}
       <StoreAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       <ProfileEditModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
-    </header>
+    </>
   );
 }
