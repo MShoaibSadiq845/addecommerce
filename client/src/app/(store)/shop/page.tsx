@@ -398,7 +398,7 @@ function ShopContent() {
         />
 
         <aside
-          className={`fixed lg:static inset-y-0 left-0 z-[100] w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          className={`fixed lg:sticky lg:top-28 inset-y-0 lg:inset-auto left-0 z-[100] lg:z-10 w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-[calc(100vh-140px)] bg-white lg:border lg:border-gray-200 lg:rounded-[24px] lg:overflow-hidden shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
             }`}
           role="dialog"
           aria-modal="true"
