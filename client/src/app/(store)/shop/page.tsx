@@ -282,6 +282,17 @@ function ShopContent() {
     setPendingSizes(activeSizes);
   }, [activeCategory, activeIsOnSale, activeColors, activeSizes]);
 
+  React.useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarOpen]);
+
   const { data, isLoading, isFetching } = useGetProductsQuery({
     page,
     limit: activeNewArrivals ? 100 : 12,
@@ -377,153 +388,195 @@ function ShopContent() {
       </nav>
 
       <div className="flex gap-8 items-start">
-        {/* ═══════════════════ SIDEBAR FILTERS ═══════════════════ */}
+        {/* ═══════════════════ SIDEBAR FILTERS (DESKTOP & MOBILE DRAWER) ═══════════════════ */}
+        {/* Mobile Backdrop */}
+        <div
+          className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+            sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+
         <aside
-          className={`shrink-0 w-72 bg-white border border-gray-200 rounded-[24px] p-6 flex flex-col gap-2 fixed lg:static inset-y-0 left-0 z-40 overflow-y-auto transition-transform duration-300 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
-            }`}
+          className={`fixed lg:static inset-y-0 left-0 z-50 w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Product filters"
         >
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold text-lg text-black flex items-center gap-2" style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}>
+          {/* Header (Fixed at top of drawer) */}
+          <div className="flex items-center justify-between p-5 lg:p-6 lg:pb-2 border-b border-gray-100 lg:border-none shrink-0">
+            <h3
+              className="font-bold text-lg text-black flex items-center gap-2"
+              style={{ fontFamily: "'Integral CF', 'Inter', sans-serif" }}
+            >
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </h3>
-
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAll}
+                  className="text-xs text-red-600 hover:underline font-semibold"
+                >
+                  Clear all
+                </button>
+              )}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-1.5 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 hover:text-black"
+                aria-label="Close filters"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {dynamicCategories.length > 0 && (
-            <FilterSection title="Category" open={categoryOpen} onToggle={() => setCategoryOpen(!categoryOpen)}>
-              <div className="flex flex-col gap-1">
-                {dynamicCategories.map((cat: any) => (
-                  <button
-                    key={cat}
-                    onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
-                    className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${pendingCategory === cat
-                      ? 'text-black font-bold bg-gray-100'
-                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+          {/* Scrollable Filters Content */}
+          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 lg:px-6 lg:py-0 flex flex-col gap-2">
+            {dynamicCategories.length > 0 && (
+              <FilterSection title="Category" open={categoryOpen} onToggle={() => setCategoryOpen(!categoryOpen)}>
+                <div className="flex flex-col gap-1">
+                  {dynamicCategories.map((cat: any) => (
+                    <button
+                      key={cat}
+                      onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
+                      className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${
+                        pendingCategory === cat
+                          ? 'text-black font-bold bg-gray-100'
+                          : 'text-gray-600 hover:text-black hover:bg-gray-50'
                       }`}
-                  >
-                    <span className="capitalize">{cat}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-                  </button>
-                ))}
-              </div>
-            </FilterSection>
-          )}
+                    >
+                      <span className="capitalize">{cat}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                    </button>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
 
-          {dynamicColors.length > 0 && (
-            <FilterSection title="Colors" open={colorsOpen} onToggle={() => setColorsOpen(!colorsOpen)}>
-              <div className="flex flex-wrap gap-2.5">
-                {dynamicColors.map((c: any) => {
-                  const isSelected = pendingColors.includes(c);
-                  const colorMap: Record<string, string> = {
-                    white: '#ffffff',
-                    black: '#000000',
-                    gray: '#9ca3af',
-                    grey: '#9ca3af',
-                    red: '#ef4444',
-                    blue: '#3b82f6',
-                    green: '#22c55e',
-                    yellow: '#eab308',
-                    orange: '#f97316',
-                    purple: '#a855f7',
-                    pink: '#ec4899',
-                    brown: '#92400e',
-                    navy: '#1e3a5f',
-                    beige: '#d4b896',
-                    cream: '#fef9c3',
-                    maroon: '#7f1d1d',
-                    teal: '#14b8a6',
-                    cyan: '#06b6d4',
-                    indigo: '#6366f1',
-                    lime: '#84cc16',
-                    magenta: '#d946ef',
-                    gold: '#ca8a04',
-                    silver: '#cbd5e1',
-                    olive: '#65a30d',
-                    coral: '#fb7185',
-                    violet: '#8b5cf6',
-                  };
-                  const bg = colorMap[c.toLowerCase()] ?? c.toLowerCase();
-                  const isLight = ['white', 'cream', 'beige', 'yellow', 'lime', 'silver'].includes(c.toLowerCase());
+            {dynamicColors.length > 0 && (
+              <FilterSection title="Colors" open={colorsOpen} onToggle={() => setColorsOpen(!colorsOpen)}>
+                <div className="flex flex-wrap gap-2.5">
+                  {dynamicColors.map((c: any) => {
+                    const isSelected = pendingColors.includes(c);
+                    const colorMap: Record<string, string> = {
+                      white: '#ffffff',
+                      black: '#000000',
+                      gray: '#9ca3af',
+                      grey: '#9ca3af',
+                      red: '#ef4444',
+                      blue: '#3b82f6',
+                      green: '#22c55e',
+                      yellow: '#eab308',
+                      orange: '#f97316',
+                      purple: '#a855f7',
+                      pink: '#ec4899',
+                      brown: '#92400e',
+                      navy: '#1e3a5f',
+                      beige: '#d4b896',
+                      cream: '#fef9c3',
+                      maroon: '#7f1d1d',
+                      teal: '#14b8a6',
+                      cyan: '#06b6d4',
+                      indigo: '#6366f1',
+                      lime: '#84cc16',
+                      magenta: '#d946ef',
+                      gold: '#ca8a04',
+                      silver: '#cbd5e1',
+                      olive: '#65a30d',
+                      coral: '#fb7185',
+                      violet: '#8b5cf6',
+                    };
+                    const bg = colorMap[c.toLowerCase()] ?? c.toLowerCase();
+                    const isLight = ['white', 'cream', 'beige', 'yellow', 'lime', 'silver'].includes(c.toLowerCase());
 
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => toggleColor(c)}
-                      title={c}
-                      aria-label={`${isSelected ? 'Deselect' : 'Select'} color ${c}`}
-                      className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${isLight ? 'border border-gray-300' : ''
+                    return (
+                      <button
+                        key={c}
+                        onClick={() => toggleColor(c)}
+                        title={c}
+                        aria-label={`${isSelected ? 'Deselect' : 'Select'} color ${c}`}
+                        className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${
+                          isLight ? 'border border-gray-300' : ''
                         } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
-                      style={{ backgroundColor: bg }}
-                    >
-                      {isSelected && (
-                        <span className={`absolute inset-0 flex items-center justify-center text-xs font-black ${isLight ? 'text-black' : 'text-white'}`}>
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </FilterSection>
-          )}
+                        style={{ backgroundColor: bg }}
+                      >
+                        {isSelected && (
+                          <span
+                            className={`absolute inset-0 flex items-center justify-center text-xs font-black ${
+                              isLight ? 'text-black' : 'text-white'
+                            }`}
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FilterSection>
+            )}
 
-          {dynamicSizes.length > 0 && (
-            <FilterSection title="Size" open={sizesOpen} onToggle={() => setSizesOpen(!sizesOpen)}>
-              <div className="flex flex-wrap gap-2">
-                {dynamicSizes.map((s: any) => {
-                  const sizeLabels: Record<string, string> = {
-                    XXS: 'XX-Small',
-                    XS: 'X-Small',
-                    S: 'Small',
-                    M: 'Medium',
-                    L: 'Large',
-                    XL: 'X-Large',
-                    XXL: 'XX-Large',
-                    '2XL': 'XX-Large',
-                    '3XL': '3X-Large',
-                    '4XL': '4X-Large',
-                  };
-                  const label = sizeLabels[s.toUpperCase()] ?? s;
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => toggleSize(s)}
-                      className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${pendingSizes.includes(s)
-                        ? 'bg-black text-white border-black shadow-sm'
-                        : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
+            {dynamicSizes.length > 0 && (
+              <FilterSection title="Size" open={sizesOpen} onToggle={() => setSizesOpen(!sizesOpen)}>
+                <div className="flex flex-wrap gap-2">
+                  {dynamicSizes.map((s: any) => {
+                    const sizeLabels: Record<string, string> = {
+                      XXS: 'XX-Small',
+                      XS: 'X-Small',
+                      S: 'Small',
+                      M: 'Medium',
+                      L: 'Large',
+                      XL: 'X-Large',
+                      XXL: 'XX-Large',
+                      '2XL': 'XX-Large',
+                      '3XL': '3X-Large',
+                      '4XL': '4X-Large',
+                    };
+                    const label = sizeLabels[s.toUpperCase()] ?? s;
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => toggleSize(s)}
+                        className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                          pendingSizes.includes(s)
+                            ? 'bg-black text-white border-black shadow-sm'
+                            : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
                         }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FilterSection>
+            )}
+
+            <FilterSection title="Offers" open={offersOpen} onToggle={() => setOffersOpen(!offersOpen)}>
+              <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={pendingIsOnSale}
+                  onChange={(e) => setPendingIsOnSale(e.target.checked)}
+                  className="w-4 h-4 accent-black rounded cursor-pointer"
+                />
+                <span className="text-gray-700 font-medium">On Sale Only</span>
+              </label>
             </FilterSection>
-          )}
+          </div>
 
-          <FilterSection title="Offers" open={offersOpen} onToggle={() => setOffersOpen(!offersOpen)}>
-            <label className="flex items-center gap-2.5 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={pendingIsOnSale}
-                onChange={(e) => setPendingIsOnSale(e.target.checked)}
-                className="w-4 h-4 accent-black rounded"
-              />
-
-            </label>
-          </FilterSection>
-
-          <button
-            onClick={applyFilters}
-            className="w-full bg-black text-white rounded-full py-3.5 text-sm font-bold hover:bg-gray-900 transition-colors mt-4 shadow-md"
-          >
-            Apply Filters
-          </button>
+          {/* Fixed/Sticky Bottom Button Footer */}
+          <div className="shrink-0 p-4 lg:p-6 lg:pt-4 bg-white border-t border-gray-100 lg:border-none shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:shadow-none">
+            <button
+              onClick={applyFilters}
+              className="w-full bg-black text-white rounded-full py-3.5 text-sm font-bold hover:bg-gray-900 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2"
+            >
+              Apply Filters
+            </button>
+          </div>
         </aside>
-
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
 
         {/* ═══════════════════ MAIN CONTENT ═══════════════════ */}
         <main className="flex-1 min-w-0 flex flex-col gap-6">
