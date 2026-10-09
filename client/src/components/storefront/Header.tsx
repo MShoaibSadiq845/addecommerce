@@ -125,7 +125,7 @@ export function StorefrontHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
       {/* ── Top Announcement Banner: Free Delivery All Over Pakistan ── */}
       {showAnnouncement && (
         <div className="w-full bg-black text-white py-2 px-4 text-xs font-['Satoshi'] tracking-wide">
@@ -382,7 +382,7 @@ export function StorefrontHeader() {
 
       {/* Sidebar panel */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-[70] w-[80vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`lg:hidden fixed inset-y-0 left-0 z-[70] w-[80vw] max-w-sm h-screen h-[100dvh] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         role="dialog"
         aria-modal="true"
