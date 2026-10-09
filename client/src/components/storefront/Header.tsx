@@ -125,7 +125,7 @@ export function StorefrontHeader() {
   };
 
   return (
-    <header className="w-full bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
       {/* ── Top Announcement Banner: Free Delivery All Over Pakistan ── */}
       {showAnnouncement && (
         <div className="w-full bg-black text-white py-2 px-4 text-xs font-['Satoshi'] tracking-wide">
@@ -197,9 +197,8 @@ export function StorefrontHeader() {
             >
               Categories{' '}
               <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  showShopMenu ? 'rotate-180' : 'rotate-0'
-                }`}
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${showShopMenu ? 'rotate-180' : 'rotate-0'
+                  }`}
               />
             </button>
             {showShopMenu && (
@@ -375,18 +374,16 @@ export function StorefrontHeader() {
       {/* ── Mobile sidebar overlay ── */}
       {/* Backdrop */}
       <div
-        className={`lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
-          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
 
       {/* Sidebar panel */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-[70] w-[80vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`lg:hidden fixed inset-y-0 left-0 z-[70] w-[80vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
         role="dialog"
         aria-modal="true"
         aria-label="Mobile navigation"
