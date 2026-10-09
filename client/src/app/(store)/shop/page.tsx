@@ -391,17 +391,15 @@ function ShopContent() {
         {/* ═══════════════════ SIDEBAR FILTERS (DESKTOP & MOBILE DRAWER) ═══════════════════ */}
         {/* Mobile Backdrop */}
         <div
-          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300 ${
-            sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
 
         <aside
-          className={`fixed lg:static inset-y-0 left-0 z-[100] w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
+          className={`fixed lg:static inset-y-0 left-0 z-[100] w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            }`}
           role="dialog"
           aria-modal="true"
           aria-label="Product filters"
@@ -415,14 +413,14 @@ function ShopContent() {
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </h3>
             <div className="flex items-center gap-2">
-              {hasActiveFilters && (
+              {/* {hasActiveFilters && (
                 <button
                   onClick={clearAll}
                   className="text-xs text-red-600 hover:underline font-semibold"
                 >
                   Clear all
                 </button>
-              )}
+              )} */}
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="lg:hidden p-1.5 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 hover:text-black"
@@ -442,14 +440,12 @@ function ShopContent() {
                     <button
                       key={cat}
                       onClick={() => setPendingCategory(pendingCategory === cat ? '' : cat)}
-                      className={`flex items-center justify-between py-2 px-2.5 rounded-xl text-sm transition-colors ${
-                        pendingCategory === cat
+                      className={`w-full text-left py-2 px-3 rounded-xl text-sm transition-colors ${pendingCategory === cat
                           ? 'text-black font-bold bg-gray-100'
                           : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       <span className="capitalize">{cat}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
                     </button>
                   ))}
                 </div>
@@ -498,16 +494,14 @@ function ShopContent() {
                         onClick={() => toggleColor(c)}
                         title={c}
                         aria-label={`${isSelected ? 'Deselect' : 'Select'} color ${c}`}
-                        className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${
-                          isLight ? 'border border-gray-300' : ''
-                        } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
+                        className={`relative w-9 h-9 rounded-full transition-all focus:outline-none ${isLight ? 'border border-gray-300' : ''
+                          } ${isSelected ? 'ring-2 ring-offset-2 ring-black scale-110' : 'hover:scale-105'}`}
                         style={{ backgroundColor: bg }}
                       >
                         {isSelected && (
                           <span
-                            className={`absolute inset-0 flex items-center justify-center text-xs font-black ${
-                              isLight ? 'text-black' : 'text-white'
-                            }`}
+                            className={`absolute inset-0 flex items-center justify-center text-xs font-black ${isLight ? 'text-black' : 'text-white'
+                              }`}
                           >
                             ✓
                           </span>
@@ -540,11 +534,10 @@ function ShopContent() {
                       <button
                         key={s}
                         onClick={() => toggleSize(s)}
-                        className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
-                          pendingSizes.includes(s)
+                        className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${pendingSizes.includes(s)
                             ? 'bg-black text-white border-black shadow-sm'
                             : 'bg-[#F0F0F0] text-gray-700 border-transparent hover:border-gray-400 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         {label}
                       </button>
@@ -712,11 +705,10 @@ function ShopContent() {
                     <button
                       key={`page-${num}`}
                       onClick={() => update({ page: String(num) })}
-                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-center shrink-0 ${
-                        page === num
+                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-center shrink-0 ${page === num
                           ? 'bg-black text-white font-bold shadow-md'
                           : 'hover:bg-gray-100 text-gray-700 border border-gray-200 bg-white shadow-sm'
-                      }`}
+                        }`}
                     >
                       {num}
                     </button>
