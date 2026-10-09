@@ -391,7 +391,7 @@ function ShopContent() {
         {/* ═══════════════════ SIDEBAR FILTERS (DESKTOP & MOBILE DRAWER) ═══════════════════ */}
         {/* Mobile Backdrop */}
         <div
-          className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300 ${
             sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
           onClick={() => setSidebarOpen(false)}
@@ -399,7 +399,7 @@ function ShopContent() {
         />
 
         <aside
-          className={`fixed lg:static inset-y-0 left-0 z-50 w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${
+          className={`fixed lg:static inset-y-0 left-0 z-[100] w-[85vw] max-w-[320px] lg:w-72 h-[100dvh] lg:h-auto max-h-[100dvh] lg:max-h-none bg-white lg:border lg:border-gray-200 lg:rounded-[24px] shadow-2xl lg:shadow-none flex flex-col shrink-0 transition-transform duration-300 ease-in-out ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
           role="dialog"
@@ -568,7 +568,10 @@ function ShopContent() {
           </div>
 
           {/* Fixed/Sticky Bottom Button Footer */}
-          <div className="shrink-0 p-4 lg:p-6 lg:pt-4 bg-white border-t border-gray-100 lg:border-none shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:shadow-none">
+          <div
+            className="shrink-0 p-4 lg:p-6 lg:pt-4 bg-white border-t border-gray-100 lg:border-none shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:shadow-none"
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))' }}
+          >
             <button
               onClick={applyFilters}
               className="w-full bg-black text-white rounded-full py-3.5 text-sm font-bold hover:bg-gray-900 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2"
