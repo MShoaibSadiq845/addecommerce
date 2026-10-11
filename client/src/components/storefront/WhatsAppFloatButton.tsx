@@ -9,13 +9,14 @@ interface WhatsAppFloatButtonProps {
 
 export function WhatsAppFloatButton({
   phoneNumber = '923291747459',
-  defaultMessage = 'Hello! I am interested in your products.',
+  defaultMessage = '',
 }: WhatsAppFloatButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Encode message for WhatsApp URL
-  const encodedMessage = encodeURIComponent(defaultMessage);
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  // Encode message for WhatsApp URL if provided
+  const whatsappUrl = defaultMessage?.trim()
+    ? `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage.trim())}`
+    : `https://wa.me/${phoneNumber}`;
 
   return (
     <div
