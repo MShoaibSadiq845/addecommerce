@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { StorefrontHeader } from '@/components/storefront/Header';
 import { StorefrontFooter } from '@/components/storefront/Footer';
 import { BottomNav } from '@/components/storefront/BottomNav';
+import { WhatsAppFloatButton } from '@/components/storefront/WhatsAppFloatButton';
 
 export default function StoreLayout({
   children,
@@ -20,6 +21,7 @@ export default function StoreLayout({
       <Suspense fallback={null}>
         <BottomNav />
       </Suspense>
+      <WhatsAppFloatButton />
     </div>
   );
 }
