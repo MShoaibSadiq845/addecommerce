@@ -95,7 +95,7 @@ export default function AdminOrderDetailPage() {
           <select value={order.status} onChange={(e) => handleStatusChange(e.target.value)}
             disabled={updating}
             className={`px-4 py-2 rounded-xl text-xs font-bold border outline-none cursor-pointer disabled:opacity-60 ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-700'}`}>
-            {['Pending','Processing','Shipped','Delivered','Canceled'].map((s) => (
+            {['Pending', 'Processing', 'Shipped', 'Delivered', 'Canceled'].map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -105,7 +105,7 @@ export default function AdminOrderDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Customer Info */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
           <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
             <User className="w-4 h-4 text-blue-600" /> Customer
           </h3>
@@ -117,7 +117,7 @@ export default function AdminOrderDetailPage() {
         </div>
 
         {/* Payment Info */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
           <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
             <CreditCard className="w-4 h-4 text-purple-600" /> Payment Info
           </h3>
@@ -135,14 +135,16 @@ export default function AdminOrderDetailPage() {
         </div>
 
         {/* Shipping Address */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
           <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b pb-3 mb-4">
             <MapPin className="w-4 h-4 text-red-500" /> Shipping Address
           </h3>
-          <div className="text-xs space-y-1 text-gray-600">
-            <p>{order.shippingAddress?.street}</p>
-            <p>{order.shippingAddress?.city}{order.shippingAddress?.province ? `, ${order.shippingAddress.province}` : ''}</p>
-            <p>{order.shippingAddress?.postalCode}, {order.shippingAddress?.country}</p>
+          <div className="text-xs space-y-2 text-gray-600">
+            <p className="break-words">Street Address: <strong className="text-black font-semibold">{order.shippingAddress?.street || 'N/A'}</strong></p>
+            <p>City: <strong className="text-black font-semibold">{order.shippingAddress?.city || 'N/A'}</strong></p>
+            <p>Province: <strong className="text-black font-semibold">{order.shippingAddress?.province || 'N/A'}</strong></p>
+            <p>Postal Code: <strong className="text-black font-semibold">{order.shippingAddress?.postalCode || 'N/A'}</strong></p>
+            <p>Country: <strong className="text-black font-semibold">{order.shippingAddress?.country || 'N/A'}</strong></p>
           </div>
         </div>
       </div>
