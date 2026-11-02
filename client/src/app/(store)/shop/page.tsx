@@ -11,6 +11,7 @@ import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductCardSkelet
 import { SlidersHorizontal, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ShoppingCart, Star, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { LoadingProvider, useLoading } from '@/context/LoadingContext';
+import ViewMoreButton from '@/components/ui/ViewMoreButton';
 
 /* ─── Rating Stars helper ─── */
 function Stars({ rating, size = 'w-3.5 h-3.5' }: { rating: number; size?: string }) {
@@ -220,8 +221,8 @@ function ShopContent() {
   const router = useRouter();
   const { setIsLoading } = useLoading() || {};
 
-  const page = Number(searchParams.get('page') || '1');
   const sortRaw = searchParams.get('sort') || 'newest';
+  const [limit, setLimit] = useState(12);
 
   const [pendingCategory, setPendingCategory] = useState('');
   const [pendingIsOnSale, setPendingIsOnSale] = useState(false);
@@ -247,6 +248,19 @@ function ShopContent() {
     () => (searchParams.get('size') ? searchParams.get('size')!.split(',').filter(Boolean) : []),
     [searchParams]
   );
+
+  // Reset limit back to 12 whenever filters or sorting change
+  React.useEffect(() => {
+    setLimit(12);
+  }, [
+    activeCategory,
+    activeIsOnSale,
+    activeNewArrivals,
+    activeSearch,
+    sortRaw,
+    activeColors,
+    activeSizes,
+  ]);
 
   const { data: allProductsData } = useGetProductsQuery({ limit: 1000 });
   const allProducts = allProductsData?.products || [];
@@ -294,8 +308,8 @@ function ShopContent() {
   }, [sidebarOpen]);
 
   const { data, isLoading, isFetching } = useGetProductsQuery({
-    page,
-    limit: activeNewArrivals ? 100 : 12,
+    page: 1,
+    limit: activeNewArrivals ? 100 : limit,
     sort: sortRaw,
     ...(activeSearch && { search: activeSearch }),
     ...(activeCategory && { category: activeCategory }),
@@ -305,18 +319,27 @@ function ShopContent() {
     ...(activeSizes.length && { size: activeSizes.join(',') }),
   });
 
+  const products = data?.products || [];
+  const totalProducts = data?.total || 0;
+  const hasMore = products.length < totalProducts;
+  const isFetchingMore = isFetching && products.length > 0;
+
+  const handleLoadMore = () => {
+    if (!isFetching && hasMore) {
+      setLimit((prev) => prev + 12);
+    }
+  };
+
   React.useEffect(() => {
     if (setIsLoading) {
-      setIsLoading(isLoading || isFetching);
+      // Only display the full screen loader on initial mount when there are no products
+      setIsLoading(isLoading && products.length === 0);
     }
-  }, [isLoading, isFetching, setIsLoading]);
-
-  const products = data?.products || [];
-  const totalPages = data?.pages || 1;
-  const totalProducts = data?.total || 0;
+  }, [isLoading, products.length, setIsLoading]);
 
   const update = (updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
     Object.entries(updates).forEach(([k, v]) => {
       if (v === undefined || v === '') params.delete(k);
       else params.set(k, v);
@@ -325,17 +348,18 @@ function ShopContent() {
   };
 
   const applyFilters = () => {
+    setLimit(12);
     update({
       category: pendingCategory || undefined,
       isOnSale: pendingIsOnSale ? 'true' : undefined,
       color: pendingColors.length ? pendingColors.join(',') : undefined,
       size: pendingSizes.length ? pendingSizes.join(',') : undefined,
-      page: '1',
     });
     setSidebarOpen(false);
   };
 
   const clearAll = () => {
+    setLimit(12);
     setPendingCategory('');
     setPendingIsOnSale(false);
     setPendingColors([]);
@@ -353,22 +377,6 @@ function ShopContent() {
     setPendingSizes((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
     );
-  };
-
-  const pageNumbers = () => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    if (page <= 3) {
-      return [1, 2, 3, '...', totalPages];
-    }
-
-    if (page >= totalPages - 2) {
-      return [1, '...', totalPages - 2, totalPages - 1, totalPages];
-    }
-
-    return [1, '...', page, '...', totalPages];
   };
 
   const hasActiveFilters = Boolean(
@@ -600,7 +608,7 @@ function ShopContent() {
                 <span className="text-xs text-gray-500 font-medium">Sort by:</span>
                 <select
                   value={sortRaw}
-                  onChange={(e) => update({ sort: e.target.value, page: '1' })}
+                  onChange={(e) => update({ sort: e.target.value })}
                   className="bg-transparent text-sm font-bold text-black outline-none cursor-pointer"
                 >
                   <option value="newest">Newest</option>
@@ -616,22 +624,13 @@ function ShopContent() {
           {hasActiveFilters && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
 
-              {/* {activeCategory && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
-                  {activeCategory}
-                  <button onClick={() => update({ category: undefined, page: '1' })} className="hover:text-red-500">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              )} */}
-
               {activeColors.map((c) => (
                 <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full capitalize">
                   Color: {c}
                   <button
                     onClick={() => {
                       const newColors = activeColors.filter((x) => x !== c);
-                      update({ color: newColors.length ? newColors.join(',') : undefined, page: '1' });
+                      update({ color: newColors.length ? newColors.join(',') : undefined });
                     }}
                     className="hover:text-red-500"
                   >
@@ -639,25 +638,11 @@ function ShopContent() {
                   </button>
                 </span>
               ))}
-              {/* {activeSizes.map((s) => (
-                <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-black text-xs font-medium rounded-full uppercase">
-                  Size: {s}
-                  <button
-                    onClick={() => {
-                      const newSizes = activeSizes.filter((x) => x !== s);
-                      update({ size: newSizes.length ? newSizes.join(',') : undefined, page: '1' });
-                    }}
-                    className="hover:text-red-500"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))} */}
 
             </div>
           )}
 
-          {isLoading || isFetching ? (
+          {(isLoading || (isFetching && products.length === 0)) ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
               <ProductGridSkeleton count={12} />
             </div>
@@ -680,52 +665,16 @@ function ShopContent() {
             </div>
           )}
 
-          {totalPages > 1 && !isLoading && !isFetching && (
-            <div className="flex items-center justify-between gap-1 sm:gap-4 border-t border-gray-200 pt-6 mt-4 w-full flex-nowrap">
-              <button
-                disabled={page <= 1}
-                onClick={() => update({ page: String(page - 1) })}
-                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black hover:text-white hover:border-black transition-all shrink-0 bg-white text-gray-700 shadow-sm"
-                aria-label="Previous Page"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span className="inline">Previous</span>
-              </button>
-
-              <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-nowrap shrink-0">
-                {pageNumbers().map((num, i) =>
-                  num === '...' ? (
-                    <span
-                      key={`ellipsis-${i}`}
-                      className="w-5 sm:w-6 text-center text-gray-400 font-bold select-none text-xs sm:text-sm shrink-0"
-                    >
-                      …
-                    </span>
-                  ) : (
-                    <button
-                      key={`page-${num}`}
-                      onClick={() => update({ page: String(num) })}
-                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-center shrink-0 ${page === num
-                          ? 'bg-black text-white font-bold shadow-md'
-                          : 'hover:bg-gray-100 text-gray-700 border border-gray-200 bg-white shadow-sm'
-                        }`}
-                    >
-                      {num}
-                    </button>
-                  )
-                )}
-              </div>
-
-              <button
-                disabled={page >= totalPages}
-                onClick={() => update({ page: String(page + 1) })}
-                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black hover:text-white hover:border-black transition-all shrink-0 bg-white text-gray-700 shadow-sm"
-                aria-label="Next Page"
-              >
-                <span className="inline">Next</span>
-                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              </button>
-            </div>
+          {/* Centered View More (Load More) Button */}
+          {!isLoading && (
+            <ViewMoreButton
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore}
+              isLoading={isFetchingMore}
+              currentCount={products.length}
+              totalCount={totalProducts}
+              itemName="products"
+            />
           )}
         </main>
       </div>
