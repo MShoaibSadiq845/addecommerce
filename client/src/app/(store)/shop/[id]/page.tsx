@@ -382,7 +382,7 @@ export default function ProductDetailPage() {
               {/* Display image changes freely with thumbnail selection for all products */}
               <Image src={images[selectedImage] || images[0]} alt={product.name} fill className="object-cover" priority />
               {product.isOnSale && (
-                <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                <span className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                   -{discount}%
                 </span>
               )}
@@ -413,7 +413,7 @@ export default function ProductDetailPage() {
               </span>
               {product.isOnSale && (
                 <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-200">
-                  Save {discount}%
+                  Save Rs.{(strikethroughPrice - effectivePrice).toLocaleString()}
                 </span>
               )}
             </div>

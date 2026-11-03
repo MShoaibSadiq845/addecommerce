@@ -172,7 +172,7 @@ function ProductCard({ product, delay = 0 }: { product: any; delay?: number }) {
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-105 transition-transform duration-500" />
           {product.isOnSale && (
-            <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
               -{discount}%
             </span>
           )}
